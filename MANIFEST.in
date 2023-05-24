@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include fashion_navya *.css
+recursive-include fashion_navya *.csv
+recursive-include fashion_navya *.html
+recursive-include fashion_navya *.ico
+recursive-include fashion_navya *.js
+recursive-include fashion_navya *.json
+recursive-include fashion_navya *.md
+recursive-include fashion_navya *.png
+recursive-include fashion_navya *.py
+recursive-include fashion_navya *.svg
+recursive-include fashion_navya *.txt
+recursive-exclude fashion_navya *.pyc
