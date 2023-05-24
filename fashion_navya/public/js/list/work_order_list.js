@@ -4,10 +4,16 @@ frappe.listview_settings['Work Order'] = {
 	filters: [["status", "!=", "Stopped"]],
 	onload: function(listview) {
 		let user=frappe.session.user
-		console.log(user,'hello')
-               if (user in ['neha@navyacustom.com',"pawasthy11@gmail.com","sosowon@navyacustom.com","ksvwon@navyacustom.com"]){
-                    frappe.set_route("List", "Work Order", "Calendar");
-               }
+		let user_list=['pawasthy11@gmail.com','neha@navyacustom.com','sosowon@navyacustom.com','ksvwon@navyacustom.com']
+		// let user_all_roles=frappe.user_roles
+		// 	if(user_all_roles.includes("Sales Manager") || user_all_roles.includes("Sales Team")){
+		// 				frappe.set_route("List", "Work Order", "Calendar");
+    //            }
+			if (user_list.includes(user)){
+				frappe.route_options = {"sales_order":["is","set"]};
+				frappe.set_route("List", "Work Order");
+
+			}
 
 	},
 	get_indicator: function(doc) {
@@ -25,4 +31,3 @@ frappe.listview_settings['Work Order'] = {
 		}
 	}
 };
-
