@@ -10,6 +10,11 @@ app_license = "MIT"
 # Includes in <head>
 # ------------------
 
+
+app_include_js = [
+        "fashion_navya.bundle.js",
+]
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/fashion_navya/css/fashion_navya.css"
 # app_include_js = "/assets/fashion_navya/js/fashion_navya.js"
@@ -29,7 +34,15 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+
+
+doctype_js = {
+                "BOM":"public/js/custom_script/bom.js",
+                "Work Order":"public/js/custom_script/work_order.js",
+                "Stock Entry":"public/js/custom_script/stock_entry.js"
+            }
+
+
 doctype_list_js ={
         "Work Order":"public/js/list/work_order_list.js",
         "Job Card":"public/js/list/job_card_list.js"
