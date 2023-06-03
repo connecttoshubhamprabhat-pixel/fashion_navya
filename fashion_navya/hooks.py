@@ -157,10 +157,11 @@ doctype_list_js ={
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-#	"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
-# }
-#
+override_whitelisted_methods = {
+	#"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
+    "frappe.desk.form.load.getdoc":"fashion_navya.utils.overides.load.getdoc",
+}
+
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
