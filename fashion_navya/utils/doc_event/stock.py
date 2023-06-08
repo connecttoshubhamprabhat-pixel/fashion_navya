@@ -13,10 +13,10 @@ def warehouse_check_se(doc,method):
                     if data_w[0]['actual_qty']<0:
                         msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
                         frappe.throw(msg)
-                    if data_w[0]['actual_qty']>0:
-                        if data_w[0]['actual_qty']>i.qty:
-                            msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
-                            frappe.throw(msg)
+                    #if data_w[0]['actual_qty']>0:
+                        #if data_w[0]['actual_qty']>i.qty:
+                         #   msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
+                          #  frappe.throw(msg)
                 else:
                     msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
                     frappe.throw(msg)
@@ -26,7 +26,7 @@ def warehouse_check_se(doc,method):
 
 @frappe.whitelist()
 def check_work_flow(doc,method):
-    if doc.stock_entry_type in ['Material Transfer for Manufacture','Manufacture','Material Transfer']:
+    if doc.stock_entry_type in ['Material Transfer for Manufacture','Manufacture','Material Transfer'] and  not doc.get("__islocal"):
         olddoc=doc.get_doc_before_save()
         user=frappe.session.user
         if olddoc.workflow_state in ['Authorised','Received']:
