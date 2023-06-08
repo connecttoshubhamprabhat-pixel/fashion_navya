@@ -121,13 +121,12 @@ doctype_list_js ={
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-#	"*": {
-#		"on_update": "method",
-#		"on_cancel": "method",
-#		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Stock Entry": {
+		"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
+        "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
+	},
+}
 
 # Scheduled Tasks
 # ---------------
