@@ -39,7 +39,8 @@ app_include_js = [
 doctype_js = {
                 "BOM":"public/js/custom_script/bom.js",
                 "Work Order":"public/js/custom_script/work_order.js",
-                "Stock Entry":"public/js/custom_script/stock_entry.js"
+                "Stock Entry":"public/js/custom_script/stock_entry.js",
+                "Item":"public/js/custom_script/item.js"
             }
 
 
