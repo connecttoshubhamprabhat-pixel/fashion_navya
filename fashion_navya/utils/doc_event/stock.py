@@ -13,6 +13,10 @@ def warehouse_check_se(doc,method):
                     if data_w[0]['actual_qty']<0:
                         msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
                         frappe.throw(msg)
+                    if data_w[0]['actual_qty']>0:
+                        if data_w[0]['actual_qty']>i.qty:
+                            msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
+                            frappe.throw(msg)
                 else:
                     msg=" {}/row No:- {} Out of Stock".format(i.item_code,row)
                     frappe.throw(msg)
