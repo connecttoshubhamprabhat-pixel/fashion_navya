@@ -123,8 +123,8 @@ doctype_list_js ={
 
 doc_events = {
 	"Stock Entry": {
-		"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
-        "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
+		#"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
+               # "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
 	},
 }
 
