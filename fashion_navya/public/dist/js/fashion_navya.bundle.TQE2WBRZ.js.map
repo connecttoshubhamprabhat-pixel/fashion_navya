@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../apps/fashion_navya/fashion_navya/public/js/test.js"],
+  "sourcesContent": ["console.log('aaa')\n"],
+  "mappings": ";;AAAA,UAAQ,IAAI,KAAK;",
+  "names": []
+}
