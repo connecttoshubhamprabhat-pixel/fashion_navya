@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, time_diff_in_hours
+from frappe import utils
 
 
 
@@ -67,11 +68,12 @@ def get_data(filters):
 
 	print(filters.from_date,'af')
 	print(filters.to_date,'at')
+	todays=utils.today()
 
 	if filters.stype:
-		se=frappe.db.sql(""" select name, posting_date,stock_entry_type from `tabStock Entry` where docstatus=0 and posting_date between '{}' and '{}' and stock_entry_type='{}' """.format(filters.from_date,filters.to_date,filters.stype),as_dict=1)
+		se=frappe.db.sql(""" select name, posting_date,stock_entry_type from `tabStock Entry` where docstatus <2 and posting_date between '{}' and '{}' and stock_entry_type='{}' and CAST(modified AS date)='{}' and workflow_state in ('Authorised','Received')  """.format(filters.from_date,filters.to_date,filters.stype,todays),as_dict=1)
 	else:
-		se=frappe.db.sql(""" select name, posting_date,stock_entry_type from `tabStock Entry` where docstatus=0 and posting_date between '{}' and '{}'  """.format(filters.from_date,filters.to_date),as_dict=1)
+		se=frappe.db.sql(""" select name, posting_date,stock_entry_type from `tabStock Entry` where docstatus=0 and posting_date between '{}' and '{}'  and CAST(modified AS date)='{}' and workflow_state in ('Authorised','Received') """.format(filters.from_date,filters.to_date,todays),as_dict=1)
 
 	for i in se:
 		sedoc=frappe.get_doc("Stock Entry",i['name'])
