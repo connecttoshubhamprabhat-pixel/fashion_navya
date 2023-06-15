@@ -126,6 +126,9 @@ doc_events = {
 		#"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
                # "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
 	},
+    "POS Invoice":{
+            "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
+        },
 }
 
 # Scheduled Tasks
@@ -160,6 +163,8 @@ doc_events = {
 override_whitelisted_methods = {
 	#"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
        #"frappe.desk.form.load.getdoc":"fashion_navya.utils.overides.load.getdoc",
+       "erpnext.selling.page.point_of_sale.point_of_sale.get_items":"fashion_navya.utils.overides.pos.get_items_custom",
+       "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability":"fashion_navya.utils.overides.pos.get_stock_availability_custom",
 }
 
 # each overriding function accepts a `data` argument;
