@@ -125,6 +125,8 @@ doc_events = {
 	"Stock Entry": {
 		#"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
                # "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
+               "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
+               "on_submit":["fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
