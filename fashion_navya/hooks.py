@@ -40,7 +40,8 @@ doctype_js = {
                 "BOM":"public/js/custom_script/bom.js",
                 "Work Order":"public/js/custom_script/work_order.js",
                 "Stock Entry":"public/js/custom_script/stock_entry.js",
-                "Item":"public/js/custom_script/item.js"
+                "Item":"public/js/custom_script/item.js",
+                #"Sales Order":"public/js/custom_script/sales_order.js",
             }
 
 
@@ -131,6 +132,9 @@ doc_events = {
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
         },
+    "Sales Order":{
+        "after_insert":["fashion_navya.utils.doc_event.sales_order.show_live_update"],
+    },
 }
 
 # Scheduled Tasks
