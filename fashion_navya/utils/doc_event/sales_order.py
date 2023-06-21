@@ -50,7 +50,7 @@ def show_live_update(doc,method):
             i.db_set("delivery_date",after_12_days, update_modified=False)
             continue
 
-        if sum(customer_wo)==0 or len(wo_draft)==0:
+        if sum(customer_wo)==0 and len(wo_draft)==0:
             after_26_days = add_to_date(datetime.now(), days=26, as_string=True)
             i.db_set("delivery_date",after_26_days, update_modified=False)
             continue
