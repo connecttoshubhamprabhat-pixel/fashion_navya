@@ -133,10 +133,10 @@ doc_events = {
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
         },
     "Sales Order":{
-        "after_insert":["fashion_navya.utils.doc_event.sales_order.show_live_update"],
+        #"after_insert":["fashion_navya.utils.doc_event.sales_order.show_live_update"],
     },
     "Stock Ledger Entry":{
-        "validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
+        #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
     },
 }
 
