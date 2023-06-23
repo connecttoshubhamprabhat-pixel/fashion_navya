@@ -11,7 +11,8 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
         callback: function(r) {
             console.log(r.message,999)
               if(r.message){
-                row['delivery_date']=r.message
+                row['delivery_date']=r.message[0]
+                row['delivery_order']=r.message[1]
             }
 
             if (r.message) {
@@ -23,5 +24,3 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
         }
     });
 });
-
-
