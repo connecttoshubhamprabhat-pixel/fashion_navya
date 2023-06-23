@@ -3,10 +3,11 @@ from erpnext.stock.dashboard.item_dashboard import get_data
 from datetime import datetime
 from frappe.utils import add_to_date
 from frappe.utils import today
+from frappe import utils
 
 @frappe.whitelist()
 def show_live_update(item=None,customer=None):
-    if not item and not cutomer:
+    if not item and not customer:
         return
     customer=customer
     today = datetime.now().strftime('%Y-%m-%d')
@@ -45,6 +46,16 @@ def show_live_update(item=None,customer=None):
     print(customer_wo,'customer_wo')
 
     check_stock_other=[0]
+
+    if sum(santushti_stock_total)!=0:
+        date_today=utils.today()
+        #frappe.throw("Please handle by POS")
+        return date_today,"POS"
+
+
+
+
+
     if sum(santushti_stock_total)==0:
         print('zero')
         stock_other=[0]
