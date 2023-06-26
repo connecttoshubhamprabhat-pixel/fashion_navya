@@ -41,7 +41,7 @@ doctype_js = {
                 "Work Order":"public/js/custom_script/work_order.js",
                 "Stock Entry":"public/js/custom_script/stock_entry.js",
                 "Item":"public/js/custom_script/item.js",
-                #"Sales Order":"public/js/custom_script/sales_order.js",
+                "Sales Order":"public/js/custom_script/sales_order.js",
             }
 
 

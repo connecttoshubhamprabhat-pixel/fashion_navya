@@ -22,13 +22,12 @@ def custom_title_fields(doc,method):
         if not size:
             data="Stock:{},Size:{}".format(sum(net_stock),'None')
             docitem.set('custom_title',data)
-            docitem.save(ignore_permissions=True)
-            return
+            frappe.db.set_value('Item',docitem.name,'custom_title',data, update_modified=False)
+            frappe.db.commit()
 
         if size:
             size=size[0]['attribute_value']
             data="Stock:{},Size:{}".format(sum(net_stock) or 0,size)
-            docitem.db_set("custom_title",data, update_modified=False)
-            docitem.db_set("product_size",size, update_modified=False)
-            docitem.save(ignore_permissions=True)
-            return
+            frappe.db.set_value('Item',docitem.name,'custom_title',data, update_modified=False)
+            frappe.db.set_value('Item',docitem.name,'product_size',size, update_modified=False)
+            frappe.db.commit()
