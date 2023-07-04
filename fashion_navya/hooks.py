@@ -138,6 +138,12 @@ doc_events = {
     "Stock Ledger Entry":{
         #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
     },
+    "Subcontracting Order":{
+        "validate":["fashion_navya.utils.doc_event.suborder.only_take_kit_item"],
+    },
+    "Work Order":{
+        "validate":["fashion_navya.utils.doc_event.work.check_item_no_subo"],
+    },
 }
 
 # Scheduled Tasks

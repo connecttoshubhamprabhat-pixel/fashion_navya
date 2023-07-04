@@ -167,3 +167,11 @@ def submit_js(name=None):
 				frappe.db.commit()
 
 
+
+
+@frappe.whitelist()
+def check_item_no_subo(doc,method):
+	if doc.production_item:
+		getsubo=frappe.db.sql(""" select parent from `tabSubcontracting Order Item` where docstatus <2 and item_code='{}'  """.format(doc.production_item),as_dict=1)
+		if len(getsubo)!=0:
+			frappe.throw("it appears to belong subcontracting item")
