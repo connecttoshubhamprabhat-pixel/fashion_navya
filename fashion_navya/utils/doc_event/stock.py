@@ -27,7 +27,7 @@ def warehouse_check_se(doc,method):
 
 @frappe.whitelist()
 def check_work_flow(doc,method):
-    if doc.stock_entry_type in ['Material Transfer for Manufacture','Manufacture','Material Transfer'] and  not doc.get("__islocal"):
+    if doc.stock_entry_type in ["Repack",'Material Transfer for Manufacture','Manufacture','Material Transfer'] and  not doc.get("__islocal"):
         olddoc=doc.get_doc_before_save()
         user=frappe.session.user
         if olddoc.workflow_state in ['Authorised','Received']:
@@ -69,4 +69,14 @@ def check_warehouse_wise_wrkflw(doc,method):
             if get_pf:
                 if get_pf[0]['role'] not in stock_roles  and get_pf[0]['location']=="Sainik Farms":
                     frappe.throw("It will be receive by Stock team")
+
+
+
+@frappe.whitelist()
+def throw_error_se(doc,method):
+    user=frappe.session.user
+    if doc.stock_entry_type in ['Material Receipt','Material Issue']:
+        if user not in ["Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
+            frappe.throw("Sorry you can't receive")
+
 

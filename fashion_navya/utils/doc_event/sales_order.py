@@ -37,13 +37,14 @@ def show_live_update(item=None,customer=None):
     if child_list_santushti:
         for wc1 in child_list_santushti:
             data=get_data(item_code=item,warehouse=wc1)
-            if data:
+            if data and wc1!="SCustomer Rack - NAVYA":
                 for wc2 in data:
-                    santushti_stock_total.append(int(wc2['actual_qty']))
-    print(santushti_stock_total,'santushti_stock_total')
-    print(customer_wo,'customer_wo')
-    print(work_order_projected,'work_order_projected')
-    print(customer_wo,'customer_wo')
+                    if int(wc2['actual_qty'])>0:
+                        santushti_stock_total.append(int(wc2['actual_qty']))
+    # print(santushti_stock_total,'santushti_stock_total')
+    # print(customer_wo,'customer_wo')
+    # print(work_order_projected,'work_order_projected')
+    # print(customer_wo,'customer_wo')
 
     check_stock_other=[0]
 

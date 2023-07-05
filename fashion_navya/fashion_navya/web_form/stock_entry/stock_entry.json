@@ -18,10 +18,16 @@
  "doctype": "Web Form",
  "idx": 0,
  "is_standard": 1,
- "list_columns": [],
+ "list_columns": [
+  {
+   "fieldname": "subcontracting_order",
+   "fieldtype": "Link",
+   "label": "Subcontracting Order"
+  }
+ ],
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2023-07-04 13:31:45.925262",
+ "modified": "2023-07-04 15:02:13.489663",
  "modified_by": "pawasthy11@gmail.com",
  "module": "Fashion Navya",
  "name": "stock-entry",

@@ -124,10 +124,9 @@ doctype_list_js ={
 
 doc_events = {
 	"Stock Entry": {
-		#"before_save":["fashion_navya.utils.doc_event.stock.warehouse_check_se"],
-               # "validate":["fashion_navya.utils.doc_event.stock.check_work_flow"],
+		        "before_save":["fashion_navya.utils.doc_event.stock.check_work_flow","fashion_navya.utils.doc_event.stock.warehouse_check_se"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
-               "on_submit":["fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
+               "on_submit":["fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
@@ -178,6 +177,7 @@ doc_events = {
 override_whitelisted_methods = {
 	#"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
        #"frappe.desk.form.load.getdoc":"fashion_navya.utils.overides.load.getdoc",
+       "frappe.www.list.get_list_data":"fashion_navya.utils.website.web_frm.get_list_data_custom",
        "erpnext.selling.page.point_of_sale.point_of_sale.get_items":"fashion_navya.utils.overides.pos.get_items_custom",
        "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability":"fashion_navya.utils.overides.pos.get_stock_availability_custom",
 }
