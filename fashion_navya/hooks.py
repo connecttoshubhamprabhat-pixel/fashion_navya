@@ -143,6 +143,9 @@ doc_events = {
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.work.check_item_no_subo"],
     },
+    "Document Record":{
+        "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
+    },
 }
 
 # Scheduled Tasks

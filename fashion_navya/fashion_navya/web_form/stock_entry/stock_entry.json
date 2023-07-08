@@ -27,7 +27,7 @@
  ],
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2023-07-04 15:02:13.489663",
+ "modified": "2023-07-05 16:13:22.939245",
  "modified_by": "pawasthy11@gmail.com",
  "module": "Fashion Navya",
  "name": "stock-entry",
@@ -40,6 +40,20 @@
  "show_sidebar": 0,
  "title": "Stock Entry",
  "web_form_fields": [
+  {
+   "allow_read_on_all_link_options": 0,
+   "depends_on": "eval:doc.purpose==\"Send to Subcontractor\"",
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "hidden": 0,
+   "label": "Purchase Order",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "Purchase Order",
+   "read_only": 0,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
   {
    "allow_read_on_all_link_options": 0,
    "fieldname": "purpose",
