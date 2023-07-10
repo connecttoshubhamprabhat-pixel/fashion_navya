@@ -49,7 +49,7 @@ def get_columns():
 			"fieldtype": "Link",
 			"fieldname": "pe",
 			"options": "Payment Entry",
-			"width": 300,
+			"width":200,
 		},
 
 		{
@@ -68,6 +68,5 @@ def get_columns():
 		},
 
 		{"label": _("Paid Amount"), "fieldtype": "Float", "fieldname": "pa", "width": 150},
-		{"label": _("Received Amount"), "fieldtype": "Float", "fieldname": "ra", "width": 150},
 
 ]
