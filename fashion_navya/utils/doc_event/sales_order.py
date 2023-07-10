@@ -116,7 +116,8 @@ def make_se_transfer(doc,method):
                     continue
                 if source_warehouse:
                     row.s_warehouse=source_warehouse[0]
-                    row.t_warehouse="SStore - NAVYA"
+                    if doc.shop_name=="Santushti":
+                        row.t_warehouse="SStore - NAVYA"
 
                 try:
                     se_doc.insert(ignore_permissions=True)
@@ -134,6 +135,7 @@ def make_se_transfer(doc,method):
     else:
         d={"doctype":"Stock Entry","rfse":"By System","stock_entry_type":"Material Transfer"}
         se_doc=frappe.get_doc(d)
+        check_insert=[]
         for item in doc.items:
             if item.delivery_order=="Post-Order":
                 row = se_doc.append("items", {})
@@ -144,16 +146,61 @@ def make_se_transfer(doc,method):
                 if len(get_datas)!=0 and not source_warehouse :
                     for m in get_datas:
                         if m['actual_qty']>=item.qty:
+                            check_insert.append("yes")
                             source_warehouse.append(m['warehouse'])
                             break
                 if not source_warehouse:
                     continue
                 if source_warehouse:
                     row.s_warehouse=source_warehouse[0]
-                    row.t_warehouse="SStore - NAVYA"
+                    if doc.shop_name=="Santushti":
+                        row.t_warehouse="SStore - NAVYA"
 
         try:
-            se_doc.insert(ignore_permissions=True)
+            if check_insert:
+                se_doc.insert(ignore_permissions=True)
         except:
             frappe.msgprint("An error occurred during the creation of the stock entry.")
             pass
+
+
+
+
+@frappe.whitelist()
+def make_workorder_pre(doc,method):
+    for i in doc.items:
+        if i.delivery_order=="Pre-Order":
+            d={"doctype":"Work Order","production_item":i.item_code,"qty":2}
+            get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1  and item='{}' """.format(i.item_code),as_dict=1)
+            if not get_bom:
+                msg="Sorry BOM is not created for Row no: {} Line Item".format(i.idx)
+                frappe.msgprint(msg)
+                continue
+            if get_bom:
+                if get_bom[0]['name']!=None:
+                    d['bom_no']=get_bom[0]['name']
+                    d['sales_order']=doc.name
+                    if doc.delivery_type=="Courier":
+                        if frappe.db.exists("Warehouse","Courier Station - NAVYA"):
+                            d['fg_warehouse']="Courier Station - NAVYA"
+                            d['scrap_warehouse']="Courier Station - NAVYA"
+
+                    if doc.delivery_type=="Will come for trial":
+                        if frappe.db.exists("Warehouse","Navya Finish Product RACK-4 - NAVYA") and frappe.db.exists("Warehouse","Navya Finish Product RACK-4 - NAVYA"):
+                            if doc.delivery_location in ['Sainik Farm','From Sainik Farm']:
+                                d["fg_warehouse"]="Navya Finish Product RACK-4 - NAVYA"
+                                d["scrap_warehouse"]="Navya Finish Product RACK-4 - NAVYA"
+
+                            if doc.delivery_location in ['Santushti','From Santushti']:
+                                d["fg_warehouse"]="Srack4 - NAVYA"
+                                d["scrap_warehouse"]="Srack4 - NAVYA"
+
+
+                    wodoc=frappe.get_doc(d)
+                    try:
+                        wodoc.insert(ignore_permissions=True)
+                        msg2="Work order {} is Created for row no {} Line Item".format(wodoc.name,i.idx)
+                        frappe.msgprint(msg2)
+                    except:
+                        frappe.msgprint("An error occurred during the creation of the Work Order.")
+                        pass
