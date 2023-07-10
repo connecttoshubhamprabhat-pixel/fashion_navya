@@ -80,3 +80,80 @@ def show_live_update(item=None,customer=None):
         after_26_days = add_to_date(datetime.now(), days=26, as_string=True)
         #i.db_set("delivery_date",after_26_days, update_modified=False)
         return after_26_days,'Pre-Order'
+
+
+
+
+
+
+
+@frappe.whitelist()
+def make_se_transfer(doc,method):
+    shop_name_list=["Santushti"]
+    if not frappe.db.exists("Warehouse","SStore - NAVYA"):
+        return
+    all_dt_orders=[]
+    for i  in doc.items:
+        all_dt_orders.append(i.delivery_order)
+
+    all_dt_orders_rm_duplicate=list(set(all_dt_orders))
+    if len(all_dt_orders_rm_duplicate)>1:
+        for item in doc.items:
+            if item.delivery_order=="Post-Order":
+                d={"doctype":"Stock Entry","rfse":"By System","stock_entry_type":"Material Transfer"}
+                se_doc=frappe.get_doc(d)
+                row = se_doc.append("items", {})
+                row.item_code=item.item_code
+                row.qty=item.qty
+                get_datas=get_data(item_code=item.item_code)
+                source_warehouse=[]
+                if len(get_datas)!=0 and not source_warehouse :
+                    for m in get_datas:
+                        if m['actual_qty']>=item.qty:
+                            source_warehouse.append(m['warehouse'])
+                            break
+                if not source_warehouse:
+                    continue
+                if source_warehouse:
+                    row.s_warehouse=source_warehouse[0]
+                    row.t_warehouse="SStore - NAVYA"
+
+                try:
+                    se_doc.insert(ignore_permissions=True)
+                except:
+                    frappe.msgprint("An error occurred during the creation of the stock entry.")
+                    pass
+
+
+
+
+
+
+
+
+    else:
+        d={"doctype":"Stock Entry","rfse":"By System","stock_entry_type":"Material Transfer"}
+        se_doc=frappe.get_doc(d)
+        for item in doc.items:
+            if item.delivery_order=="Post-Order":
+                row = se_doc.append("items", {})
+                row.item_code=item.item_code
+                row.qty=item.qty
+                get_datas=get_data(item_code=item.item_code)
+                source_warehouse=[]
+                if len(get_datas)!=0 and not source_warehouse :
+                    for m in get_datas:
+                        if m['actual_qty']>=item.qty:
+                            source_warehouse.append(m['warehouse'])
+                            break
+                if not source_warehouse:
+                    continue
+                if source_warehouse:
+                    row.s_warehouse=source_warehouse[0]
+                    row.t_warehouse="SStore - NAVYA"
+
+        try:
+            se_doc.insert(ignore_permissions=True)
+        except:
+            frappe.msgprint("An error occurred during the creation of the stock entry.")
+            pass
