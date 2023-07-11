@@ -4,6 +4,7 @@ from frappe.model.document import Document
 from frappe.utils import nowdate
 
 from erpnext.accounts.party import get_party_account
+from erpnext.accounts.doctype.payment_request.payment_request import make_payment_entry
 from erpnext.accounts.doctype.payment_order.payment_order import make_payment_records
 
 
@@ -20,3 +21,25 @@ def create_jv_pay_oreders(name=None):
     for s in sup:
         make_payment_records(name=name,supplier=s)
         frappe.db.commit()
+
+@frappe.whitelist()
+def make_payment_entry(docname=None):
+    if not docname:
+        return
+    paydoc=frappe.get_doc("Payment Order",docname)
+    pe_request=[]
+    for i in paydoc.references:
+        pe_request.append(i.payment_request)
+
+    created=[]
+    if pe_request:
+        for p in pe_request:
+            doc = frappe.get_doc("Payment Request",p)
+            pe_docs=doc.create_payment_entry(submit=True).as_dict()
+            if pe_docs.get("name"):
+                made_pe=frappe.get_doc("Payment Entry",pe_docs.get("name"))
+                made_pe.db_set("payment_order",docname, update_modified=False)
+            frappe.db.commit()
+            created.append("yes")
+    if created:
+        frappe.msgprint("Payment Entry is created")
