@@ -154,7 +154,11 @@ doc_events = {
     "Payment Entry":{
         "on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
         "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
-    }
+    },
+    "Bank Deposit Slip":{
+    "on_submit":["fashion_navya.utils.doc_event.api_1.submit_all_pe"],
+    "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
+    },
 }
 
 # Scheduled Tasks
