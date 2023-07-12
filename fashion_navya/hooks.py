@@ -151,6 +151,10 @@ doc_events = {
         "validate":["fashion_navya.utils.doc_event.pay_order.calculate_total_amount"],
 
     },
+    "Payment Entry":{
+        "on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
+        "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
+    }
 }
 
 # Scheduled Tasks
