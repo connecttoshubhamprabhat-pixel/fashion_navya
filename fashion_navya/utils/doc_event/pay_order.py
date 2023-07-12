@@ -39,7 +39,23 @@ def make_payment_entry(docname=None):
             if pe_docs.get("name"):
                 made_pe=frappe.get_doc("Payment Entry",pe_docs.get("name"))
                 made_pe.db_set("payment_order",docname, update_modified=False)
+                made_pe.db_set("reference_no",paydoc.reference_no, update_modified=False)
+                made_pe.db_set("reference_date",paydoc.reference_date, update_modified=False)
             frappe.db.commit()
             created.append("yes")
     if created:
         frappe.msgprint("Payment Entry is created")
+        doc.reload()
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def calculate_total_amount(doc,method):
+    amount=0
+    for i in doc.references:
+        amount +=i.amount
+        
+        
+    doc.set("total_amount",0.0)
+    doc.set("total_amount",amount)

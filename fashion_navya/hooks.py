@@ -147,6 +147,10 @@ doc_events = {
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
     },
+    "Payment Order":{
+        "validate":["fashion_navya.utils.doc_event.pay_order.calculate_total_amount"],
+
+    },
 }
 
 # Scheduled Tasks

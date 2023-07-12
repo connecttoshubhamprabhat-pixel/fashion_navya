@@ -53,7 +53,7 @@ def get_columns():
 	return [
 
 		{
-			"label":"Cash To receive",
+			"label":"Cash To Customer",
 			"fieldtype": "Link",
 			"fieldname": "ctor",
 			"options": "Account",
@@ -68,14 +68,14 @@ def get_columns():
 		},
 
 		{
-			"label":"Cash to received Amount",
-			"fieldtype": "Float",
+			"label":"Customer received Amount",
+			"fieldtype": "Data",
 			"fieldname": "ramt",
 			"width":180,
 		},
 		{
-			"label":"Cash to bank Amount",
-			"fieldtype": "Float",
+			"label":"Cash Deposited Bank Amount",
+			"fieldtype": "Data",
 			"fieldname": "bamt",
 			"width":165,
 		},
