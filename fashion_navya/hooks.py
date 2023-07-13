@@ -42,6 +42,7 @@ doctype_js = {
                 "Stock Entry":"public/js/custom_script/stock_entry.js",
                 "Item":"public/js/custom_script/item.js",
                 "Sales Order":"public/js/custom_script/sales_order.js",
+                "Pattern":"public/js/custom_script/pattern.js",
             }
 
 
