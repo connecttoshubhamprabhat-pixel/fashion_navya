@@ -43,6 +43,7 @@ doctype_js = {
                 "Item":"public/js/custom_script/item.js",
                 "Sales Order":"public/js/custom_script/sales_order.js",
                 "Pattern":"public/js/custom_script/pattern.js",
+                "Payment Entry":"public/js/custom_script/payment_entry.js",
             }
 
 
@@ -155,6 +156,7 @@ doc_events = {
     "Payment Entry":{
         "on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
         "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
+        "after_insert":["fashion_navya.utils.doc_event.pe.check_duplicate_entry"],
     },
     "Bank Deposit Slip":{
     "on_submit":["fashion_navya.utils.doc_event.api_1.submit_all_pe"],

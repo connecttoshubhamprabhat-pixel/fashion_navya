@@ -32,3 +32,15 @@ def cancel_pe_cash(doc,method):
             if docpe.docstatus==1:
                 docpe.cancel()
                 frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def check_duplicate_entry(doc,method):
+	if doc.customer_pe:
+		pe_old=frappe.db.sql("""select name from `tabPayment Entry` where docstatus <2 and customer_pe='{}' and name!='{}'  """.format(doc.customer_pe,doc.name),as_dict=1)
+		if len(pe_old)!=0:
+			msg="Sorry The Cash entry is being duplicated,for {}".format(doc.customer_pe)
+			frappe.throw(msg)
+
