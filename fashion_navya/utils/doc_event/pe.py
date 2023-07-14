@@ -4,7 +4,7 @@ import frappe
 #jul 12/2023
 @frappe.whitelist()
 def create_pe_for_internal(doc,method):
-    if doc.payment_type=="Receive":
+    if doc.payment_type=="Receive" and doc.mode_of_payment=="Cash":
         d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
         d['payment_transfer']="Cash to Bank"
         d['payment_type']="Internal Transfer"
