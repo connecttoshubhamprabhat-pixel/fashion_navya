@@ -8,6 +8,8 @@ from erpnext.accounts.doctype.pos_invoice.pos_invoice import (get_bin_qty,get_po
 @frappe.whitelist()
 def get_stock_availability_custom(item_code, warehouse):
     #frappe.throw("helo ps 12")
+    print(item_code,'11code')
+    print(warehouse,'12ware')
     group_warehouses = frappe.get_doc('Warehouse',warehouse)
     if group_warehouses.is_group==1:
         child_warehouses = frappe.get_all('Warehouse', filters={'parent_warehouse':warehouse},fields=['name'])
@@ -107,6 +109,7 @@ def get_items_custom(start, page_length, price_list, item_group, pos_profile, se
 
 
     collect_data=[]
+    print(total_warehouse,'total_warehouse')
     for wt in total_warehouse:
         warehouse=wt
         items_data = frappe.db.sql(

@@ -5,6 +5,7 @@ from erpnext.stock.dashboard.item_dashboard import get_data
 @frappe.whitelist()
 def warehouse_check_se(doc,method):
     if not doc.get("__islocal"):
+        getitems=[]
         for i in doc.items:
             row=i.idx
             if doc.stock_entry_type in ["Material Transfer for Manufacture","Material Transfer"]:
@@ -76,7 +77,107 @@ def check_warehouse_wise_wrkflw(doc,method):
 def throw_error_se(doc,method):
     user=frappe.session.user
     if doc.stock_entry_type in ['Material Receipt','Material Issue']:
-        if user not in ["Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
-            frappe.throw("Sorry you can't receive")
+        if user not in ["kundan@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
+            if doc.owner!="amita@navya.biz":
+                frappe.throw("Sorry you can't receive")
+    
+@frappe.whitelist()
+def count_qty_noc(doc,method):
+	noc=[0]
+	qty_total=[0]
+	ip=[0]
+	if not doc.get("__islocal") and doc.docstatus<2:
+		for i in doc.items:
+			idoc=frappe.get_doc("Item",i.item_code)
+			val=idoc.noc*i.qty
+			i.db_set("noc",val, update_modified=False)
+			qty_total.append(i.qty)
+			noc.append(i.noc)
+			ip.append(i.items_price)
+
+	doc.set("tnoc",0)
+	doc.set("tip",0)
+	doc.set("total_qty",0)
+	doc.set("tnoc",sum(noc))
+	doc.set("tip",sum(ip))
+	doc.set("total_qty",sum(qty_total))
 
 
+@frappe.whitelist(allow_guest=True)
+def updte_incharge_wo(doc,method):
+    if doc.work_order and doc.stock_entry_type=="Material Transfer for Manufacture":
+        frappe.db.set_value('Work Order',doc.work_order, 'incharge',frappe.session.user, update_modified=False)
+        frappe.db.commit()
+    
+
+
+@frappe.whitelist(allow_guest=True)
+def create_tag_m(doc,method):
+    get_tag=frappe.db.sql(""" select name from `tabItem Tag` where stock_entry='{}'  """.format(doc.name),as_dict=1)
+    if len(get_tag)!=0:
+        frappe.delete_doc("Item Tag",get_tag[0]['name'])
+    if doc.stock_entry_type=="Manufacture":
+        d={"doctype":"Item Tag","stock_entry":doc.name}
+        d['automated']=1
+        tag=frappe.get_doc(d)
+        for i in doc.items:
+            item_doc=frappe.get_doc("Item",i.item_code)
+            ip=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and  item_code='{}'  ORDER BY modified DESC """.format(i.item_code),as_dict=1)
+            row = tag.append("items", {})
+            row.item_code=i.item_code
+            row.item_name=i.item_name
+            row.qty=i.qty
+            row.item_group=item_doc.item_group
+            if len(ip)!=0:
+                row.rate=ip[0]['price_list_rate']
+            else:
+                row.rate=0.0
+                
+                
+        tag.insert(ignore_permissions=True)
+        frappe.msgprint("Item tag is Created")
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_item_is_ma(doc,method):
+    if doc.items:
+        for i in doc.items:
+            indx=i.idx
+            item=i.item_code
+            msg="Sorry Item is not manufactured yet,row no {}".format(indx)
+            check_exists=frappe.db.sql(""" select name from `tabStock Entry` where docstatus=1 and stock_entry_type='Manufacture' and name in (select parent from `tabStock Entry Detail` where docstatus=1 and item_code='{}' )  """.format(item),as_dict=1)
+            if not check_exists:
+                frappe.throw(msg)
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_val_rate_item(doc,method):
+	if doc.stock_entry_type=="Manufacture":
+		for i in doc.items:
+			doc_item=frappe.get_doc("Item",i.item_code)
+			doc_item.db_set("valuation_rate",i.valuation_rate, update_modified=False)
+			doc_item.save(ignore_permissions=True)
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_capacity_qty(doc,method):
+	if doc.stock_entry_type in ["Manufacture","Send to Subcontractor"]:
+		return
+	for i in doc.items:
+		cp=frappe.db.sql("""select capacity from `tabWarehouse` where name='{}' """.format(i.t_warehouse),as_dict=1)
+		if i.t_warehouse:
+			data=get_data(item_code=i.item_code,warehouse=i.t_warehouse)
+			qty=0
+			if len(data)!=0:
+				for j in data:
+					if j['actual_qty']>0:
+						qty +=j['actual_qty']
+
+			qty_t=qty+i.qty
+			if int(cp[0]['capacity'])<qty_t:
+				frappe.throw("Sorry ,No space left on Warehouse row - {}".format(i.idx))

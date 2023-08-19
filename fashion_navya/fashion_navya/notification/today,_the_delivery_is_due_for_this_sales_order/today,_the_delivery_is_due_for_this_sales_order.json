@@ -1,0 +1,35 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "doc.docstatus==1",
+ "creation": "2023-07-20 16:39:37.536986",
+ "date_changed": "delivery_date",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Sales Order",
+ "enabled": 1,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "Add your message here",
+ "modified": "2023-07-20 16:39:37.536986",
+ "modified_by": "pawasthy11@gmail.com",
+ "module": "Fashion Navya",
+ "name": "Today, the delivery is due for this sales order",
+ "owner": "pawasthy11@gmail.com",
+ "recipients": [
+  {
+   "receiver_by_role": "Sales Manager"
+  },
+  {
+   "receiver_by_role": "Managing Director"
+  },
+  {
+   "receiver_by_role": "Sales Team"
+  }
+ ],
+ "send_system_notification": 1,
+ "send_to_all_assignees": 0,
+ "subject": "Today, the delivery is due for this sales order"
+}

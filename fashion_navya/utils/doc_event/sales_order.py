@@ -171,6 +171,8 @@ def make_workorder_pre(doc,method):
     for i in doc.items:
         if i.delivery_order=="Pre-Order":
             d={"doctype":"Work Order","production_item":i.item_code,"qty":2}
+            d['owner']="Administrator"
+            d['system']=1
             get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1  and item='{}' """.format(i.item_code),as_dict=1)
             if not get_bom:
                 msg="Sorry BOM is not created for Row no: {} Line Item".format(i.idx)
@@ -192,8 +194,8 @@ def make_workorder_pre(doc,method):
                                 d["scrap_warehouse"]="Navya Finish Product RACK-4 - NAVYA"
 
                             if doc.delivery_location in ['Santushti','From Santushti']:
-                                d["fg_warehouse"]="Srack4 - NAVYA"
-                                d["scrap_warehouse"]="Srack4 - NAVYA"
+                                d["fg_warehouse"]="Navya Store Office - NAVYA"
+                                d["scrap_warehouse"]="Navya Store Office - NAVYA"
 
 
                     wodoc=frappe.get_doc(d)

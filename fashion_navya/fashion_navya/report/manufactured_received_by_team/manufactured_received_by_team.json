@@ -1,0 +1,76 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2023-07-17 15:08:34.772920",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "N A V Y A",
+ "modified": "2023-07-17 16:23:49.684441",
+ "modified_by": "pawasthy11@gmail.com",
+ "module": "Fashion Navya",
+ "name": "Manufactured received by Team",
+ "owner": "pawasthy11@gmail.com",
+ "prepared_report": 0,
+ "query": "select \n\n    se.posting_date as \"Posting Date::120\",\n    se.work_order as \"Work Order:Link/Work Order:150\",\n    se.name as \"Stock Entry:Link/Stock Entry:150\",\n    se.modified_by as \"Received By::160\",\n    se.owner as \"Created By::160\",\n    se.fg_completed_qty as \"QTY::60\"\n    \n\nfrom `tabStock Entry` as se\n\n\nwhere \n\nse.docstatus=1 \nand stock_entry_type=\"Manufacture\"\nand workflow_state=\"Received\"\nand se.posting_date  >= DATE_SUB(NOW(),INTERVAL 3 MONTH)\nORDER BY se.posting_date",
+ "ref_doctype": "Stock Entry",
+ "report_name": "Manufactured received by Team",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Cutting Master"
+  },
+  {
+   "role": "Sales Partner"
+  },
+  {
+   "role": "Auditor"
+  },
+  {
+   "role": "Managing Director"
+  },
+  {
+   "role": "Stock reciever"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Stock Creator"
+  },
+  {
+   "role": "Stock Authorizer"
+  },
+  {
+   "role": "Stock Supervision"
+  },
+  {
+   "role": "Manufacture and Sales"
+  },
+  {
+   "role": "pardeep"
+  },
+  {
+   "role": "Amita Mam"
+  },
+  {
+   "role": "Supplier"
+  }
+ ]
+}

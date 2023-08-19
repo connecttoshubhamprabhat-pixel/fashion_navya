@@ -1,3 +1,4 @@
+
 import frappe
 from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.file import has_permission
@@ -21,8 +22,5 @@ def check_file_type(doc,method):
 		namesplit=doc.file_name.split(".")
 		type_list=['psd','idraw']
 		if namesplit[-1] in type_list:
-			if doc.is_private==0:
-				frappe.throw("Sorry ,The file should be uploaded as private")
-
-
-
+			if doc._is_private==0:
+				frappe.throw("Sorry ,The file should be uploade

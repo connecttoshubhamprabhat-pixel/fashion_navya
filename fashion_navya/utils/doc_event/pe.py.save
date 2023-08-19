@@ -4,19 +4,19 @@ import frappe
 #jul 12/2023
 @frappe.whitelist()
 def create_pe_for_internal(doc,method):
-	if doc.payment_type=="Receive" and doc.mode_of_payment=="Cash":
-		d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
-		d['payment_transfer']="Cash to Bank"
-		d['payment_type']="Internal Transfer"
-		d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
-		d['paid_from']=doc.paid_to
-		d['received_amount']=doc.paid_amount
-		d['reference_no']=doc.name
-		d['automated']=1
-		d['customer_pe']=doc.name
-		d['paid_amount']=doc.paid_amount
-		pe_new=frappe.get_doc(d)
-		pe_new.insert()
+    if doc.payment_type=="Receive" and doc.mode_of_payment=="Cash":
+        d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
+        d['payment_transfer']="Cash to Bank"
+        d['payment_type']="Internal Transfer"
+        d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
+        d['paid_from']=doc.paid_to
+        d['received_amount']=doc.paid_amount
+        d['reference_no']=doc.name
+        d['automated']=1
+        d['customer_pe']=doc.name
+        d['paid_amount']=doc.paid_amount
+        pe_new=frappe.get_doc(d)
+        pe_new.insert()
 
 
 @frappe.whitelist()
@@ -130,93 +130,3 @@ def update_reference_in_payment_entry(name=None):
                 new_row.update(reference_details)
 
 
-            payment_entry.flags.ignore_validate_update_after_submit = True
-            payment_entry.setup_party_account_field()
-            payment_entry.set_missing_values()
-            payment_entry.set_amounts()
-
-
-            if d.get('difference_amount') and d.get('difference_account'):
-                account_details = {
-        			"account": d.get('difference_account'),
-        			"cost_center": payment_entry.cost_center
-        			or frappe.get_cached_value("Company", payment_entry.company, "cost_center"),
-        		}
-
-                if d.get('difference_amount'):
-                    account_details["amount"] = d.get('difference_amount')
-
-                payment_entry.set_gain_or_loss(account_details=account_details)
-
-
-            payment_entry.flags.ignore_validate_update_after_submit = True
-            payment_entry.setup_party_account_field()
-            payment_entry.set_missing_values()
-            if not skip_ref_details_update_for_pe:
-                payment_entry.set_missing_ref_details()
-
-            payment_entry.set_amounts()
-
-            if not do_not_save:
-                payment_entry.save(ignore_permissions=True)
-                #update_advance_paid(payment_entry.name)
-                frappe.db.commit()
-
-
-
-
-def update_advance_paid(name=None):
-    if not name:
-        pe=frappe.get_doc("Payment Entry",name)
-        if pe.payment_type in ("Receive", "Pay") and pe.party:
-            for d in pe.get("references"):
-                if d.allocated_amount and d.reference_doctype in frappe.get_hooks("advance_payment_doctypes"):
-                    frappe.get_doc(
-                    d.reference_doctype, d.reference_name, for_update=True
-                    ).set_total_advance_paid()
-            frappe.db.commit()
-
-
-#------------------end------------------------
-
-@frappe.whitelist()
-def set_account_by_user(doc,method):
-    user=frappe.session.user
-    if doc.mode_of_payment in  ['Cash']  and user in ['sosowon@navyacustom.com','neha@navyacustom.com']:
-        if doc.payment_type=="Receive" and doc.party_type=="Customer":
-            if doc.paid_to!="1102020500 - Cash - Santushti - NAVYA":
-                doc.set("paid_to","1102020500 - Cash - Santushti - NAVYA")
-        
-
-
-
-
-#jul 12/2023
-@frappe.whitelist()
-def create_pe_for_internal_si(doc,method):
-	if doc.is_consolidated==1 and doc.is_pos==1:
-		d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
-		d['payment_transfer']="Cash to Bank"
-		d['payment_type']="Internal Transfer"
-		d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
-		d['paid_from']='1102020500 - Cash - Santushti - NAVYA'
-		d['received_amount']=doc.grand_total
-		d['reference_no']=doc.name
-		d['automated']=1
-		d['pos_si']=doc.name
-		d['paid_amount']=doc.grand_total
-		pe_new=frappe.get_doc(d)
-		pe_new.insert()
-
-
-@frappe.whitelist()
-def cancel_pe_si(doc,method):
-	pe=frappe.db.sql("""select name from `tabPayment Entry` where pos_si='{}' and docstatus <2  """.format(doc.name),as_dict=1)
-	if len(pe)!=0:
-		pedoc=frappe.get_doc("Payment Entry",pe[0]['name'])
-		if pedoc.docstatus==0:
-			pedoc.delete()
-			frappe.db.commit()
-		if pedoc.docstatus==1:
-			pedoc.cancel()
-			frappe.db.commit()

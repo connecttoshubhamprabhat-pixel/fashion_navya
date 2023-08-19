@@ -1,0 +1,8 @@
+import frappe
+
+
+@frappe.whitelist()
+def  set_kit_parent_pr(doc,method):
+	for i in doc.items:
+		item=i.item_code
+		get_po_item=frappe.db.sql(""" select fg_item,fg_parent from `tabPurchase Order Item` where docstatus=1 and item_code='{}' and parent='{}'  """.format(item,i.purchase_order),as_dict=1)

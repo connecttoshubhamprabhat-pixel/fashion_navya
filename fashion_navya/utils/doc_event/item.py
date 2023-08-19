@@ -1,4 +1,6 @@
 import frappe
+from frappe import _
+from frappe.utils import cstr, flt
 from erpnext.stock.dashboard.item_dashboard import get_data
 
 
@@ -31,3 +33,85 @@ def custom_title_fields(doc,method):
             frappe.db.set_value('Item',docitem.name,'custom_title',data, update_modified=False)
             frappe.db.set_value('Item',docitem.name,'product_size',size, update_modified=False)
             frappe.db.commit()
+
+
+
+
+
+@frappe.whitelist()
+def change_description(doc,method):
+	if doc.variant_of and len(doc.description) <50:
+		doc.set("description"," ")
+		if doc.variant_based_on == "Item Attribute":
+			if doc.attributes:
+				attributes_description =doc.custom_des+" "
+				for d in doc.attributes:
+					if d.attribute_value:
+						if d.attribute not in ['Size','Item Group']:
+							attributes_description += "<div>" + d.attribute + ": " + cstr(d.attribute_value) + "</div>"
+				doc.db_set("description",attributes_description, update_modified=False)
+
+
+@frappe.whitelist()
+def change_description_old():
+	get_item=frappe.db.sql(""" select name from `tabItem` where ignore_project=0 and is_customer_provided_item=0 and sync_item_via_nextwoocom=1  """,as_dict=1)
+	if len(get_item)!=0:
+		for  m in  get_item:
+			print(m['name'])
+			doc=frappe.get_doc("Item",m['name'])
+			descus=doc.custom_des or " "
+			if doc.ignore_project==0:
+				doc.set("description"," ")
+				if doc.variant_based_on == "Item Attribute":
+					if doc.attributes:
+						attributes_description =descus+" "
+						for d in doc.attributes:
+							if d.attribute_value:
+								if d.attribute not in ['Size','Item Group']:
+									attributes_description += "<div>" + d.attribute + ": " + cstr(d.attribute_value) + "</div>"
+
+						doc.db_set("description",attributes_description, update_modified=False)
+						try:
+							doc.set("ignore_project",1)
+							doc.save()
+							frappe.db.commit()
+						except:
+							continue
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def delete_item_customise():
+	get_items=frappe.db.sql("""select name from `tabItem` where creation >= NOW() - INTERVAL 2 DAY  and item_group='Customise' and variant_of is null  """,as_dict=1)
+	if len(get_items)!=0:
+		for i in get_items:
+			print(i['name'],'aa')
+			soi=frappe.db.sql(""" select item_code from `tabSales Order Item` where docstatus < 2 and item_code='{}'  """.format(i['name']),as_dict=1)
+			if len(soi)==0:
+				print(i['name'])
+				doc=frappe.get_doc("Item",i['name'])
+				doc.delete()
+				frappe.db.commit()
+
+
+
+frappe.whitelist(allow_guest=True)
+def delete_files(doc,method):
+	f=frappe.db.sql(""" select name from `tabFile` where attached_to_doctype="Item" and attached_to_name='{}'   """.format(doc.name),as_dict=1)
+	if len(f)!=0:
+		for i in f:
+			fdoc=frappe.get_doc("File",i['name'])
+			fdoc.delete()
+			frappe.db.commit()
+
+
+frappe.whitelist(allow_guest=True)
+def custom_descrip(doc,method):
+	if doc.custom_des and doc.has_variants==1:
+		get_items=frappe.db.sql(""" select name from `tabItem` where variant_of='{}'   """.format(doc.name),as_dict=1)
+		if len(get_items)!=0:
+			for i in  get_items:
+				vdoc=frappe.get_doc("Item",i['name'])
+				vdoc.db_set("custom_des",doc.custom_des, update_modified=False)

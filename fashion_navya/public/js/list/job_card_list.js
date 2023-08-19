@@ -3,9 +3,12 @@ frappe.listview_settings['Job Card'] = {
 	onload: function(listview) {
                 let user=frappe.session.user
                 console.log(user,'hello')
-								let user_all_roles=frappe.user_roles
+		let user_all_roles=frappe.user_roles
+		let list_super=["Administrator","pawasthy11@gmail.com","amita@navya.biz"]
                if(user_all_roles.includes("Sales Manager") || user_all_roles.includes("Sales Team")){
-                    frappe.set_route("List", "Job Card", "Calendar");
+			if (list_super.includes(user)==false){
+				frappe.set_route("List", "Job Card", "Calendar");
+			}
                }
 
         },

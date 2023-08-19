@@ -16,13 +16,18 @@ class CustomFile(File):
 
 
 @frappe.whitelist()
-def check_file_type(doc,method):
+def file_check_private(doc,method):
 	if doc.file_name:
 		namesplit=doc.file_name.split(".")
 		type_list=['psd','idraw']
 		if namesplit[-1] in type_list:
-			if doc.is_private==0:
+			if doc._is_private==0:
 				frappe.throw("Sorry ,The file should be uploaded as private")
 
 
-
+@frappe.whitelist()
+def deleted_file_after_two_days():
+	fl=frappe.db.sql("""select name from `tabFile` where file_name like '%psd' and file_name like '%idraw' """,as_dict=1)
+	namesplit=doc.file_name.split(".")
+	type_list=['psd','idraw']
+   

@@ -40,3 +40,17 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
         }
     });
 });
+
+
+frappe.ui.form.on("Sales Order", "refresh", function(frm) {
+    frm.fields_dict['sample_table'].grid.get_field('item').get_query = function(doc, cdt, cdn) {
+        var child = locals[cdt][cdn];
+        //console.log(child);
+        return {    
+            filters:[
+                ['item_group', '=',"Sample"]
+            ]
+        }
+    }
+});
+

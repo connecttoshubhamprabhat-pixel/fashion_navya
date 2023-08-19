@@ -134,7 +134,7 @@ doc_events = {
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
         },
     "Sales Order":{
-        "after_insert":["fashion_navya.utils.doc_event.so.check_sample_items"],
+        #"after_insert":["fashion_navya.utils.doc_event.sales_order.show_live_update"],
         "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
     },
     "Stock Ledger Entry":{
@@ -164,7 +164,7 @@ doc_events = {
     "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
     },
     "Purchase Order":{
-        "before_save":["fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_save":["fashion_navya.utils.doc_event.api_1.set_sell_item_po"],
     },
     "Item Tag":{
         #"before_save":["fashion_navya.utils.doc_event.stock.check_item_is_ma"],
@@ -175,7 +175,7 @@ doc_events = {
 
         },
 	"Timesheet":{
-		"after_insert":["fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
+		"after_insert":["fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
 		"on_submit":["fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
 
 },
@@ -188,21 +188,7 @@ doc_events = {
 
                 },
         "File":{
-            "after_insert":["fashion_navya.utils.overides.file.check_file_type","fashion_navya.utils.doc_event.file.check_idraw_file"],
-
-                },
-
-        "Purchase Receipt":{
-                "before_save":["fashion_navya.utils.doc_event.pr.set_kit_parent_pr"],
-
-                },
-        "Sales Invoice":{
-              "before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
-              "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
-
-                },
-        "Project":{
-                "after_insert":["fashion_navya.utils.doc_event.todo.create_todo"],
+            "after_insert":["fashion_navya.utils.overides.file.file_check_private"],
 
                 },
 }

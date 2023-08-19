@@ -1,4 +1,6 @@
 import frappe
+from datetime import datetime # from python std library
+from frappe.utils import add_to_date
 
 #Bank slip deposite
 @frappe.whitelist()
@@ -31,3 +33,67 @@ def calculate_total_amount(doc,method):
 
     doc.set("total_amount",0.0)
     doc.set("total_amount",amount)
+
+
+#only subcontracting
+@frappe.whitelist(allow_guest=True)
+def set_sell_item_po(doc,method):
+    if not doc.get("__islocal") and doc.is_subcontracted:
+        for i in doc.items:
+            if i.fg_item:
+                fgdoc=frappe.get_doc("Item",i.fg_item)
+                # if fgdoc.parent_item!=None:
+                #     i.db_set("fg_parent",i.parent_item, update_modified=False)
+
+
+@frappe.whitelist()
+def fetch_quation_sup(from_time=None,to_time=None,supplier=None):
+    fetch_qo=frappe.db.sql(""" SELECT *  FROM `tabSupplier Quotation` WHERE NOT EXISTS(SELECT name from `tabPurchase Order Item` WHERE `tabPurchase Order Item`.supplier_quotation=`tabSupplier Quotation`.name)  and  transaction_date>"2023-05-05"  """,as_dict=1)
+    return fetch_qo
+
+
+
+@frappe.whitelist()
+def make_task_temp(name=None):
+    if not name:
+        return
+        
+    today = datetime.now().strftime('%Y-%m-%d')
+    after_3_days = add_to_date(datetime.now(), days=2, as_string=True)
+        
+    get_temp=frappe.db.sql(""" select DISTINCT name from `tabItem` where  has_variants=1 and project='{}'  """.format(name),as_dict=1)
+    if len(get_temp)!=0:
+        d={'doctype':"Task","project":name}
+        for i in get_temp:
+            tk=frappe.db.sql(""" select name from `tabTask` where subject='{}' """.format(i['name']),as_dict=1)
+            if len(tk)==0:
+                d['subject']=i['name']
+                d['exp_start_date']=today
+                d['exp_end_date']=after_3_days
+                d['delivery_date']=after_3_days
+                d['item']=i['name']
+                tk_save=frappe.get_doc(d)
+                tk_save.insert()
+                frappe.db.commit()
+                
+    frappe.msgprint("Created")
+
+
+
+
+
+@frappe.whitelist()
+def fetch_amount_pim(doc,method):
+	total=[0]
+	if doc.references:
+		for i in doc.references:
+			if i.reference_doctype=="Supplier Quotation":
+				sup=frappe.get_doc("Supplier Quotation",i.reference_name)
+				i.set('amount',0.0)
+				i.set('amount',sup.grand_total)
+				total.append(sup.grand_total)
+
+	if total:
+		doc.set('total_amount',0.0)
+		doc.set('total_amount',sum(total))
+
