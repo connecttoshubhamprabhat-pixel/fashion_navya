@@ -172,6 +172,7 @@ doc_events = {
     "Item":{
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
+            "before_save":["fashion_navya.utils.doc_event.item.renamedoc"],
 
         },
 	"Timesheet":{

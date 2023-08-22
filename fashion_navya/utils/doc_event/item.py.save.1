@@ -121,7 +121,6 @@ def custom_descrip(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def renamedoc(doc,method):
-	return
 	if doc.variant_of:
 		old_docs=doc.get_doc_before_save()
 		if old_docs.name!=doc.name:
@@ -130,3 +129,4 @@ def renamedoc(doc,method):
 				p=frappe.get_doc("Item",items[0]['name'])
 				p.db_set("parent_item",doc.name, update_modified=False)
 				p.save()
+

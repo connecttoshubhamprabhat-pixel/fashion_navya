@@ -1,0 +1,8 @@
+import frappe
+from frappe import _, bold, msgprint
+from frappe.query_builder.functions import CombineDatetime, Sum
+from frappe.utils import cint, cstr, flt
+
+@frappe.whitelist()
+def calculate_stock_phy(doc,method):
+	pass

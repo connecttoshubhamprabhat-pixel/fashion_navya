@@ -194,19 +194,22 @@ def set_account_by_user(doc,method):
 #jul 12/2023
 @frappe.whitelist()
 def create_pe_for_internal_si(doc,method):
-	if doc.is_consolidated==1 and doc.is_pos==1:
-		d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
-		d['payment_transfer']="Cash to Bank"
-		d['payment_type']="Internal Transfer"
-		d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
-		d['paid_from']='1102020500 - Cash - Santushti - NAVYA'
-		d['received_amount']=doc.grand_total
-		d['reference_no']=doc.name
-		d['automated']=1
-		d['pos_si']=doc.name
-		d['paid_amount']=doc.grand_total
-		pe_new=frappe.get_doc(d)
-		pe_new.insert()
+	p=frappe.db.sql(""" select name from `tabPOS Invoice` where docstatus <2 and consolidated_invoice='{}'  """.format(doc.name),as_dict=1)
+	if len(p)!=0:
+		pdoc=frappe.db.sql("""select parent from `tabSales Invoice Payment` where mode_of_payment="Cash POS" and docstatus=1 and parent='{}' and amount>0  """.format(p[0]['name']),as_dict=1)
+		if doc.is_consolidated==1 and doc.is_pos==1 and len(pdoc)!=0:
+			d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
+			d['payment_transfer']="Cash to Bank"
+			d['payment_type']="Internal Transfer"
+			d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
+			d['paid_from']='1102020500 - Cash - Santushti - NAVYA'
+			d['received_amount']=doc.grand_total
+			d['reference_no']=doc.name
+			d['automated']=1
+			d['pos_si']=doc.name
+			d['paid_amount']=doc.grand_total
+			pe_new=frappe.get_doc(d)
+			pe_new.insert()
 
 
 @frappe.whitelist()

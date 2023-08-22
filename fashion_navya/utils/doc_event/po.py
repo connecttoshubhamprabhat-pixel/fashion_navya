@@ -9,12 +9,6 @@ def set_sell_item_po(doc,method):
 				fgdoc=frappe.get_doc("Item",i.fg_item)
 				if fgdoc.parent_item!=None:
 					i.db_set("fg_parent",fgdoc.parent_item, update_modified=False)
-					pdoc=frappe.get_doc("Item",fgdoc.parent_item)
-					get_bom=frappe.db.sql(""" select name from `tabBOM` where item='{}' and docstatus=1 and is_active=1 and is_default=1  """.format(fgdoc.parent_item),as_dict=1)
-					if get_bom:
-						bomdoc=frappe.get_doc("BOM",get_bom[0]['name'])
-						get_np=bomdoc.items[0].qty
-						i.db_set("nop",get_np, update_modified=False)
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_offline():
@@ -35,3 +29,29 @@ def set_sell_offline():
 							#frappe.db.commit()
 							frappe.db.sql("""update `tabPurchase Order Item`  set nop={} where docstatus < 2 and parent='{}'  """.format(int(get_np),doc.name))
 							frappe.db.commit()
+
+
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_parent_item_qty(item=None,nop=None):
+	if not item:
+		return
+
+	doc=frappe.get_doc("Item",item)
+	if not frappe.db.exists("Item",doc.parent_item):
+		frappe.msgprint("Please Correct its Parent Item Name")
+		return
+
+	parent=frappe.get_doc("Item",doc.parent_item)
+	bom=frappe.db.sql("""select name from `tabBOM` where item='{}' and docstatus=1 and is_active=1 and is_default=1 """.format(parent.name),as_dict=1)
+	if len(bom)!=0:
+		bdoc=frappe.get_doc("BOM",bom[0]['name'])
+		n=bdoc.items[0].qty
+		fqty=n*float(nop)
+		f=round(fqty,3)
+		return f or 0

@@ -1,0 +1,11 @@
+import frappe
+
+
+@frappe.whitelist()
+def fetch_item_barcode(barcode=None):
+	val=frappe.db.sql(""" select parent from `tabItem Barcode` where barcode='{}'  """.format(barcode),as_dict=1)
+	if len(val)!=0:
+		item=val[0]['parent']
+		return item
+
+
