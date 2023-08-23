@@ -206,6 +206,10 @@ doc_events = {
                 "after_insert":["fashion_navya.utils.doc_event.todo.create_todo"],
 
                 },
+        "Physical Stock Review":{
+                "before_save":["fashion_navya.utils.doc_event.phy.calculate_stock_phy"],
+
+                },
 }
 
 # Scheduled Tasks

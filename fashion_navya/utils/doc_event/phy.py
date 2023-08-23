@@ -11,12 +11,31 @@ def fetch_item_barcode(barcode=None):
 
 
 @frappe.whitelist()
-def  calculate_stock_phy(doc,method):
+def calculate_stock_phy(doc,method):
+	a=[0]
+	s=[0]
+	frappe.msgprint("aaahello")
 	if doc.items:
+		frappe.throw()
 		for i in doc.items:
+			s.append(i.sqty)
 			stock=get_data(item_code=i.item_code,warehouse=doc.warehouse)
-			bqty=0
 			if len(stock)!=0:
-				for j in  stock:
-					if  j['actual_qty']>0:
-						bqty+=j['actual_qty']
+				a.append(stock[0]['actual_qty'] or 0)
+				d=i.sqty-stock[0]['actual_qty']
+				i.set('dqty',0)
+				i.set('aqty',0)
+				i.set('aqty',stock[0]['actual_qty'])
+				i.set('dqty',d)
+
+			else:
+				d=i.sqty-0
+				i.set('dqty',0)
+				i.set('aqty',0)
+				i.set('dqty',d)
+
+
+	doc.set('total_qty',0)
+	doc.set('total_qty',sum(s))
+	doc.set('atotal',0)
+	doc.set('atotal',sum(a))
