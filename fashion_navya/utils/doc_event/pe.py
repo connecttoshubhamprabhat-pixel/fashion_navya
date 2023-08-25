@@ -1,5 +1,6 @@
 import frappe
-
+from frappe.utils import getdate
+from frappe import utils
 
 #jul 12/2023
 @frappe.whitelist()
@@ -223,3 +224,43 @@ def cancel_pe_si(doc,method):
 		if pedoc.docstatus==1:
 			pedoc.cancel()
 			frappe.db.commit()
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def make_payment(customer=None,amount=None,mode_of_payment=None,ref=None,name=None):
+	if not customer:
+		frappe.msgprint("Please Select customer first")
+		return
+
+
+	default_account=frappe.db.sql("""select default_account  from `tabMode of Payment Account` where parent='{}'  """.format(mode_of_payment),as_dict=1)
+	if len(default_account)==0:
+		frappe.msgprint("Default aAccount is not set")
+		frappe.msgprint("Not Created")
+		return
+
+
+	d={'doctype':'Payment Entry',"payment_type":"Receive","party_type":"Customer"}
+	d['party']=customer
+	d['mode_of_payment']=mode_of_payment
+	d['paid_amount']=amount
+	d['received_amount']=amount
+	d['source_exchange_rate']=1
+	d['target_exchange_rate']=1
+	d['pes']="Sales"
+	d["reference_date"]=str(getdate())
+	d['reference_no']=ref
+	d['so']=name
+	if len(default_account)!=0:
+		d['paid_to']=default_account[0]['default_account']
+
+	pe=frappe.get_doc(d)
+	pe.insert()
+	pe.submit()
+	frappe.msgprint("Payment Entry Created")

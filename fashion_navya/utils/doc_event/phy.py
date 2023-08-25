@@ -12,11 +12,10 @@ def fetch_item_barcode(barcode=None):
 
 @frappe.whitelist()
 def calculate_stock_phy(doc,method):
+	#yfrappe.msgprint("hello testing")
 	a=[0]
 	s=[0]
-	frappe.msgprint("aaahello")
 	if doc.items:
-		frappe.throw()
 		for i in doc.items:
 			s.append(i.sqty)
 			stock=get_data(item_code=i.item_code,warehouse=doc.warehouse)
