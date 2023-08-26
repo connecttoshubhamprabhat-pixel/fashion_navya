@@ -187,7 +187,7 @@ def set_account_by_user(doc,method):
         if doc.payment_type=="Receive" and doc.party_type=="Customer":
             if doc.paid_to!="1102020500 - Cash - Santushti - NAVYA":
                 doc.set("paid_to","1102020500 - Cash - Santushti - NAVYA")
-        
+
 
 
 
@@ -230,14 +230,11 @@ def cancel_pe_si(doc,method):
 
 
 
-
-
 @frappe.whitelist()
 def make_payment(customer=None,amount=None,mode_of_payment=None,ref=None,name=None):
 	if not customer:
 		frappe.msgprint("Please Select customer first")
 		return
-
 
 	default_account=frappe.db.sql("""select default_account  from `tabMode of Payment Account` where parent='{}'  """.format(mode_of_payment),as_dict=1)
 	if len(default_account)==0:
@@ -262,5 +259,45 @@ def make_payment(customer=None,amount=None,mode_of_payment=None,ref=None,name=No
 
 	pe=frappe.get_doc(d)
 	pe.insert()
-	pe.submit()
+	#pe.submit()
 	frappe.msgprint("Payment Entry Created")
+
+
+
+@frappe.whitelist()
+def submit_pe_entry(name=None):
+	if not name:
+		return
+
+	frappe.msgprint("aaw")
+	get_pe=frappe.db.sql("""select name from `tabPayment Entry` where docstatus=0 and so='{}'  """.format(name),as_dict=1)
+	if len(get_pe)!=0:
+		frappe.msgprint("aa")
+		pe=frappe.get_doc("Payment Entry",get_pe[0]['name'])
+		row = pe.append("references", {})
+		row.reference_doctype="Sales Order"
+		row.reference_name=name
+		row.allocated_amount=pe.paid_amount
+		pe.submit()
+		frappe.db.commit()
+		frappe.msgprint("Entry Submitted")
+
+
+
+@frappe.whitelist()
+def check_pe(name=None):
+	if not name:
+		return
+
+	get_pe=frappe.db.sql("""select name,paid_amount from `tabPayment Entry` where docstatus <2 and so='{}'  """.format(name),as_dict=1)
+	if len(get_pe)!=0:
+		amt=int(get_pe[0]['paid_amount'])
+		p=40/100*amt
+		if p>amt:
+			#advance fully not paid
+			return 1
+		else:
+			#advance fully paid
+			return 2
+	else:
+		return 1
