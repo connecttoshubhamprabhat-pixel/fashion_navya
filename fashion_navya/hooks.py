@@ -154,8 +154,8 @@ doc_events = {
 
     },
     "Payment Entry":{
-        "on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
-        "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
+        #"on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
+        #"on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
         "after_insert":["fashion_navya.utils.doc_event.pe.check_duplicate_entry"],
         "before_save":["fashion_navya.utils.doc_event.pe.set_account_by_user"],
     },
@@ -198,7 +198,7 @@ doc_events = {
 
                 },
         "Sales Invoice":{
-              "before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
+              #"before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
               "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
 
                 },
