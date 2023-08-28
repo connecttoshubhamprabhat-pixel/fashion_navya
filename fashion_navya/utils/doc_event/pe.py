@@ -259,6 +259,10 @@ def make_payment(customer=None,amount=None,mode_of_payment=None,ref=None,name=No
 
 	pe=frappe.get_doc(d)
 	pe.insert()
+	pe.reload()
+	docso=frappe.get_doc("Sales Order",name)
+	docso.db_set("advancepe",1, update_modified=False)
+	docso.reload()
 	#pe.submit()
 	frappe.msgprint("Payment Entry Created")
 
@@ -301,3 +305,11 @@ def check_pe(name=None):
 			return 2
 	else:
 		return 1
+
+
+
+@frappe.whitelist()
+def not_submit_so(doc,method):
+	pe=frappe.db.sql("""select name from `tabPayment Entry` where docstatus < 2 and so='{}'  """.format(doc.name),as_dict=1)
+	if len(pe)==0:
+		frappe.throw("Sorry Without Payment you can't proceed")
