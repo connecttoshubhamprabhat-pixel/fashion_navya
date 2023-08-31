@@ -212,7 +212,7 @@ doc_events = {
 
             },
             "BOM":{
-                "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
+               # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
 
                 },
 }
