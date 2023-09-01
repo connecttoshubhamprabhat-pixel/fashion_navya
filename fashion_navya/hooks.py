@@ -236,6 +236,17 @@ scheduler_events = {
 #	"monthly": [
 #		"fashion_navya.tasks.monthly"
 #	],
+
+    "cron":{
+            "38 22 * * *": [
+                "fashion_navya.utils.doc_event.pe.collect_pe_all",
+        ],
+
+
+
+        }
+
+
  }
 
 # Testing

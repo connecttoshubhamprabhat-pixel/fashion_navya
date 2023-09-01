@@ -80,7 +80,7 @@ frappe.ui.form.on('Payment Entry',  'onload',  function(frm) {
 });
 
 frappe.ui.form.on('Payment Entry',  'before_save',  function(frm) {
-    make_field_read(frm)
+    //make_field_read(frm)
 });
 
 

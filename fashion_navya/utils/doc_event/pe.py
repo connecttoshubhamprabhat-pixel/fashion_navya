@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import getdate
 from frappe import utils
-
+from fashion_navya.utils.doc_event.todo import create_todo_automated
 #jul 12/2023
 @frappe.whitelist()
 def create_pe_for_internal(doc,method):
@@ -313,3 +313,28 @@ def not_submit_so(doc,method):
 	pe=frappe.db.sql("""select name from `tabPayment Entry` where docstatus < 2 and so='{}'  """.format(doc.name),as_dict=1)
 	if len(pe)==0:
 		frappe.throw("Sorry Without Payment you can't proceed")
+
+@frappe.whitelist()
+def collect_pe_all():
+	date_td=str(utils.today())
+	get_pe=frappe.db.sql("""select name,paid_amount from `tabPayment Entry` where posting_date='{}' and docstatus=1 and payment_type='Receive' and mode_of_payment='Cash'   """.format(date_td),as_dict=1)
+	if len(get_pe)!=0:
+		amount=0
+		for i in get_pe:
+			amount+=i['paid_amount']
+
+
+		d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
+		d['payment_transfer']="Cash to Bank"
+		d['payment_type']="Internal Transfer"
+		d['paid_to']="1102010203 - STATE BANK OF INDIA - NAVYA"
+		d['paid_from']="1102020500 - Cash - Santushti - NAVYA"
+		d['received_amount']=amount
+		d['automated']=1
+		d['reference_no']='abc'
+		d['reference_date']=date_td
+		d['paid_amount']=amount
+		pe_new=frappe.get_doc(d)
+		pe_new.insert()
+		create_todo_automated(doctype="Payment Entry",name=pe_new.name)
+		frappe.db.commit()
