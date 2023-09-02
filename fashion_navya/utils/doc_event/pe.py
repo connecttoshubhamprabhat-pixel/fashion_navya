@@ -335,6 +335,9 @@ def collect_pe_all():
 		d['reference_date']=date_td
 		d['paid_amount']=amount
 		pe_new=frappe.get_doc(d)
+		for j in get_pe:
+			row = pe_new.append("cash_entry", {})
+			row.payment_entry=j['name']
 		pe_new.insert()
 		create_todo_automated(doctype="Payment Entry",name=pe_new.name)
 		frappe.db.commit()

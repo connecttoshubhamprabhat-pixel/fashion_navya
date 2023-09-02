@@ -135,7 +135,8 @@ doc_events = {
         },
     "Sales Order":{
         "after_insert":["fashion_navya.utils.doc_event.so.check_sample_items"],
-        "on_submit":["fashion_navya.utils.doc_event.pe.not_submit_so","fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
+        "before_submit":["fashion_navya.utils.doc_event.pe.not_submit_so"],
+        "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
     },
     "Stock Ledger Entry":{
         #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],

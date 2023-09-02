@@ -30,11 +30,7 @@ def make_rtw_item(doc,method):
 			variants.set("project",item_doc.project)
 
 		variants.set("item_group","Ready Stock")
-		try:
-			variants.save(ignore_permissions=True)
-		except:
-			continue
-
+		variants.save(ignore_permissions=True)
 		if len(get_ptt)!=0:
 			for p in get_ptt:
 				docpt=frappe.get_doc("Pattern",p['name'])
