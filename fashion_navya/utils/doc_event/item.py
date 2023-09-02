@@ -121,12 +121,102 @@ def custom_descrip(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def renamedoc(doc,method):
-	return
-	if doc.variant_of:
-		old_docs=doc.get_doc_before_save()
-		if old_docs.name!=doc.name:
-			items=frappe.db.sql("""select name from `tabItem` where parent_item='{}'  """.format(old_docs.name),as_dict=1)
-			if len(items)!=0:
-				p=frappe.get_doc("Item",items[0]['name'])
-				p.db_set("parent_item",doc.name, update_modified=False)
-				p.save()
+    if doc.variant_of:
+            old_docs=doc.get_doc_before_save()
+            if doc and old_docs:
+                    if doc.name and old_docs.name :
+                            if old_docs.name!=doc.name:
+                                    items=frappe.db.sql("""select name from `tabItem` where parent_item='{}'  """.format(old_docs.name),as_dict=1)
+                                    if len(items)!=0:
+                                            p=frappe.get_doc("Item",items[0]['name'])
+                                            p.db_set("parent_item",doc.name, update_modified=False)
+                                            p.save()
+
+
+@frappe.whitelist(allow_guest=True)
+def set_item_project_reorder(doc,method):
+    item=doc.name
+    split_name=item.split("-")
+    if doc.variant_of and doc.project:
+        if "RTW" in split_name:
+            project=frappe.get_doc("Project",doc.project)
+            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' and parent='{}' """.format(item,project.name),as_dict=1)
+            if len(exists)==0:
+                row = project.append("re_order", {})
+                row.item_code=item
+                row.min=1
+                project.save()
+
+@frappe.whitelist(allow_guest=True)
+def remove_item_rtw(doc,method):
+    item=doc.name
+    split_name=item.split("-")
+    if doc.variant_of and doc.project:
+        if "RTW" in split_name:
+            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' and parent='{}' """.format(item,doc.project),as_dict=1)
+            if len(exists)!=0:
+                frappe.db.sql(""" delete from `tabReItems` where item_code='{}' and parent='{}' """.format(item,doc.project),as_dict=1)
+                frappe.db.commit()
+
+
+
+@frappe.whitelist(allow_guest=True)
+def create_mr_reoder(doc,method):
+    items=[]
+    if doc.doctype=="Sales Invoices":
+        if doc.is_pos or doc.update_stock:
+            for i in doc.items:
+                item=i.item_code.split("-")
+                exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
+                if len(exists)!=0 and "RTW" in item:
+                    qty=0
+                    data=get_data(item_code=i.item_code)
+                    if data:
+                        for j in data:
+                            if j['actual_qty']>0:
+                                qty+=j['actual_qty']
+                    if qty==0:
+                        items.append(i.item_code)
+
+
+    if doc.doctype=="Sales Order":
+        for i in doc.items:
+            item=i.item_code.split("-")
+            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
+            if len(exists)!=0 and "RTW" in item:
+                qty=0
+                data=get_data(item_code=i.item_code)
+                if data:
+                    for j in data:
+                        if j['actual_qty']>0:
+                            qty+=j['actual_qty']
+                if qty==0:
+                    items.append(i.item_code)
+
+
+    #delivery # NOTE
+    if doc.doctype=="Delivery Notes":
+        for i in doc.items:
+            item=i.item_code.split("-")
+            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
+            if len(exists)!=0 and "RTW" in item:
+                qty=0
+                data=get_data(item_code=i.item_code)
+                if data:
+                    for j in data:
+                        if j['actual_qty']>0:
+                            qty+=j['actual_qty']
+                if qty==0:
+                    items.append(i.item_code)
+
+
+    if items:
+        d={'doctype':"Material Request","material_request_type":"Manufacture"}
+        mr=frappe.get_doc(d)
+        for i in items:
+            row = mr.append("items", {})
+            row.item_code=i
+            row.qty=1
+
+        mr.insert()
+        mr.submit()

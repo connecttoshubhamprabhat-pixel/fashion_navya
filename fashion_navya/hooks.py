@@ -135,7 +135,7 @@ doc_events = {
         },
     "Sales Order":{
         "after_insert":["fashion_navya.utils.doc_event.so.check_sample_items"],
-        "before_submit":["fashion_navya.utils.doc_event.pe.not_submit_so"],
+        "before_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder","fashion_navya.utils.doc_event.pe.not_submit_so"],
         "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
     },
     "Stock Ledger Entry":{
@@ -174,6 +174,8 @@ doc_events = {
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
             "before_save":["fashion_navya.utils.doc_event.item.renamedoc"],
+            "after_insert":["fashion_navya.utils.doc_event.item.set_item_project_reorder"],
+            "on_delete":["fashion_navya.utils.doc_event.item.remove_item_rtw"],
 
         },
 	"Timesheet":{
@@ -201,6 +203,7 @@ doc_events = {
         "Sales Invoice":{
               #"before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
               "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
+              "on_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder"],
 
                 },
         "Project":{
@@ -216,6 +219,10 @@ doc_events = {
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
 
                 },
+            "Delivery Note":{
+
+                "on_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder"],
+                    },
 }
 
 # Scheduled Tasks

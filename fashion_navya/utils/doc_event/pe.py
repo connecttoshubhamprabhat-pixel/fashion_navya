@@ -259,6 +259,7 @@ def make_payment(customer=None,amount=None,mode_of_payment=None,ref=None,name=No
 
 	pe=frappe.get_doc(d)
 	pe.insert()
+	pe.submit()
 	pe.reload()
 	docso=frappe.get_doc("Sales Order",name)
 	docso.db_set("advancepe",1, update_modified=False)
