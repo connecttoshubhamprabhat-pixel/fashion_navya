@@ -1,0 +1,42 @@
+import frappe
+from frappe import utils
+from erpnext.accounts.utils import get_balance_on
+from datetime import datetime # from python std library
+from frappe.utils import add_to_date
+
+@frappe.whitelist()
+def today_cash_amount():
+	#today="2023-09-05"
+	#lday="2023-09-04"
+	today = datetime.now().strftime('%Y-%m-%d')
+	lday=add_to_date(datetime.now(), days=-1, as_string=True)
+	last_day_bl=get_balance_on(account="1102020500 - Cash - Santushti - NAVYA",date=lday)
+	todaybl=get_balance_on(account="1102020500 - Cash - Santushti - NAVYA",date=today)
+	final_bal=todaybl-last_day_bl
+	custom_logs(sub="automated no bal")
+	if final_bal==0:
+		return
+
+	d={"doctype":"Payment Entry","mode_of_payment":"Cash"}
+	d['payment_transfer']="Cash to Bank"
+	d['payment_type']="Internal Transfer"
+	d['paid_to']="1102010204 - HDFC - NAVYA"
+	d['paid_from']="1102020500 - Cash - Santushti - NAVYA"
+	d['received_amount']=final_bal
+	d['automated']=1
+	d['reference_no']=today
+	d['reference_date']=today
+	d['paid_amount']=final_bal
+	pe_new=frappe.get_doc(d)
+	pe_new.insert()
+	pe_new.submit()
+	custom_logs(sub="created entry balance exists")
+	frappe.db.commit()
+
+
+@frappe.whitelist()
+def custom_logs(doctype=None,name=None,sub=None):
+	d={"doctype":"Custom Logs","info":sub}
+	doc=frappe.get_doc(d)
+	doc.insert()
+	frappe.db.commit()

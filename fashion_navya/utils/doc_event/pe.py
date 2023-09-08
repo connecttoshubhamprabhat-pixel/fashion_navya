@@ -2,6 +2,7 @@ import frappe
 from frappe.utils import getdate
 from frappe import utils
 from fashion_navya.utils.doc_event.todo import create_todo_automated
+from erpnext.accounts.utils import get_balance_on
 #jul 12/2023
 @frappe.whitelist()
 def create_pe_for_internal(doc,method):
@@ -290,29 +291,29 @@ def submit_pe_entry(name=None):
 
 
 @frappe.whitelist()
-def check_pe(name=None):
-	if not name:
+def check_pe(customer=None):
+	if not customer:
 		return
 
-	get_pe=frappe.db.sql("""select name,paid_amount from `tabPayment Entry` where docstatus <2 and so='{}'  """.format(name),as_dict=1)
-	if len(get_pe)!=0:
-		amt=int(get_pe[0]['paid_amount'])
-		p=40/100*amt
-		if p>amt:
-			#advance fully not paid
-			return 1
-		else:
-			#advance fully paid
-			return 2
-	else:
+	bal=get_balance_on(party_type="Customer",party=customer)
+	#p=40/100*amt
+	if bal<0:
 		return 1
-
+	else:
+		return 2
 
 
 @frappe.whitelist()
 def not_submit_so(doc,method):
-	pe=frappe.db.sql("""select name from `tabPayment Entry` where docstatus < 2 and so='{}'  """.format(doc.name),as_dict=1)
-	if len(pe)==0:
+	bal=get_balance_on(party_type="Customer",party=doc.customer)
+	if bal==0:
+		frappe.throw("Sorry Without Payment you can't proceed")
+	if bal<0:
+		pb=abs(bal)
+		f=40/100*doc.grand_total
+		if f>pb:
+			frappe.throw("Sorry Without Payment you can't proceed")
+	else:
 		frappe.throw("Sorry Without Payment you can't proceed")
 
 @frappe.whitelist()

@@ -59,26 +59,36 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 
     var row = frappe.get_doc(cdt, cdn);
     var item = row['item_code']
-    var k = frappe.model.get_doc("Item", item);
-    if (!k.variant_of) {
-        if (cur_frm.doc.otd == "Customize") {
-            var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 26)
-
-            row['delivery_date'] = td
 
 
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Item",
+            name: item,
+        },
+        callback(r) {
+            if (r.message) {
+                var items = r.message;
+                if (!items.variant_of)
+                    if (cur_frm.doc.otd == "Customize") {
+                        var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 26)
+
+                        row['delivery_date'] = td
+
+
+                    }
+
+                if (cur_frm.doc.otd == "Made To Measure") {
+                    var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
+
+                    row['delivery_date'] = td
+
+
+                }
+            }
         }
-
-        if (cur_frm.doc.otd == "Made To Measure") {
-            var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
-
-            row['delivery_date'] = td
-
-
-        }
-
-
-    }
+    });    
 
 })
 
@@ -87,7 +97,7 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 //delivery date set for customize item
 frappe.ui.form.on("Sales Order", "refresh", function(frm, cdt, cdn) {
     var user = frappe.session.user
-    var user_list = ["amita@navya.biz", "pawasthy11@gmail.com", "Administrator"]
+    var user_list = ["amita@navya.biz", "paawasthy11@gmail.com", "Administrator"]
 
 
     if (!user_list.includes(user)) {

@@ -80,6 +80,10 @@ def make_rtw_item_pro(items=None):
 			if item_doc.project:
 				variants.set("project",item_doc.project)
 
+
+			if item_doc.image:
+				variants.set("image",item_doc.image)
+
 			variants.set("item_group","Ready Stock")
 			if frappe.db.exists('Item',variants.name):
 				pass

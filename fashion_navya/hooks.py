@@ -223,6 +223,10 @@ doc_events = {
 
                 "on_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder"],
                     },
+            "Subcontracting Order":{
+                #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
+
+            },
 }
 
 # Scheduled Tasks
@@ -246,8 +250,8 @@ scheduler_events = {
 #	],
 
     "cron":{
-            "38 22 * * *": [
-                "fashion_navya.utils.doc_event.pe.collect_pe_all",
+            "12 22 * * *": [
+                "fashion_navya.utils.doc_event.cron.today_cash_amount",
         ],
 
 
