@@ -1,5 +1,6 @@
 import frappe
 from erpnext.stock.dashboard.item_dashboard import get_data
+from erpnext.stock.report.stock_balance.stock_balance import (get_item_details,get_item_warehouse_map,get_items,get_stock_ledger_entries)
 
 @frappe.whitelist()
 def fetch_item_barcode(barcode=None):
@@ -55,9 +56,43 @@ def calculate_stock_phy(doc,method):
 				a.append(amt)
 				d=abs(d)
 				dt.append(d)
-	
+
 	doc.set('total_qty',0)
 	doc.set('total_qty',sum(s))
 	doc.set('atotal',0)
 	doc.set('td',sum(dt))
 	doc.set('atotal',sum(a))
+
+
+
+@frappe.whitelist()
+def get_items(date=None,warehouse=None):
+	if not date or  not warehouse:
+		return
+	filter_sb={}
+	filter_sb['from_date']=date
+	filter_sb['to_date']=date
+	filter_sb['company']="NAVYA"
+	filter_sb['warehouse']=warehouse
+	items = get_items(filter_sb)
+	sle = get_stock_ledger_entries(filter_sb, items)
+	if not sle:
+		return []
+
+	iwb_map = get_item_warehouse_map(filter_sb, sle)
+	#item_map = get_item_details(items, sle, filters)
+	item_list=[]
+	for group_by_key in iwb_map:
+		item = group_by_key[1]
+		warehouse = group_by_key[2]
+		val=iwb_map[group_by_key]
+		bal=val['bal_val']
+		if bal>0:
+			if item not in item_list:
+				item_list.append(item)
+
+	item_lists=list(set(item_list))
+	if item_lists:
+		return item_lists
+	else:
+		return []
