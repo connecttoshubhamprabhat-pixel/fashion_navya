@@ -1,5 +1,13 @@
 import frappe
+from frappe import utils
 from erpnext.stock.dashboard.item_dashboard import get_data
+from frappe.utils import cint, cstr, flt
+from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import *
+from erpnext.accounts.utils import get_company_default
+from erpnext.controllers.stock_controller import StockController
+from erpnext.stock.doctype.batch.batch import get_batch_qty
+from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
+from erpnext.stock.utils import get_stock_balance
 from erpnext.stock.report.stock_balance.stock_balance import (get_item_details,get_item_warehouse_map,get_items,get_stock_ledger_entries)
 
 @frappe.whitelist()
@@ -96,3 +104,63 @@ def get_items(date=None,warehouse=None):
 		return item_lists
 	else:
 		return []
+
+
+
+
+@frappe.whitelist()
+def get_items_core(
+	warehouse=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
+):
+
+	posting_date=str(utils.today())
+	ps=str(utils.now())
+	psit=ps.split(" ")
+	psinx=psit[-1][:5]
+	posting_time=psinx
+	company="NAVYA"
+
+	ignore_empty_stock =1
+	items = [frappe._dict({"item_code": item_code, "warehouse": warehouse})]
+
+	if not item_code:
+		items = get_items_for_stock_reco(warehouse, company)
+
+	res = []
+	itemwise_batch_data = get_itemwise_batch(warehouse, posting_date, company, item_code)
+
+	for d in items:
+		if d.item_code in itemwise_batch_data:
+			valuation_rate = get_stock_balance(
+				d.item_code, d.warehouse, posting_date, posting_time, with_valuation_rate=True
+			)[1]
+
+			for row in itemwise_batch_data.get(d.item_code):
+				if ignore_empty_stock and not row.qty:
+					continue
+
+				args = get_item_data(row, row.qty, valuation_rate)
+				res.append(args)
+		else:
+			stock_bal = get_stock_balance(
+				d.item_code,
+				d.warehouse,
+				posting_date,
+				posting_time,
+				with_valuation_rate=True,
+				with_serial_no=cint(d.has_serial_no),
+			)
+			qty, valuation_rate, serial_no = (
+				stock_bal[0],
+				stock_bal[1],
+				stock_bal[2] if cint(d.has_serial_no) else "",
+			)
+
+			if ignore_empty_stock and not stock_bal[0]:
+				continue
+
+			args = get_item_data(d, qty, valuation_rate, serial_no)
+
+			res.append(args)
+
+	return res
