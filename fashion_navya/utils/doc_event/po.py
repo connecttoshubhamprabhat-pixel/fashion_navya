@@ -5,6 +5,10 @@ import frappe
 def set_sell_item_po(doc,method):
 	if not doc.get("__islocal") and doc.is_subcontracted:
 		for i in doc.items:
+			getwo=frappe.db.sql(""" select qty from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(i.fg_item),as_dict=1)
+			if len(getwo)!=0:
+				wqty=getwo[0]['qty']
+				i.set('qty',wqty)
 			if i.fg_item:
 				fgdoc=frappe.get_doc("Item",i.fg_item)
 				if fgdoc.parent_item!=None:

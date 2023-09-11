@@ -184,7 +184,7 @@ doc_events = {
 
 },
         "Payment Imprest":{
-                "on_update":["fashion_navya.utils.doc_event.api_1.fetch_amount_pim"],
+                "before_save":["fashion_navya.utils.doc_event.api_1.fetch_amount_pim"],
 
                 },
         "Pattern":{

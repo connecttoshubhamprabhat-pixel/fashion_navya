@@ -77,7 +77,7 @@ def check_warehouse_wise_wrkflw(doc,method):
 def throw_error_se(doc,method):
     user=frappe.session.user
     if doc.stock_entry_type in ['Material Receipt','Material Issue']:
-        if user not in ["kundan@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
+        if user not in ["sujeets@navyacustom.com","faeemm@navyacustom.com","kundan@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
             if doc.owner!="amita@navya.biz":
                 frappe.throw("Sorry you can't receive")
     
