@@ -1,5 +1,6 @@
 import frappe
 from frappe import utils
+import json
 from erpnext.stock.dashboard.item_dashboard import get_data
 from frappe.utils import cint, cstr, flt
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import *
@@ -134,3 +135,33 @@ def get_items_core(
 			res.append(args)
 
 	return res
+
+
+
+@frappe.whitelist()
+def merge_entry(items=None):
+	items=json.loads(items)
+	if items:
+		d={"doctype":"Physical Stock Review"}
+		all_items=[]
+		duplicate=[]
+		for i in items:
+			print(i,'qqqqqqqqqqqq')
+			doc=frappe.get_doc("Physical Stock Review",i)
+			for j in doc.items:
+				print(j.item_code,'11111111')
+				fdic={}
+				if j.item_code not in duplicate:
+					fdic['item_code']=j.item_code
+					fdic['sqty']=j.sqty
+					fdic['aqty']=j.aqty
+					duplicate.append(j.item_code)
+				if fdic:
+					all_items.append(fdic)
+		phy=frappe.get_doc(d)
+		for k in all_items:
+			row = doc.append("items", {})
+			row.sqty=k['sqty']
+			row.aqty=k['aqty']
+		phy.insert()
+		frappe.msgprint("created")
