@@ -97,3 +97,24 @@ def fetch_amount_pim(doc,method):
 		doc.set('total_amount',0.0)
 		doc.set('total_amount',sum(total))
 
+
+@frappe.whitelist()
+def fetch_item_barcode(barcode=None):
+	val=frappe.db.sql(""" select parent from `tabItem Barcode` where barcode='{}'    """.format(barcode),as_dict=1)
+	if len(val)!=0:
+		item=val[0]['parent']
+		d=[]
+		doc=frappe.get_doc("Item",item)
+		if doc.item_group=="Sample":
+			d.append(item)
+			d.append("Sample")
+		if doc.item_group=="Ready Stock":
+			d.append(item)
+			d.append("Ready Stock")
+		if doc.item_group=="Customise":
+			d.append(item)
+			d.append("Customise")
+		if len(d)==1:
+			d.append("ss")
+		if len(d)==2:
+			return d

@@ -12,6 +12,8 @@ def set_sell_item_po(doc,method):
 			if i.fg_item:
 				fgdoc=frappe.get_doc("Item",i.fg_item)
 				if fgdoc.parent_item!=None:
+					if not doc.project:
+						doc.set("project",fgdoc.project)
 					i.db_set("fg_parent",fgdoc.parent_item, update_modified=False)
 #only subcontracting
 @frappe.whitelist(allow_guest=True)

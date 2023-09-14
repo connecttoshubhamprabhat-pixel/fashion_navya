@@ -143,7 +143,7 @@ def set_item_project_reorder(doc,method):
             exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' and parent='{}' """.format(item,project.name),as_dict=1)
             if len(exists)==0:
                 row = project.append("re_order", {})
-                row.item_code=item
+                row.item_code=doc.name
                 row.min=1
                 project.save()
 

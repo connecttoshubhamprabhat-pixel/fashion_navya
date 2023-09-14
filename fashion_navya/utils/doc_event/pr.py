@@ -12,6 +12,8 @@ def  set_kit_parent_pr(doc,method):
 					docitem=frappe.get_doc("Item",get_po_item[0]['fg_parent'])
 					doc.set("fg_parent",get_po_item[0]['fg_parent'])
 					doc.set("fgkitem",get_po_item[0]['fg_item'])
+					if  not doc.project:
+						doc.set("project",docitem.project)
 					get_bom=frappe.db.sql(""" select name from `tabBOM` where item='{}' and docstatus=1 and is_active=1 and is_default=1  """.format(get_po_item[0]['fg_parent']),as_dict=1)
 					if get_bom:
 						bomdoc=frappe.get_doc("BOM",get_bom[0]['name'])
