@@ -27,6 +27,9 @@ def make_payment_entry(docname=None):
     if not docname:
         return
     paydoc=frappe.get_doc("Payment Order",docname)
+    exists_pe=frappe.db.sql(""" select name from `tabPayment Entry` and docstatus=1 and payment_order='{}' """.format(paydoc.name),as_dict=1)
+    if len(exists_pe)!=0:
+        frappe.throw("Already Payment created")
     pe_request=[]
     for i in paydoc.references:
         pe_request.append(i.payment_request)
@@ -43,6 +46,7 @@ def make_payment_entry(docname=None):
                 made_pe.db_set("reference_date",paydoc.reference_date, update_modified=False)
             frappe.db.commit()
             created.append("yes")
+
     if created:
         frappe.msgprint("Payment Entry is created")
         doc.reload()
@@ -55,7 +59,7 @@ def calculate_total_amount(doc,method):
     amount=0
     for i in doc.references:
         amount +=i.amount
-        
-        
+
+
     doc.set("total_amount",0.0)
     doc.set("total_amount",amount)
