@@ -135,6 +135,7 @@ doc_events = {
         },
     "Sales Order":{
         "before_save":["fashion_navya.utils.doc_event.so.check_sample_items"],
+        "after_insert":["fashion_navya.utils.doc_event.estimate.check_estimate_paid"],
         "before_update_after_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
         "before_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder","fashion_navya.utils.doc_event.pe.not_submit_so"],
         "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
@@ -181,7 +182,7 @@ doc_events = {
         },
 	"Timesheet":{
 		"after_insert":["fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
-		"on_submit":["fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
+		"before_submit":["fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
 
 },
         "Payment Imprest":{
@@ -228,6 +229,22 @@ doc_events = {
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
 
             },
+		"Journal Entry":{
+			"before_save":["fashion_navya.utils.doc_event.jv.jv_refund_check"],
+
+	},
+                "Customer":{
+                            "before_insert":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
+
+                        },
+                "Estimate Sheet":{
+                       # "after_insert":["fashion_navya.utils.doc_event.estimate.check_estimate_paid"],
+
+                        },
+                "Timesheet Missing":{
+                            "after_insert":["fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
+                            "before_save":["fashion_navya.utils.doc_event.timesheet.nine_hours_validations"],
+                        },
 }
 
 # Scheduled Tasks

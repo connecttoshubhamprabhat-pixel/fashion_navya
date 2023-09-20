@@ -1,4 +1,8 @@
 import frappe
+from frappe.utils import time_diff_in_hours
+from frappe.utils import today
+from frappe.utils import now
+from frappe.utils import date_diff
 
 @frappe.whitelist()
 def check_lunch_time(doc,method):
@@ -64,3 +68,59 @@ def job_card(doc,method):
 		jcdoc=frappe.get_doc("Job Card",doc.job_card)
 		if jcdoc.status=="Completed":
 			frappe.throw("Sorry Job card is completed")
+
+
+
+
+
+@frappe.whitelist()
+def check_hours_diff(doc,method):
+
+	nval=[]
+	hval=[]
+	for i in doc.time_logs:
+		if i.to_time and i.from_time:
+			day_time=date_diff(str(i.to_time),str(i.from_time))
+			if int(day_time)>0:
+				hval.append("yes")
+			if day_time <0:
+				nval.append("no")
+
+
+	if hval:
+		frappe.throw("Time logs is not correct")
+	if nval:
+		frape.throw("Time logs is not correct")
+
+
+
+
+
+
+
+@frappe.whitelist()
+def add_diff_miss(doc,method):
+	if doc.from_time and doc.to_time:
+		nval=[]
+		hval=[]
+		day_time=date_diff(str(doc.to_time),str(doc.from_time))
+		if int(day_time)>0:
+			hval.append("yes")
+		if day_time <0:
+			nval.append("no")
+
+		if hval:
+			frappe.throw(" Date अलग है ")
+		if nval:
+			frape.throw(" Date अलग है ")
+
+
+@frappe.whitelist()
+def nine_hours_validations(doc,method):
+	if doc.from_time and doc.to_time:
+		hours=time_diff_in_hours(doc.to_time,doc.from_time)
+		if int(hours)>9:
+			frappe.throw(" 9 घंटे से जायदा हो रहे है ")
+		if hours<0:
+			frappe.throw("Date सही करो ")
+

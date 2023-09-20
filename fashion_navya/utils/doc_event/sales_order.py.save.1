@@ -4,7 +4,6 @@ from datetime import datetime
 from frappe.utils import add_to_date
 from frappe.utils import today
 from frappe import utils
-from erpnext.accounts.utils import get_balance_on
 
 @frappe.whitelist()
 def show_live_update(item=None,customer=None):
@@ -154,14 +153,7 @@ def make_se_transfer(doc,method):
 
 @frappe.whitelist()
 def make_workorder_pre(doc,method):
-    bal=get_balance_on(party_type="Customer",party=doc.customer)
-    if bal==0:
-         return
-    pb=abs(bal)
-    if bal<0:
-         if doc.grand_total >pb:
-              return
-
+	
     for i in doc.items:
         if i.delivery_order=="Pre-Order":
             d={"doctype":"Work Order","production_item":i.item_code,"qty":2}

@@ -73,10 +73,9 @@ def create_todo_automated(doctype=None,name=None,users=None):
 def create_todo_cs(doctype=None,name=None,msg=None,action=None,user_list=None,docstatus=0):
 	if not doctype and not name and not user_list:
 		return
-
-	user_lists=json.loads(user_list)
-	#user_lists=["pawasthy11@gmail.com"]
-	if user_lists:
+	print('aa12')
+	user_lists=["pawasthy11@gmail.com"]
+	if doctype=="Purchase Receipt" and action=="Authorised":
 		for i in user_lists:
 			d={'doctype':"ToDo","priority":"High","reference_type":doctype}
 			d['description']=msg
