@@ -75,12 +75,22 @@ def check_warehouse_wise_wrkflw(doc,method):
 
 @frappe.whitelist()
 def throw_error_se(doc,method):
-    user=frappe.session.user
-    if doc.stock_entry_type in ['Material Receipt','Material Issue']:
-        if user not in ["Parvez@navyacustom.com","kalim@navyacustom.com","sujeets@navyacustom.com","faeemm@navyacustom.com","kundan@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
-            if doc.owner!="amita@navya.biz":
-                frappe.throw("Sorry you can't receive")
-    
+	user=frappe.session.user
+	con_item=[]
+	if doc.stock_entry_type in ['Material Receipt','Material Issue']:
+		if doc.stock_entry_type=="Material Issue":
+			for i in doc.items:
+				item=frappe.get_doc("Item",i.item_code)
+				if user in ['sujeets@navyacustom.com']:
+					if item.item_group!="Consumable":
+						con_item.append("aa")
+				else:
+					con_item.append('aa')
+		if not con_item:
+			return
+		if user not in ["Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
+			if doc.owner!="amita@navya.biz":
+				frappe.throw("Sorry you can't receive")
 @frappe.whitelist()
 def count_qty_noc(doc,method):
 	noc=[0]
@@ -181,3 +191,10 @@ def check_capacity_qty(doc,method):
 			qty_t=qty+i.qty
 			if int(cp[0]['capacity'])<qty_t:
 				frappe.throw("Sorry ,No space left on Warehouse row - {}".format(i.idx))
+
+@frappe.whitelist(allow_guest=True)
+def fetch_price_sed(doc,method):
+	for i in doc.items:
+		rate=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and item_code="{}" ORDER BY modified DESC   """.format(i.item_code),as_dict=1)
+		if len(rate)!=0:
+			i.set("items_price",rate[0]['price_list_rate'])
