@@ -2,6 +2,11 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, flt
 from erpnext.stock.dashboard.item_dashboard import get_data
+from erpnext.stock.utils import (
+	is_reposting_item_valuation_in_progress,
+	update_included_uom_in_report,
+)
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -220,3 +225,9 @@ def create_mr_reoder(doc,method):
 
         mr.insert()
         mr.submit()
+
+
+@frappe.whitelist()
+def report_stock_bal():
+	is_reposting_item_valuation_in_progress()
+	items=frappe.db.sql("""select name from `tabItem` where disabled=0 """,as_dict=1)

@@ -17,7 +17,7 @@ def get_data(filters):
 		return []
 	from_date=str(filters.from_date)
 	to_date=str(filters.to_date)
-	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where payment_type="Receive" and  docstatus < 2 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where payment_type="Receive" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
 	if len(get_pe)!=0:
 		for i in get_pe:
 			d={}
@@ -37,10 +37,12 @@ def get_data(filters):
 					so=frappe.get_doc("Sales Order",ref[0].reference_name)
 					d['sales_order']=so.name
 					d['samt']=so.grand_total
+					d['sonet']=so.net_total
 				if ref[0].reference_doctype=="Sales Invoice":
 					si=frappe.get_doc("Sales Invoice",ref[0].reference_name)
 					d['si']=si.name
 					d['siamt']=si.grand_total
+					d['sinet']=si.net_total
 
 
 
@@ -104,18 +106,33 @@ def get_columns():
 		},
 
 		{
-			"label": _("Sales Order/amount"),
+			"label": _("Sales Order/Gross amount"),
 			"fieldtype": "Float",
 			"fieldname": "samt",
 			"width":200,
 		},
 
 		{
-			"label": _("Sales Invoice/amount"),
+                        "label": _("Sales Order/Net amount"),
+                        "fieldtype": "Float",
+                        "fieldname": "sonet",
+                        "width":200,
+                },
+
+
+		{
+			"label": _("Sales Invoice/ Gross amount"),
 			"fieldtype": "Float",
 			"fieldname": "siamt",
 			"width":200,
 		},
+		{
+                        "label": _("Sales Invoice/Net amount"),
+                        "fieldtype": "Float",
+                        "fieldname": "sinet",
+                        "width":200,
+                },
+
 
 		{
 			"label": _("Unallocated Amount"),

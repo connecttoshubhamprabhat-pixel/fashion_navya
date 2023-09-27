@@ -24,7 +24,7 @@ def make_payment_system(name=None):
 		d['paid_amount']=doc.total_amount
 		pe_new=frappe.get_doc(d)
 		pe_new.insert()
-		pe_new.submit()
+		#pe_new.submit()
 		frappe.msgprint("Payment Created")
 	else:
 		frappe.msgprint("Already Created")

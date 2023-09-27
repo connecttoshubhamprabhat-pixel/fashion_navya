@@ -195,6 +195,6 @@ def check_capacity_qty(doc,method):
 @frappe.whitelist(allow_guest=True)
 def fetch_price_sed(doc,method):
 	for i in doc.items:
-		rate=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and item_code="{}" ORDER BY modified DESC   """.format(i.item_code),as_dict=1)
+		rate=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and item_code='{}' ORDER BY modified DESC   """.format(i.item_code),as_dict=1)
 		if len(rate)!=0:
 			i.set("items_price",rate[0]['price_list_rate'])

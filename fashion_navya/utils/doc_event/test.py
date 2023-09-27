@@ -14,3 +14,18 @@ def set_barcode_all(group=None):
 			frappe.db.commit()
 		except:
 			pass
+
+
+
+@frappe.whitelist()
+def mkit_item():
+	items=frappe.db.sql("""select name from `tabItem` where item_group="M kit" and stock_uom="Meter"   """,as_dict=1)
+	for i in items:
+		print(i['name'])
+		doc=frappe.get_doc("Item",i['name'])
+		doc.set("stock_uom","Nos")
+		try:
+			doc.save()
+			frappe.db.commit()
+		except:
+			continue

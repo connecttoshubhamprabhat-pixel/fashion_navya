@@ -310,7 +310,7 @@ def not_submit_so(doc,method):
 		frappe.throw("Sorry Without Payment you can't proceed")
 	if bal<0:
 		pb=abs(bal)
-		f=doc.grand_total
+		f=40/100*doc.grand_total
 		if f>pb:
 			frappe.throw("Sorry Without Payment you can't proceed")
 	else:
@@ -343,3 +343,18 @@ def collect_pe_all():
 		pe_new.insert()
 		create_todo_automated(doctype="Payment Entry",name=pe_new.name)
 		frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def check_payment_bal(name=None):
+	if not name:
+		return
+
+
+	doc=frappe.get_doc("Sales Order",name)
+	bal=get_balance_on(party_type="Customer",party=doc.customer)
+	if bal<0:
+		pb=abs(bal)
+		return 2

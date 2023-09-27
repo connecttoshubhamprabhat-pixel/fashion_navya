@@ -17,7 +17,7 @@ def get_data(filters):
 		return []
 	from_date=str(filters.from_date)
 	to_date=str(filters.to_date)
-	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where docstatus < 2 and posting_date between '{}' and '{}' and unallocated_amount>0 """.format(from_date,to_date),as_dict=1)
+	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where docstatus=1 and posting_date between '{}' and '{}' and unallocated_amount>0 """.format(from_date,to_date),as_dict=1)
 	if len(get_pe)!=0:
 		for i in get_pe:
 			d={}

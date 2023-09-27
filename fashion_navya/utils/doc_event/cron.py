@@ -29,7 +29,7 @@ def today_cash_amount():
 	d['paid_amount']=final_bal
 	pe_new=frappe.get_doc(d)
 	pe_new.insert()
-	pe_new.submit()
+	#pe_new.submit()
 	subs="created,day entry:{},last day:-{},final_bal:{},lastbl:{},tdaybal:{}".format(today,lday,final_bal,last_day_bl,todaybl)
 	custom_logs(sub=subs)
 	frappe.db.commit()

@@ -17,7 +17,7 @@ def get_data(filters):
 		return []
 	from_date=str(filters.from_date)
 	to_date=str(filters.to_date)
-	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where docstatus < 2 and posting_date between '{}' and '{}' and name in (select parent from `tabPayment Entry Reference` where docstatus < 2 and reference_doctype="Sales Order") """.format(from_date,to_date),as_dict=1)
+	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where docstatus=1 and posting_date between '{}' and '{}' and name in (select parent from `tabPayment Entry Reference` where docstatus=1 and reference_doctype="Sales Order") """.format(from_date,to_date),as_dict=1)
 	if len(get_pe)!=0:
 		for i in get_pe:
 			d={}
@@ -32,6 +32,7 @@ def get_data(filters):
 			d['samt']=so.grand_total
 			d['tid']=doc_pe.reference_no
 			d['td']=doc_pe.reference_date
+			d['sonet']=so.net_total
 
 			data.append(d)
 
@@ -87,11 +88,20 @@ def get_columns():
 			"width":160,
 		},
 		{
-			"label": _("Sales Order/Amount"),
-			"fieldtype": "Float",
-			"fieldname": "samt",
+			"label":_("Sales Order/Gross Amount"),
+			"fieldtype":"Float",
+			"fieldname":"samt",
 			"width":200,
 		},
+
+		{
+                      	"label":_("Sales Order/Net Amount"),
+                    	"fieldtype":"Float",
+                       	"fieldname":"sonet",
+                       	"width":200,
+                },
+
+
 		{
 			"label": _("Transaction/ID"),
 			"fieldtype": "Data",

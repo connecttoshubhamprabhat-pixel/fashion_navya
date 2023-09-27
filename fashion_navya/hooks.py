@@ -148,6 +148,7 @@ doc_events = {
     },
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.work.check_item_no_subo"],
+        "before_save":["fashion_navya.utils.doc_event.wo.fetch_msrement"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
@@ -269,7 +270,7 @@ scheduler_events = {
 
     "cron":{
             "12 22 * * *": [
-                #"fashion_navya.utils.doc_event.cron.today_cash_amount",
+                "fashion_navya.utils.doc_event.cron.today_cash_amount",
         ],
 
 

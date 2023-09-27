@@ -10,14 +10,16 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
- "modified": "2023-09-21 15:23:57.498186",
+ "modified": "2023-09-22 15:21:32.811977",
  "modified_by": "pawasthy11@gmail.com",
  "module": "Fashion Navya",
  "name": "Amount received By Sales",
  "owner": "pawasthy11@gmail.com",
  "prepared_report": 0,
+ "query": "",
  "ref_doctype": "Payment Entry",
  "report_name": "Amount received By Sales",
+ "report_script": "",
  "report_type": "Script Report",
  "roles": [
   {
