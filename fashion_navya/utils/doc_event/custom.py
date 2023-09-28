@@ -82,7 +82,7 @@ def make_rtw_item_so(items=None):
 		if not yes_item_group:
 			row=template.append("attributes", {})
 			row.attribute="Item Group"
-		template.save(ignore_permissions=True)
+			template.save(ignore_permissions=True)
 
 		check_smpl=item_doc.name.split("-")
 		if "RTW" in check_smpl:
@@ -115,10 +115,11 @@ def make_rtw_item_so(items=None):
 		if len(check_item)!=0:
 			return check_item[0]['name']
 
-		variants.insert(ignore_permissions=True)
-		make_ptt_so(smpl=item_doc.name,new=variants.name)
-		make_bom(smpl=item_doc.name,new=variants.name)
-		return variants.name
+		variants.save(ignore_permissions=True)
+		if variants:
+			make_ptt_so(smpl=item_doc.name,new=variants.name)
+			make_bom(smpl=item_doc.name,new=variants.name)
+			return variants.name
 
 
 
@@ -294,7 +295,7 @@ def make_customer_items(items=None,customer=None,rate=0):
 			for s in split_items:
 				if s in sizes:
 					index =split_items.index(s)
-					split_items[index]="CI"
+					split_items[index]="C"
 				if "SMPL"==s:
 					split_items.remove(s)
 
@@ -313,8 +314,8 @@ def make_customer_items(items=None,customer=None,rate=0):
 			row.customer=customer
 			n.save(ignore_permissions=True)
 			make_price_doc(item=n.name,rate=rate)
-			#make_pattren_from_variant_so(doc.name,n.name)
-			#bom_copy_so_enabled_item(doc.name,n.name)
+			make_pattren_from_variant_so(doc.name,n.name)
+			bom_copy_so_enabled_item(doc.name,n.name)
 			all_item.append(n.name)
 
 	if all_item:
@@ -386,8 +387,8 @@ def make_made_tmso(items=None,customer=None,rate=0):
 			row.customer=customer
 			n.save(ignore_permissions=True)
 			make_price_doc(item=n.name,rate=rate)
-			#make_pattren_from_variant_so(doc.name,n.name)
-			#bom_copy_so_enabled_item(doc.name,n.name)
+			make_pattren_from_variant_so(doc.name,n.name)
+			bom_copy_so_enabled_item(doc.name,n.name)
 			all_item.append(n.name)
 
 	if all_item:
