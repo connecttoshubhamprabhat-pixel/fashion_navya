@@ -18,9 +18,10 @@ frappe.ui.form.on('Item',  {
 // additional validation on dates
 frappe.ui.form.on('Item',  'refresh',  function(frm) {
 	var user=frappe.session.user
-	var user_list=['neha@navyacustom.com','sweetyd@navyacustom.com','vivekd@navyacustom.com','sosowon@navyacustom.com']
-    if (user_list.includes(user)) {
-        //$('#item-inventory_section').hide();
+	var user_list=["pawasthy11@gmail.com","amita@navya.biz","Administrator","prashant@example.com","erpsupport@uttamenergy.com"]
+	var user_login=user_list.includes(user)
+    if (!user_login) {
+        $('#item-inventory_section').hide();
         //$('#item-details').hide();
 	//$('#item-inventory_section').hide();
        // $('#item-sales_details').hide();
