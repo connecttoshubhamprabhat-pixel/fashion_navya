@@ -150,7 +150,7 @@ def set_item_project_reorder(doc,method):
                 row = project.append("re_order", {})
                 row.item_code=doc.name
                 row.min=1
-                project.save()
+                project.save(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
 def remove_item_rtw(doc,method):
