@@ -1,5 +1,7 @@
 import frappe
 from erpnext.stock.dashboard.item_dashboard import get_data
+from datetime import datetime
+from frappe.utils import add_to_date
 from navya.api_folder.py.project import make_pattren_from_variant_so,bom_copy_so_enabled_item
 import json
 import re
@@ -251,14 +253,17 @@ def make_rtw_item_project(items=None):
 
 
 
-@frappe.whitelist(allow_guest=True)
-def make_customer_items(items=None,customer=None):
+@frappe.whitelist()
+def make_customer_items(items=None,customer=None,rate=0):
 	if not customer:
 		frappe.msgprint("Please select customer")
 		return
 
+
+
 	customer_count=[]
-	if len(customer)>1:
+	cs=customer.split(" ")
+	if len(cs)>1:
 		cs=customer.split(" ")
 		dx=[]
 		for c in cs:
@@ -266,14 +271,14 @@ def make_customer_items(items=None,customer=None):
 		if dx:
 			customer_count.append(dx[0]+dx[1])
 	else:
-		customer_count.append(c[0])
+		customer_count.append(customer[0])
 
 
 
 	items=json.loads(items)
 	sizes=[]
 	all_item=[]
-	if frappe.db.exists("Item","Size"):
+	if frappe.db.exists("Item Attribute","Size"):
 		att=frappe.get_doc("Item Attribute","Size")
 		for j in att.item_attribute_values:
 			sizes.append(j.abbr)
@@ -307,9 +312,101 @@ def make_customer_items(items=None,customer=None):
 			row =n.append("customer_list", {})
 			row.customer=customer
 			n.save(ignore_permissions=True)
-			make_pattren_from_variant_so(doc.name,n.name)
-			bom_copy_so_enabled_item(doc.name,n.name)
+			make_price_doc(item=n.name,rate=rate)
+			#make_pattren_from_variant_so(doc.name,n.name)
+			#bom_copy_so_enabled_item(doc.name,n.name)
 			all_item.append(n.name)
 
 	if all_item:
 		return all_item[-1]
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_made_tmso(items=None,customer=None,rate=0):
+	if not customer:
+		frappe.msgprint("Please select customer")
+		return
+
+	customer_count=[]
+	cs=customer.split(" ")
+	if len(cs)>1:
+		dx=[]
+		for c in cs:
+			dx.append(c[0])
+		if dx:
+			customer_count.append(dx[0]+dx[1])
+	else:
+		customer_count.append(customer[0])
+
+
+
+	items=json.loads(items)
+	size=[]
+	all_item=[]
+	if frappe.db.exists("Item Attribute","Size"):
+		att=frappe.get_doc("Item Attribute","Size")
+		for j in att.item_attribute_values:
+			print(j.abbr)
+			size.append(j.abbr)
+
+	for i in items:
+		doc=frappe.get_doc("Item",i)
+		if doc.item_group=="Sample" and doc.variant_of:
+			check_name=doc.name+"-"+customer_count[0]
+			if frappe.db.exists("Item",check_name):
+				return check_name
+			split_items=i.split("-")
+			sizes=list(set(size))
+			print(sizes)
+			for s in split_items:
+				print(s,'sssss')
+				if s in sizes:
+					print('3599999999')
+					index =split_items.index(s)
+					split_items[index]="MTM"
+				if "SMPL"==s:
+					print("3567889")
+					split_items.remove(s)
+
+			name="-".join(split_items)
+			print(name,'nameeeeeeeeeeeeeeeeeeeeeeeee')
+
+			item_code=name+"-"+customer_count[0]
+			if frappe.db.exists("Item",item_code):
+				return item_code
+			d={'doctype':"Item","item_group":"Customise","project":doc.project ,"stock_uom":doc.stock_uom,"image":doc.image}
+			d['item_code']=item_code
+			d['item_name']=name+"-"+customer
+			d['parent_item']=doc.name
+			d['customise']=1
+			n=frappe.get_doc(d)
+			row =n.append("customer_list", {})
+			row.customer=customer
+			n.save(ignore_permissions=True)
+			make_price_doc(item=n.name,rate=rate)
+			#make_pattren_from_variant_so(doc.name,n.name)
+			#bom_copy_so_enabled_item(doc.name,n.name)
+			all_item.append(n.name)
+
+	if all_item:
+		return all_item[-1]
+
+
+
+
+@frappe.whitelist()
+def make_price_doc(item=None,rate=None):
+	if not item and rate==0:
+		return
+
+	today = datetime.now().strftime('%Y-%m-%d')
+	before_2_days = add_to_date(datetime.now(), days=-2, as_string=True)
+	d={"doctype":"Item Price","item_code":item,"price_list":"Selling"}
+	d['price_list_rate']=rate
+	ip=frappe.get_doc(d)
+	ip.save(ignore_permissions=True)
+	ip.db_set("workflow_state","Approved", update_modified=False)
+	ip.db_set("valid_from",before_2_days, update_modified=False)
+	frappe.msgprint("craeted")

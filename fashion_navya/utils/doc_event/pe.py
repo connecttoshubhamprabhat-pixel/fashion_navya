@@ -306,15 +306,27 @@ def check_pe(customer=None):
 @frappe.whitelist()
 def not_submit_so(doc,method):
 	bal=get_balance_on(party_type="Customer",party=doc.customer)
-	if bal==0:
-		frappe.throw("Sorry Without Payment you can't proceed")
-	if bal<0:
-		pb=abs(bal)
-		f=40/100*doc.grand_total
-		if f>pb:
-			frappe.throw("Sorry Without Payment you can't proceed")
-	else:
-		frappe.throw("Sorry Without Payment you can't proceed")
+	if doc.estimate_sheet:
+		est=frappe.get_doc("Estimate Sheet",doc.estimate_sheet)
+		if est.base_net_total==0:
+			frappe.throw("Sorry Payment is Not received by Estimate Sheet")
+
+	if not doc.estimate_sheet:
+		get_pe_amt=frappe.db.sql("""select name,paid_amount from `tabPayment Entry` where docstatus<2 and so='{}'  """.format(doc.name),as_dict=1)
+		if (get_pe_amt)!=0:
+			pe_amt=[0]
+			for pe in get_pe_amt:
+				pe_amt.append(pe['paid_amount'])
+			total_amt=40/100*doc.grand_total
+			if total_amt>sum(pe_amt):
+				frappe.throw("Sorry Without Payment you can't proceed")
+
+
+
+
+
+
+
 
 @frappe.whitelist()
 def collect_pe_all():
