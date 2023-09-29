@@ -134,9 +134,8 @@ doc_events = {
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
         },
     "Sales Order":{
-        "after_insert":["fashion_navya.utils.doc_event.estimate.check_estimate_paid"],
         "before_update_after_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
-        "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.create_mr_reoder","fashion_navya.utils.doc_event.pe.not_submit_so"],
+        "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.create_mr_reoder"],
         "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"]
     },
     "Stock Ledger Entry":{
