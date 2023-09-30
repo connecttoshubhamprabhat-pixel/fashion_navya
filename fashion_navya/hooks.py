@@ -136,7 +136,7 @@ doc_events = {
     "Sales Order":{
         "before_update_after_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
         "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.create_mr_reoder"],
-        "on_submit":["fashion_navya.utils.doc_event.sales_order.make_workorder_pre","fashion_navya.utils.doc_event.sales_order.make_se_transfer"],
+        "on_submit":["fashion_navya.utils.doc_event.sales_order.make_se_transfer"],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
     },
@@ -158,7 +158,7 @@ doc_events = {
 
     },
     "Payment Entry":{
-        #"on_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal"],
+        "on_submit":["fashion_navya.utils.doc_event.sales_order.automated_wo_pe"],
         #"on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_cash"],
         "after_insert":["fashion_navya.utils.doc_event.pe.check_duplicate_entry"],
         "before_save":["fashion_navya.utils.doc_event.pe.set_account_by_user"],

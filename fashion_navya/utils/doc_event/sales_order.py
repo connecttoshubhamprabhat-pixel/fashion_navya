@@ -157,7 +157,7 @@ def make_workorder_pre(doc,method):
     bal=get_balance_on(party_type="Customer",party=doc.customer)
     if bal==0:
          return
-    
+
     if bal<0:
         pb=abs(bal)
         f=40/100*doc.grand_total
@@ -203,3 +203,60 @@ def make_workorder_pre(doc,method):
                     except:
                         frappe.msgprint("An error occurred during the creation of the Work Order.")
                         pass
+
+
+
+#---------------------
+@frappe.whitelist()
+def automated_wo_pe(doc,method):
+    #bal=get_balance_on(party_type="Customer",party=doc.customer)
+	so_no=[]
+	for p in doc.references:
+		if p.reference_doctype=="Sales Order":
+			so_no.append(p.reference_name)
+	if so_no:
+		so=frappe.get_doc("Sales Order",so_no[0])
+		f=40/100*so.grand_total
+		if f>doc.paid_amount:
+			return
+
+
+		for i in so.items:
+
+			if i.delivery_order=="POS":
+				d={"doctype":"Work Order","production_item":i.item_code,"qty":1}
+				d['owner']="Administrator"
+				d['system']=1
+				get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1  and item='{}' """.format(i.item_code),as_dict=1)
+				if not get_bom:
+					msg="Sorry BOM is not created for Row no: {} Line Item".format(i.idx)
+					frappe.msgprint(msg)
+					continue
+				if get_bom:
+					if get_bom[0]['name']!=None:
+						d['bom_no']=get_bom[0]['name']
+						d['sales_order']=so.name
+						if so.delivery_type=="Courier":
+							if frappe.db.exists("Warehouse","Courier Station - NAVYA"):
+								d['fg_warehouse']="Courier Station - NAVYA"
+								d['scrap_warehouse']="Courier Station - NAVYA"
+
+						if so.delivery_type=="Will come for trial":
+							if frappe.db.exists("Warehouse","Navya Finish Product RACK-4 - NAVYA") and frappe.db.exists("Warehouse","Navya Finish Product RACK-4 - NAVYA"):
+								if doc.delivery_location in ['Sainik Farm','From Sainik Farm']:
+									d["fg_warehouse"]="Navya Finish Product RACK-4 - NAVYA"
+									d["scrap_warehouse"]="Navya Finish Product RACK-4 - NAVYA"
+
+								if so.delivery_location in ['Santushti','From Santushti']:
+									d["fg_warehouse"]="Navya Store Office - NAVYA"
+									d["scrap_warehouse"]="Navya Store Office - NAVYA"
+
+
+						wodoc=frappe.get_doc(d)
+						try:
+							wodoc.insert(ignore_permissions=True)
+							msg2="Work order {} is Created for row no {} Line Item".format(wodoc.name,i.idx)
+							frappe.msgprint(msg2)
+						except:
+							frappe.msgprint("An error occurred during the creation of the Work Order.")
+							pass
