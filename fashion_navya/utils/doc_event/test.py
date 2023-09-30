@@ -29,3 +29,18 @@ def mkit_item():
 			frappe.db.commit()
 		except:
 			continue
+
+
+
+@frappe.whitelist()
+def change_stock(g=None):
+	items=frappe.db.sql("""select name from `tabItem` where item_group='{}' and ignore_project=0  """.format(g),as_dict=1)
+	for i in  items:
+		print(i['name'])
+		doc=frappe.get_doc("Item",i['name'])
+		doc.set("ignore_project",1)
+		try:
+			doc.save()
+			frappe.db.commit()
+		except:
+			continue

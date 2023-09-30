@@ -27,3 +27,31 @@ def get_items(name=None):
 			items.append(d)
 	if items:
 		return items
+
+
+
+@frappe.whitelist()
+def delete_item_so(doc,method):
+	for i in doc.items:
+		if i.item_type in ['Customize','Measure']:
+			item=frappe.get_doc("Item",i.item_code)
+			if not item.variant_of:
+				get_ptt=frappe.db.sql("""select name,docstatus from `tabPattern` where docstatus<2 and item_code='{}'  """.format(item.name),as_dict=1)
+				get_bom=frappe.db.sql("""select name,docstatus from `tabBOM` where docstatus <2 and item='{}'  """.format(item.name),as_dict=1)
+				if len(get_ptt)!=0:
+					for p in get_ptt:
+						pt=frappe.get_doc("Pattern",p['name'])
+						if p['docstatus']==1:
+							pt.cancel()
+						else:
+							pt.delete()
+				if len(get_bom)!=0:
+					for b in get_bom:
+						bm=frappe.get_doc("BOM",b['name'])
+						if b['docstatus']==1:
+							bm.cancel()
+						else:
+							bm.delete()
+
+				item.delete()
+				frappe.db.commit()

@@ -60,7 +60,7 @@ def make_rtw_item(doc,method):
 
 #sales ordr-sales order
 @frappe.whitelist(allow_guest=True)
-def make_rtw_item_so(items=None):
+def make_rtw_item_so(items=None,so=None):
 	if not items:
 		return
 
@@ -111,6 +111,7 @@ def make_rtw_item_so(items=None):
 			variants.set("image",item_doc.image)
 
 		variants.set("item_group","Ready Stock")
+		variants.set("so_item",so)
 		check_item=frappe.db.sql("""select name from `tabItem` where item_code='{}'  """.format(variants.item_code),as_dict=1)
 		if len(check_item)!=0:
 			return check_item[0]['name']
@@ -255,7 +256,7 @@ def make_rtw_item_project(items=None):
 
 
 @frappe.whitelist()
-def make_customer_items(items=None,customer=None,rate=0):
+def make_customer_items(items=None,customer=None,rate=0,so=None):
 	if not customer:
 		frappe.msgprint("Please select customer")
 		return
@@ -268,7 +269,8 @@ def make_customer_items(items=None,customer=None,rate=0):
 		cs=customer.split(" ")
 		dx=[]
 		for c in cs:
-			dx.append(c[0])
+			if c.strip():
+				dx.append(c[0])
 		if dx:
 			customer_count.append(dx[0]+dx[1])
 	else:
@@ -312,6 +314,7 @@ def make_customer_items(items=None,customer=None,rate=0):
 			n=frappe.get_doc(d)
 			row =n.append("customer_list", {})
 			row.customer=customer
+			n.set("so_item",so)
 			n.save(ignore_permissions=True)
 			make_price_doc(item=n.name,rate=rate)
 			make_pattren_from_variant_so(doc.name,n.name)
@@ -325,7 +328,7 @@ def make_customer_items(items=None,customer=None,rate=0):
 
 
 @frappe.whitelist(allow_guest=True)
-def make_made_tmso(items=None,customer=None,rate=0):
+def make_made_tmso(items=None,customer=None,rate=0,so=None):
 	if not customer:
 		frappe.msgprint("Please select customer")
 		return
@@ -335,7 +338,8 @@ def make_made_tmso(items=None,customer=None,rate=0):
 	if len(cs)>1:
 		dx=[]
 		for c in cs:
-			dx.append(c[0])
+			if c.strip():
+				dx.append(c[0])
 		if dx:
 			customer_count.append(dx[0]+dx[1])
 	else:
@@ -385,6 +389,7 @@ def make_made_tmso(items=None,customer=None,rate=0):
 			n=frappe.get_doc(d)
 			row =n.append("customer_list", {})
 			row.customer=customer
+			n.set("so_item",so)
 			n.save(ignore_permissions=True)
 			make_price_doc(item=n.name,rate=rate)
 			make_pattren_from_variant_so(doc.name,n.name)
