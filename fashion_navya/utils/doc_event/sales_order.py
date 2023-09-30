@@ -223,7 +223,7 @@ def automated_wo_pe(doc,method):
 
 		for i in so.items:
 
-			if i.delivery_order=="POS":
+			if i.delivery_order=="Pre-Order":
 				d={"doctype":"Work Order","production_item":i.item_code,"qty":1}
 				d['owner']="Administrator"
 				d['system']=1
