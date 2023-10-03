@@ -1,6 +1,4 @@
 import frappe
-from datetime import datetime # from python std library
-from frappe.utils import add_to_date
 from erpnext.stock.dashboard.item_dashboard import get_data
 
 @frappe.whitelist()
@@ -64,51 +62,8 @@ def delete_item_so(doc,method):
 
 @frappe.whitelist()
 def make_mr_rtw(doc,method):
-	d={"doctype":"Material Request"}
-	all_warehouses=[]
-	warehouse=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
-	if warehouse:
-		for w in warehouse:
-			all_warehouses.append(w['name'])
 	for i in doc.items:
 		item=frappe.get_doc("Item",i.item_code)
-		split=item.name.split("-")
+		split=item.name.split("RTW")
 		if  "RTW"  in split:
-			qty=[0]
-			santushti=[0]
-			stock=get_data(item_code=item.name)
-			if len(stock)!=0:
-				for j in stock:
-					if j['actual_qty']>0 and j['warehouse'] in all_warehouses:
-						santushti.append(j['actual_qty'])
-					if j['actual_qty']>0 and j['warehouse'] not in all_warehouses:
-						qty.append(j['actual_qty'])
-
-			dd=doc.delivery_date
-			b_2_days = add_to_date(dd, days=2, as_string=True)
-			d['schedule_date']=str(b_2_days)
-			if i.qty>sum(santushti):
-				dd=doc.delivery_date
-				b_2_days = add_to_date(dd, days=2, as_string=True)
-			
-
-				d["material_request_type"]="Material Transfer"
-				if sum(qty)==0 and sum(santushti)==0:
-					d['material_request_type']="Manufacture"
-				mr=frappe.get_doc(d)
-				if d['material_request_type']=="Material Transfer":
-					row = mr.append("items", {})
-					row.warehouse="SStore - NAVYA"
-					row.qty=i.qty
-					row.schedule_date=str(b_2_days)
-					row.item_code=item.name
-
-				if d['material_request_type']=="Manufacture":
-					row = mr.append("items", {})
-					row.warehouse="Navya Store Office - NAVYA"
-					row.qty=i.qty
-					row.schedule_date=str(b_2_days)
-					row.item_code=item.name
-
-				mr.insert()
-				frappe.msgprint("MR is created for RTW")
+			stock_val=

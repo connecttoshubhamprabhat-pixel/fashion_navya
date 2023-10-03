@@ -139,7 +139,7 @@ def make_bom(smpl=None,new=None):
 			d.set("workflow_state","Draft")
 			try:
 				d.insert(ignore_permissions=True)
-				#d.submit()
+				d.submit()
 			except:
 				pass
 
@@ -245,7 +245,7 @@ def make_rtw_item_project(items=None):
 					d.set("workflow_state","Draft")
 					try:
 						d.insert(ignore_permissions=True)
-						d.submit()
+						#d.submit()
 					except:
 						pass
 

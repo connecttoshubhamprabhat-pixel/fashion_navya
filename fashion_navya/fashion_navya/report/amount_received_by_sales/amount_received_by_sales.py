@@ -38,11 +38,13 @@ def get_data(filters):
 					d['sales_order']=so.name
 					d['samt']=so.grand_total
 					d['sonet']=so.net_total
+					d['pamt']=doc_pe.paid_amount
 				if ref[0].reference_doctype=="Sales Invoice":
 					si=frappe.get_doc("Sales Invoice",ref[0].reference_name)
 					d['si']=si.name
 					d['siamt']=si.grand_total
 					d['sinet']=si.net_total
+					d['pamt']=doc_pe.paid_amount
 
 
 
@@ -140,6 +142,13 @@ def get_columns():
 			"fieldname": "uamt",
 			"width":200,
 		},
+
+		{
+                        "label": _("Advance payment"),
+                        "fieldtype": "Float",
+                        "fieldname": "pamt",
+                        "width":200,
+                },
 
 		{
 			"label": _("Customer"),

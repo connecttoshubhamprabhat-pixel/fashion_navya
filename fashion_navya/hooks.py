@@ -136,9 +136,10 @@ doc_events = {
     "Sales Order":{
         "before_update_after_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
         "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.create_mr_reoder"],
-        "on_submit":["fashion_navya.utils.doc_event.sales_order.make_se_transfer"],
+        "on_submit":[],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
+        "before_save":["fashion_navya.utils.doc_event.so.make_mr_rtw"],
     },
     "Stock Ledger Entry":{
         #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
@@ -149,6 +150,7 @@ doc_events = {
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.work.check_item_no_subo"],
         "before_save":["fashion_navya.utils.doc_event.wo.fetch_msrement"],
+        "after_insert":["fashion_navya.utils.doc_event.wo.bom_stage_changes"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],

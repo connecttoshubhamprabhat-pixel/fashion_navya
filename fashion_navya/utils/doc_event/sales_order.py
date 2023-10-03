@@ -222,8 +222,8 @@ def automated_wo_pe(doc,method):
 
 
 		for i in so.items:
-
-			if i.delivery_order=="Pre-Order":
+			splits=i.item_code.split("-")
+			if i.delivery_order=="Pre-Order" and "RTW" not in splits:
 				d={"doctype":"Work Order","production_item":i.item_code,"qty":1}
 				d['owner']="Administrator"
 				d['system']=1
