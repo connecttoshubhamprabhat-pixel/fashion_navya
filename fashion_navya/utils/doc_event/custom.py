@@ -388,10 +388,12 @@ def make_made_tmso(items=None,customer=None,rate=0,so=None):
 			row =n.append("customer_list", {})
 			row.customer=customer
 			n.save(ignore_permissions=True)
-			make_price_doc(item=n.name,rate=rate)
-			make_pattren_from_variant_so(doc.name,n.name)
-			bom_copy_so_enabled_item(doc.name,n.name)
-			all_item.append(n.name)
+			if n:
+				n.db_set("parent_item",doc.name, update_modified=False)
+				make_price_doc(item=n.name,rate=rate)
+				make_pattren_from_variant_so(doc.name,n.name)
+				bom_copy_so_enabled_item(doc.name,n.name)
+				all_item.append(n.name)
 
 	if all_item:
 		return all_item[-1]

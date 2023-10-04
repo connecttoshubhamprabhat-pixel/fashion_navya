@@ -1,4 +1,5 @@
 import frappe
+import json
 
 @frappe.whitelist(allow_guest=True)
 def fetch_msrement(doc,method):
@@ -56,9 +57,39 @@ def bom_stage_changes(doc,method):
 		bom.set("project",bom_tb.project)
 		bom.conversion_rate=bom_tb.conversion_rate
 		bom.insert(ignore_permissions=True)
+		if bom:
+			create_todo_bom(name=bom.name)
 		bom.db_set("workflow_state","Changes Pending", update_modified=False)
-		#bom.db_set("docstatus",1, update_modified=False)
 		frappe.db.commit()
 
 
+@frappe.whitelist()
+def create_todo_bom(name=None):
+	doctype="BOM"
+	user_list=['sujeets@navyacustom.com']
+	for i in user_list:
+		d={'doctype':"ToDo","priority":"High","reference_type":doctype}
+		d['description']="Please check bom,MTM Item"
+		d['reference_name']=name
+		d['assigned_by']="amita@navya.biz"
+		d['allocated_to']=i
+		td=frappe.get_doc(d)
+		td.insert()
 
+
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_items_wo(values=None):
+	values=json.loads(values)
+	project=values.get("project")
+	items=[]
+	get_items=frappe.db.sql("""select DISTINCT qty,bom_no,production_item from `tabWork Order` where docstatus=0 and project='{}'   """.format(project),as_dict=1)
+	if len(get_items)!=0:
+		for i in get_items:
+			d={}
+			d['item_code']=i['production_item']
+			d['qty']=i['qty']
+			d['bom']=i['bom_no']
+			items.append(d)
+	return items
