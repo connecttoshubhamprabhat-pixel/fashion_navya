@@ -17,6 +17,21 @@ def get_data(filters):
 		return []
 	from_date=str(filters.from_date)
 	to_date=str(filters.to_date)
+	#calculate for pos
+	total_pos=[0]
+	posc=frappe.db.sql("""select name,grand_total from `tabPOS Closing Entry` where docstatus=1 and  posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	if len(posc)!=0:
+		for p in posc:
+			total_pos.append(p['grand_total'])
+			# pos_amt=0
+			# pos_doc=frappe.get_doc("POS Closing Entry",p['name'])
+			# if pos_doc.pos_transactions:
+			# 	for a in pos_doc.pos_transactions:
+	pdic={"pos":sum(total_pos)}
+	data.append(pdic)
+
+
+
 	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where payment_type="Receive" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
 	if len(get_pe)!=0:
 		for i in get_pe:
@@ -161,6 +176,18 @@ def get_columns():
 			"label": _("Mode of Payment"),
 			"fieldtype": "Data",
 			"fieldname": "mop",
+			"width":100,
+		},
+		{
+			"label": _("Mode of Payment"),
+			"fieldtype": "Data",
+			"fieldname": "mop",
+			"width":100,
+		},
+		{
+			"label": _("POS Amount"),
+			"fieldtype": "Data",
+			"fieldname": "pos",
 			"width":100,
 		},
 
