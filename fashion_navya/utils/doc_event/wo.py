@@ -84,12 +84,15 @@ def fetch_items_wo(values=None):
 	values=json.loads(values)
 	project=values.get("project")
 	items=[]
-	get_items=frappe.db.sql("""select DISTINCT qty,bom_no,production_item from `tabWork Order` where docstatus=0 and project='{}'   """.format(project),as_dict=1)
+	get_items=frappe.db.sql("""select qty,bom_no,production_item from `tabWork Order` where docstatus=0 and project='{}'   """.format(project),as_dict=1)
 	if len(get_items)!=0:
+		duplicate=[]
 		for i in get_items:
-			d={}
-			d['item_code']=i['production_item']
-			d['qty']=i['qty']
-			d['bom']=i['bom_no']
-			items.append(d)
+			if i['production_item'] not in duplicate:
+				d={}
+				d['item_code']=i['production_item']
+				d['qty']=i['qty']
+				d['bom']=i['bom_no']
+				items.append(d)
+				duplicate.append(i['production_item'])
 	return items
