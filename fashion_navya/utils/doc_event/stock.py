@@ -54,7 +54,7 @@ def check_warehouse_wise_wrkflw(doc,method):
         for i in doc.items:
             if i.t_warehouse=="SStore - NAVYA":
                 t_warehouse.append(i.t_warehouse)
-                
+
             else:
                 stock_t_warehouse.append(i.t_warehouse)
 
@@ -64,7 +64,7 @@ def check_warehouse_wise_wrkflw(doc,method):
             if get_pf:
                 if get_pf[0]['role'] not in sales_roles and get_pf[0]['location']=="Santushti":
                     frappe.throw("It will be receive by Sales team")
-        
+
         if stock_t_warehouse:
             get_pf=frappe.db.sql(""" select location,role from `tabLocation Wise Warehoue` where docstatus=0 and warehouse='{}' and parent='{}'  """.format(stock_t_warehouse[0],pfdoc.name),as_dict=1)
             if get_pf:
@@ -118,35 +118,37 @@ def updte_incharge_wo(doc,method):
     if doc.work_order and doc.stock_entry_type=="Material Transfer for Manufacture":
         frappe.db.set_value('Work Order',doc.work_order, 'incharge',frappe.session.user, update_modified=False)
         frappe.db.commit()
-    
+
 
 
 @frappe.whitelist(allow_guest=True)
 def create_tag_m(doc,method):
-	get_tag=frappe.db.sql(""" select name from `tabItem Tag` where stock_entry='{}'  """.format(doc.name),as_dict=1)
-	if len(get_tag)!=0:
-		frappe.delete_doc("Item Tag",get_tag[0]['name'])
+    get_tag=frappe.db.sql(""" select name from `tabItem Tag` where stock_entry='{}'  """.format(doc.name),as_dict=1)
+    if len(get_tag)!=0:
+        frappe.delete_doc("Item Tag",get_tag[0]['name'])
 
+    if doc.stock_entry_type=="Manufacture":
+        d={"doctype":"Item Tag","stock_entry":doc.name}
+        d['automated']=1
+        tag=frappe.get_doc(d)
+        for i in doc.items:
+            if i.is_finished_item==1:
+                chec_qty=int(i.qty)
+                for k in range(chec_qty):
+                    item_doc=frappe.get_doc("Item",i.item_code)
+                    ip=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and  item_code='{}'  ORDER BY modified DESC """.format(i.item_code),as_dict=1)
+                    row = tag.append("items", {})
+                    row.item_code=i.item_code
+                    row.item_name=i.item_name
+                    row.qty=1
+                    row.item_group=item_doc.item_group
+                    if len(ip)!=0:
+                        row.rate=ip[0]['price_list_rate']
+                    else:
+                        row.rate=0.0
 
-	if doc.stock_entry_type=="Manufacture":
-		d={"doctype":"Item Tag","stock_entry":doc.name}
-		d['automated']=1
-		tag=frappe.get_doc(d)
-		for i in doc.items:
-			if i.is_finished_item==1:
-				item_doc=frappe.get_doc("Item",i.item_code)
-				ip=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and  item_code='{}'  ORDER BY modified DESC """.format(i.item_code),as_dict=1)
-				row = tag.append("items", {})
-				row.item_code=i.item_code
-				row.item_name=i.item_name
-				row.qty=i.qty
-				row.item_group=item_doc.item_group
-				if len(ip)!=0:
-					row.rate=ip[0]['price_list_rate']
-				else:
-					row.rate=0.0
-		tag.insert(ignore_permissions=True)
-		frappe.msgprint("Item tag is Created")
+        tag.insert(ignore_permissions=True)
+        frappe.msgprint("Item tag is Created")
 
 
 
