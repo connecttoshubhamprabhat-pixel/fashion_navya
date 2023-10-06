@@ -384,6 +384,7 @@ def make_made_tmso(items=None,customer=None,rate=0,so=None):
 			d['item_name']=name+"-"+customer
 			d['parent_item']=doc.name
 			d['customise']=1
+			d['image']=doc.image
 			n=frappe.get_doc(d)
 			row =n.append("customer_list", {})
 			row.customer=customer

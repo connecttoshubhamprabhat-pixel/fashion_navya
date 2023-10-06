@@ -97,17 +97,11 @@ def fetch_items_wo(values=None):
 				duplicate.append(i['production_item'])
 	return items
 
+
+
 @frappe.whitelist(allow_guest=True)
-def fetch_attributes_so(doc,method):
+def fetch_values_so(doc,method):
 	if doc.sales_order:
 		so=frappe.get_doc("Sales Order",doc.sales_order)
 		for i in so.items:
-			if i.item_code==doc.production_item:
-				doc.set("tdress",i.tdress)
-				doc.set("custom_attributes",i.custom_attributes)
-				doc.set("bottom_length",i.bottom_length)
-				doc.set("bottom_waist",i.bottom_waist)
-				doc.set("sleeve_length",i.sleeve_length)
-				doc.set("plus",i.plus)
-				doc.set("minus",i.minus)
-				doc.set("size",i.size)
+			
