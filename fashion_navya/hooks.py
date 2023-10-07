@@ -128,7 +128,7 @@ doc_events = {
 	"Stock Entry": {
 		        "before_save":["fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow","fashion_navya.utils.doc_event.stock.warehouse_check_se"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
-               "on_submit":["fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
+               "on_submit":["fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
@@ -178,7 +178,7 @@ doc_events = {
     "Item":{
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
-            "before_save":["fashion_navya.utils.doc_event.item.renamedoc"],
+            "before_save":["fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
             "after_insert":["fashion_navya.utils.doc_event.item.set_item_project_reorder"],
             "on_delete":["fashion_navya.utils.doc_event.item.remove_item_rtw"],
 
@@ -274,6 +274,10 @@ scheduler_events = {
             "12 22 * * *": [
                 "fashion_navya.utils.doc_event.cron.today_cash_amount",
         ],
+            "30 23 * * *":[
+                    "fashion_navya.utils.doc_event.item.fetched_warehouse_sch",
+
+                ],
 
 
 

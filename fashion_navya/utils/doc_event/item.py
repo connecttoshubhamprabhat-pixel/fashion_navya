@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+import json
 from frappe.utils import cstr, flt
 from erpnext.stock.dashboard.item_dashboard import get_data
 from erpnext.stock.utils import (
@@ -231,3 +232,96 @@ def create_mr_reoder(doc,method):
 def report_stock_bal():
 	is_reposting_item_valuation_in_progress()
 	items=frappe.db.sql("""select name from `tabItem` where disabled=0 """,as_dict=1)
+
+
+
+
+@frappe.whitelist()
+def fetched_warehouse_qty(values=None):
+	values=json.loads(values)
+	warehouse=values.get("warehouse")
+	if not warehouse:
+		return
+	all_items=[]
+	ws=[]
+	check_groups=frappe.get_doc("Warehouse",warehouse)
+	if check_groups.is_group==0:
+		ws.append(warehouse)
+	if check_groups.is_group==1:
+		get_child=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='{}' and disabled=0  """.format(warehouse),as_dict=1)
+		if len(get_child)!=0:
+			for i in get_child:
+				ws.append(i['name'])
+
+	for k in ws:
+		data=get_data(warehouse=k)
+		print(k)
+		if data:
+			for i in data:
+				if i['actual_qty']>0 and i['item_code'] not in all_items:
+					all_items.append(i['item_code'])
+	if all_items:
+		for j in all_items:
+			doc=frappe.get_doc("Item",j)
+			if doc.ignore_project==1:
+				doc.set("ignore_project",0)
+			else:
+				doc.set("ignore_project",1)
+			doc.save()
+			frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def fetched_warehouse_qty_w(doc,method):
+	data=get_data(item_code=doc.name)
+	if len(data)!=0:
+		doc.witem_stock=[]
+		for j in data:
+			if j['actual_qty']>0:
+				check_warehouse=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and name='{}' """.format(j['warehouse']),as_dict=1)
+				row = doc.append("witem_stock", {})
+				row.warehouse=j['warehouse']
+				row.qty=j['actual_qty']
+				if len(check_warehouse)!=0:
+					row1 = doc.append("witem_stock", {})
+					row1.warehouse="Santushti - NAVYA"
+					row1.qty=j['actual_qty']
+
+
+
+@frappe.whitelist()
+def fetched_warehouse_sch(values=None):
+	ws=['Courier Station - NAVYA','Navya Finish Product RACK - NAVYA','Navya Store Office - NAVYA','Sampling Unit - NAVYA']
+	get_child=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='{}' and disabled=0  """.format('Santushti - NAVYA'),as_dict=1)
+	if len(get_child)!=0:
+		for i in get_child:
+			ws.append(i['name'])
+
+	for k in ws:
+		data=get_data(warehouse=k)
+		print(k)
+		if data:
+			for i in data:
+				if i['actual_qty']>0 and i['item_code'] not in all_items:
+					all_items.append(i['item_code'])
+	if all_items:
+		for j in all_items:
+			doc=frappe.get_doc("Item",j)
+			if doc.ignore_project==1:
+				doc.set("ignore_project",0)
+			else:
+				doc.set("ignore_project",1)
+			doc.save()
+
+
+@frappe.whitelist()
+def update_item(doc,method):
+	for i in doc.items:
+		item=frappe.get_doc("Item",i.item_code)
+		if item.ignore_project==1:
+			item.set("ignore_project",0)
+		else:
+			item.set("ignore_project",1)
+		item.save(ignore_permissions=True)
