@@ -44,3 +44,14 @@ def change_stock(g=None):
 			frappe.db.commit()
 		except:
 			continue
+@frappe.whitelist()
+def update_items():
+	w=[]
+	ws=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and disabled=0   """,as_dict=1)
+	items=[]
+	for i in ws:
+		get_items=frappe.db.sql("""select DISTINCT item_code from `tabBin` where actual_qty>0 and warehouse='{}'  """.format(i),as_dict=1)
+		if len(get_items)!=0:
+			for j in get_items:
+				if j['item_code'] not in items:
+					items.append(j['item_code'])

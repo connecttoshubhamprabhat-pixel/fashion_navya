@@ -238,6 +238,7 @@ def report_stock_bal():
 
 @frappe.whitelist()
 def fetched_warehouse_qty(values=None):
+	is_reposting_item_valuation_in_progress()
 	values=json.loads(values)
 	warehouse=values.get("warehouse")
 	if not warehouse:
@@ -269,6 +270,7 @@ def fetched_warehouse_qty(values=None):
 				doc.set("ignore_project",1)
 			doc.save()
 			frappe.db.commit()
+		frappe.msgprint("updated successfully")
 
 
 
