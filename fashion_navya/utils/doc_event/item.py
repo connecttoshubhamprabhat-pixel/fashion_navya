@@ -279,15 +279,15 @@ def fetched_warehouse_qty(values=None):
 def fetched_warehouse_qty_w(doc,method):
 	data=get_data(item_code=doc.name)
 	if len(data)!=0:
-		doc.witem_stock=[]
+		doc.custom_witem_stock=[]
 		for j in data:
 			if j['actual_qty']>0:
 				check_warehouse=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and name='{}' """.format(j['warehouse']),as_dict=1)
-				row = doc.append("witem_stock", {})
+				row = doc.append("custom_witem_stock", {})
 				row.warehouse=j['warehouse']
 				row.qty=j['actual_qty']
 				if len(check_warehouse)!=0:
-					row1 = doc.append("witem_stock", {})
+					row1 = doc.append("custom_witem_stock", {})
 					row1.warehouse="Santushti - NAVYA"
 					row1.qty=j['actual_qty']
 

@@ -9,7 +9,7 @@ from erpnext.controllers.stock_controller import StockController
 from erpnext.stock.doctype.batch.batch import get_batch_qty
 from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 from erpnext.stock.utils import get_stock_balance
-from erpnext.stock.report.stock_balance.stock_balance import (get_item_warehouse_map,get_items,get_stock_ledger_entries)
+from fashion_navya.utils.doc_event.oldstockb import (get_item_warehouse_map,get_items,get_stock_ledger_entries)
 
 @frappe.whitelist()
 def fetch_item_barcode(barcode=None):
