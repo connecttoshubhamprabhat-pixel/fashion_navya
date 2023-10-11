@@ -256,6 +256,10 @@ def make_rtw_item_project(items=None):
 
 @frappe.whitelist()
 def make_customer_items(items=None,customer=None,rate=0,so=None):
+	if 10000>int(rate):
+		frappe.msgprint("The Price is less then 10000")
+		return
+
 	if not customer:
 		frappe.msgprint("Please select customer")
 		return
@@ -328,6 +332,10 @@ def make_customer_items(items=None,customer=None,rate=0,so=None):
 
 @frappe.whitelist(allow_guest=True)
 def make_made_tmso(items=None,customer=None,rate=0,so=None):
+	if 15000>int(rate):
+		frappe.msgprint("The Price is less then 15000")
+		return
+
 	if not customer:
 		frappe.msgprint("Please select customer")
 		return
@@ -417,3 +425,11 @@ def make_price_doc(item=None,rate=None):
 	ip.db_set("workflow_state","Approved", update_modified=False)
 	ip.db_set("valid_from",before_2_days, update_modified=False)
 	frappe.msgprint("craeted")
+
+
+@frappe.whitelist()
+def name_fetch_wo(doc,method):
+	if doc.custom_parent_item and not doc.custom_pname and doc.docstatus==0:
+		if frappe.db.exists("Item",doc.custom_parent_item):
+			item=frappe.get_doc("Item",doc.custom_parent_item)
+			doc.set("custom_pname",item.item_name)
