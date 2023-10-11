@@ -111,3 +111,22 @@ def fetch_attributes_so(doc,method):
 				doc.set("plus",i.plus)
 				doc.set("minus",i.minus)
 				doc.set("size",i.size)
+
+
+
+#w/o items fetch status not started
+@frappe.whitelist(allow_guest=True)
+def wo_items_fetch_ns():
+	items=[]
+	get_items=frappe.db.sql("""select qty,bom_no,production_item from `tabWork Order` where docstatus=1 and status="Not Started"   """,as_dict=1)
+	if len(get_items)!=0:
+		duplicate=[]
+		for i in get_items:
+			if i['production_item'] not in duplicate:
+				d={}
+				d['item_code']=i['production_item']
+				d['qty']=i['qty']
+				d['bom']=i['bom_no']
+				items.append(d)
+				duplicate.append(i['production_item'])
+	return items
