@@ -327,3 +327,32 @@ def update_item(doc,method):
 		else:
 			item.set("ignore_project",1)
 		item.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def update_images_item(name=None,image=None):
+	if not name or  not image:
+		return
+	doc=frappe.get_doc("Item",name)
+	template=doc.variant_of
+	if not template:
+		return
+	size=[]
+	for i in doc.attributes:
+		if i.attribute=="Size":
+			size.append(i.attribute_value)
+
+	template=doc.variant_of
+	images_items=[]
+	get_child_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}' and disabled=0 and name!='{}' """.format(template,name),as_dict=1)
+	if get_child_items:
+		for k in get_child_items:
+			child=frappe.get_doc("Item",k['name'])
+			for i in child.attributes:
+				if i.attribute=="Size":
+					if i.attribute_value in size:
+						images_items.append(k['name'])
+	for m in images_items:
+		print(m,'mmmmmmmmmmmmm')
+		image_doc=frappe.get_doc("Item",m)
+		image_doc.db_set("image",image, update_modified=False)
+		image_doc.save(ignore_permissions=True)
