@@ -309,6 +309,7 @@ def make_customer_items(items=None,customer=None,rate=0,so=None):
 			d['item_code']=item_code
 			d['item_name']=name+"-"+customer
 			d['parent_item']=doc.name
+			d['image']=doc.image
 			d['customise']=1
 			n=frappe.get_doc(d)
 			row =n.append("customer_list", {})
