@@ -186,7 +186,7 @@ doc_events = {
         },
 	"Timesheet":{
 		"after_insert":["fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
-		"before_submit":["fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
+                "before_submit":["fashion_navya.utils.doc_event.ts.check_date_hr_diff_ts","fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
 
 },
         "Payment Imprest":{
@@ -246,8 +246,8 @@ doc_events = {
 
                         },
                 "Timesheet Missing":{
-                            "after_insert":["fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
-                            "before_save":["fashion_navya.utils.doc_event.timesheet.nine_hours_validations"],
+                            "after_insert":["fashion_navya.utils.doc_event.ts.check_date_hr_diff","fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
+                            "before_save":["fashion_navya.utils.doc_event.ts.check_date_hr_diff","fashion_navya.utils.doc_event.timesheet.nine_hours_validations"],
                         },
                 "Supplier Quotation":{
                             "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card"],

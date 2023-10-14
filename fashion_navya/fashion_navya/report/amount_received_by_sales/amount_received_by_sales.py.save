@@ -18,25 +18,25 @@ def get_data(filters):
 	from_date=str(filters.from_date)
 	to_date=str(filters.to_date)
 	#calculate for pos
-	posc=frappe.db.sql("""select DISTINCT name from `tabPOS Closing Entry` where docstatus=1 and  posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	posc=frappe.db.sql("""select name from `tabPOS Closing Entry` where docstatus=1 and  posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
 	if len(posc)!=0:
 		for p in posc:
-			#psdict={}
-			#psdict['pos_name']=p['name']
+			psdict={}
+			psdict['pos_name']=p['name']
 			ps_check=[]
 			pos_doc=frappe.get_doc("POS Closing Entry",p['name'])
 			for pos_entry in pos_doc.payment_reconciliation:
-				if pos_entry.expected_amount>0:
-					psdict={}
-					psdict['pos_name']=p['name']
-					psdict['pmop']=pos_entry.mode_of_payment
-					psdict['pos_amt']=pos_entry.expected_amount
-					data.append(psdict)
+				#if pos_entry.expected_amount>0:
+				ps_check.append("yes")
+				psdict['pmop']=pos_entry.mode_of_payment
+				psdict['pos_amt']=pos_entry.expected_amount
+
+			if ps_check:
+				data.append(psdict)
 
 
-	data.append({})
-	data.append({})
-	#return data
+	#data.append({})
+	#data.append({})
 
 
 
