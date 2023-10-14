@@ -19,21 +19,34 @@ def get_data(filters):
 	to_date=str(filters.to_date)
 	#calculate for pos
 	total_pos=[0]
-	posc=frappe.db.sql("""select name,grand_total from `tabPOS Closing Entry` where docstatus=1 and  posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	posc=frappe.db.sql("""select DISTINCT name from `tabPOS Closing Entry` where docstatus=1 and  posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
 	if len(posc)!=0:
+		pos_list=[]
 		for p in posc:
-			total_pos.append(p['grand_total'])
-			# pos_amt=0
-			# pos_doc=frappe.get_doc("POS Closing Entry",p['name'])
-			# if pos_doc.pos_transactions:
-			# 	for a in pos_doc.pos_transactions:
-	pdic={"pos":sum(total_pos)}
-	data.append(pdic)
+			psdict={}
+			psdict['pos_name']=p['name']
+			pos_doc=frappe.get_doc("POS Closing Entry",p['name'])
+			for pos_entry in pos_doc.payment_reconciliation:
+				if pos_entry.expected_amount>0:
+					psdict['pmop']=pos_entry.mode_of_payment
+					psdict['pos']=pos_entry.expected_amount
+				else:
+					psdict['pos']=0
+
+
+
+			data.append(psdict)
+
+
+	data.append({})
+	data.append({})
 
 
 
 	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where payment_type="Receive" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
 	if len(get_pe)!=0:
+		so_names=[]
+		si_names=[]
 		for i in get_pe:
 			d={}
 			doc_pe=frappe.get_doc("Payment Entry",i['name'])
@@ -51,28 +64,32 @@ def get_data(filters):
 				if ref[0].reference_doctype=="Sales Order":
 					so=frappe.get_doc("Sales Order",ref[0].reference_name)
 					d['sales_order']=so.name
-					d['samt']=so.grand_total
-					d['sonet']=so.net_total
+					d['somop']=doc_pe.mode_of_payment
+					if so.name not in so_names:
+						d['samt']=so.grand_total
+						d['sonet']=so.net_total
+						so_names.append(so.name)
+					else:
+						d['samt']=0
+						d['sonet']=0
+
 					d['pamt']=doc_pe.paid_amount
 				if ref[0].reference_doctype=="Sales Invoice":
 					si=frappe.get_doc("Sales Invoice",ref[0].reference_name)
 					d['si']=si.name
-					d['siamt']=si.grand_total
-					d['sinet']=si.net_total
+					d['simop']=doc_pe.mode_of_payment
+					if si.name not in si_names:
+						d['siamt']=si.grand_total
+						d['sinet']=si.net_total
+						si_names.append(si.name)
+					else:
+						d['siamt']=0
+						d['sinet']=0
 					d['pamt']=doc_pe.paid_amount
 
 
 
 
-			# si=frappe.get_doc("Sales Invoice",ref[0].reference_name)
-			# d['si']=ref[0].reference_name
-			# d['customer']=si.customer
-			# d['mop']=doc_pe.mode_of_payment
-			# d['amt']=doc_pe.paid_amount
-			# d['ped']=doc_pe.posting_date
-			# d['samt']=si.grand_total
-			# d['tid']=doc_pe.reference_no
-			# d['td']=doc_pe.reference_date
 			data.append(d)
 
 
@@ -114,12 +131,25 @@ def get_columns():
 			"options": "Sales Order",
 			"width":160,
 		},
+
+		{
+			"label": _("SO/MOP"),
+			"fieldtype": "Data",
+			"fieldname": "somop",
+			"width":200,
+		},
 		{
 			"label": _("Sales Invoice"),
 			"fieldtype": "Link",
 			"fieldname": "si",
 			"options": "Sales Invoice",
 			"width":170,
+		},
+		{
+			"label": _("Si/MOP"),
+			"fieldtype": "Data",
+			"fieldname": "simop",
+			"width":200,
 		},
 
 		{
@@ -184,6 +214,20 @@ def get_columns():
 			"fieldname": "mop",
 			"width":100,
 		},
+		{
+			"label": _("POS/Entry"),
+			"fieldtype": "Link",
+			"fieldname": "pos_name",
+			"options": "POS Closing Entry",
+			"width":170,
+		},
+		{
+			"label": _("POS/mop"),
+			"fieldtype": "Data",
+			"fieldname": "pmop",
+			"width":100,
+		},
+
 		{
 			"label": _("POS Amount"),
 			"fieldtype": "Data",
