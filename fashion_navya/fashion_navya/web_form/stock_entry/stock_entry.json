@@ -27,7 +27,7 @@
  ],
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2023-07-05 16:13:22.939245",
+ "modified": "2023-10-12 17:04:50.957845",
  "modified_by": "pawasthy11@gmail.com",
  "module": "Fashion Navya",
  "name": "stock-entry",
@@ -38,6 +38,8 @@
  "show_attachments": 1,
  "show_list": 1,
  "show_sidebar": 0,
+ "success_message": "successfully submit",
+ "success_title": "submit",
  "title": "Stock Entry",
  "web_form_fields": [
   {

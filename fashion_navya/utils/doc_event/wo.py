@@ -110,6 +110,7 @@ def fetch_attributes_so(doc,method):
 				doc.set("sleeve_length",i.sleeve_length)
 				doc.set("plus",i.plus)
 				doc.set("minus",i.minus)
+				doc.set("custom_extra",i.custom_extra)
 				doc.set("size",i.size)
 
 

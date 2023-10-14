@@ -171,6 +171,7 @@ doc_events = {
     },
     "Purchase Order":{
         "before_save":["fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
     },
     "Item Tag":{
         #"before_save":["fashion_navya.utils.doc_event.stock.check_item_is_ma"],
@@ -247,6 +248,14 @@ doc_events = {
                 "Timesheet Missing":{
                             "after_insert":["fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
                             "before_save":["fashion_navya.utils.doc_event.timesheet.nine_hours_validations"],
+                        },
+                "Supplier Quotation":{
+                            "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card"],
+
+                        },
+                "Production Plan":{
+                        "before_save":["fashion_navya.utils.doc_event.production.remove_disabled"],
+
                         },
 }
 

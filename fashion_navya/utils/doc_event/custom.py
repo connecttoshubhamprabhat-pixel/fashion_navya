@@ -256,7 +256,8 @@ def make_rtw_item_project(items=None):
 
 @frappe.whitelist()
 def make_customer_items(items=None,customer=None,rate=0,so=None):
-	if 10000>int(rate):
+	perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
+	if int(perdoc.cms)>int(rate):
 		frappe.msgprint("The Price is less then 10000")
 		return
 
@@ -332,7 +333,8 @@ def make_customer_items(items=None,customer=None,rate=0,so=None):
 
 @frappe.whitelist(allow_guest=True)
 def make_made_tmso(items=None,customer=None,rate=0,so=None):
-	if 15000>int(rate):
+	perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
+	if int(perdoc.mtm)>int(rate):
 		frappe.msgprint("The Price is less then 15000")
 		return
 

@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import today
 from frappe.utils import now
-from frappe.utils import time_diff_in_hours
+from frappe.utils import time_diff_in_hours,date_diff
 
 #aug/19/23
 @frappe.whitelist()
@@ -17,4 +17,19 @@ def submit_lunch_time():
 			td.set("completed",1)
 			td.set("source_type","scheduled")
 			td.set("hours",float(hours))
+
+
+
+
+@frappe.whitelist()
+def check_date_hr_diff(doc,method):
+	if doc.from_time and doc.to_time:
+		f=str(doc.from_time).split(" ")
+		ftime=f[1].split(":")
+		t=str(doc.to_time).split(" ")
+		ttime=t[1].split(":")
+		fhour=int(ftime[0])
+		fminute=int(ftime[0])
+		thour=int(ttime[0])
+		tminute=int(ttime[1])
 

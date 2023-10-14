@@ -60,7 +60,7 @@ def update_items():
 
 @frappe.whitelist()
 def update_images_item():
-	get_items=frappe.db.sql("""select name from `tabItem` where item_group='Sample' and disabled=0 and variant_of is not null  """,as_dict=1)
+	get_items=frappe.db.sql("""select name from `tabItem` where item_group='Sample' and disabled=0 and variant_of is not null and image is not null  """,as_dict=1)
 	for i in get_items:
 		doc=frappe.get_doc("Item",i['name'])
 		name=doc.name
@@ -74,7 +74,7 @@ def update_images_item():
 				size.append(a.attribute_value)
 		template=doc.variant_of
 		images_items=[]
-		get_child_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}' and disabled=0 and name!='{}' and image is null """.format(template,name),as_dict=1)
+		get_child_items=frappe.db.sql("""select name from `tabItem` where item_group!="Sample"  and variant_of='{}' and disabled=0 and name!='{}' and image is null """.format(template,name),as_dict=1)
 		if get_child_items:
 			for k in get_child_items:
 				child=frappe.get_doc("Item",k['name'])
@@ -84,7 +84,10 @@ def update_images_item():
 							images_items.append(k['name'])
 		for m in images_items:
 			print(m,'mmmmmmmmmmmmm')
-			image_doc=frappe.get_doc("Item",m)
-			image_doc.db_set("image",doc.image, update_modified=False)
-			image_doc.save(ignore_permissions=True)
-			frappe.db.commit()
+			try:
+				image_doc=frappe.get_doc("Item",m)
+				image_doc.db_set("image",doc.image, update_modified=False)
+				image_doc.save(ignore_permissions=True)
+				frappe.db.commit()
+			except:
+				continue

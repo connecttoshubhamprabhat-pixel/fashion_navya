@@ -1,0 +1,9 @@
+import frappe
+
+@frappe.whitelist()
+def rm_duplicate(doc,method):
+	dup=[]
+	for i in doc.mr_items:
+		item=frappe.get_doc("Item",i.item_code)
+
+
