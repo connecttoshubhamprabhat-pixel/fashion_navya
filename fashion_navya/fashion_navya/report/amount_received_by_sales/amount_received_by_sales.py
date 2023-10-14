@@ -31,11 +31,17 @@ def get_data(filters):
 					psdict['pos_name']=p['name']
 					psdict['pmop']=pos_entry.mode_of_payment
 					psdict['pos_amt']=pos_entry.expected_amount
+					#extra
+					psdict['uamt']=0
+					psdict['samt']=0
+					psdict['sonet']=0
+					psdict['siamt']=0
+					psdict['sinet']=0
+					psdict['pamt']=0
 					data.append(psdict)
 
 
-	data.append({})
-	data.append({})
+
 	#return data
 
 
