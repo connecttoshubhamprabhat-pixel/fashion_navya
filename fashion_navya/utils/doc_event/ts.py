@@ -29,14 +29,14 @@ def check_date_hr_diff(doc,method):
 		t=str(doc.to_time).split(" ")
 		ttime=t[1].split(":")
 		fhour=int(ftime[0])
-		fminute=int(ftime[0])
+		fminute=int(ftime[1])
 		thour=int(ttime[0])
 		tminute=int(ttime[1])
 		if thour==13:
 			if tminute>3:
 				frappe.throw("यह भोजन का समय है")
 		if fhour==13:
-			if 44>fminute:
+			if 39>fminute:
 				frappe.throw("आप 13:44 से पहले शुरू नहीं कर सकते")
 		if 13>fhour and thour>13:
 			frappe.throw("दोपहर के भोजन का समय नहीं जोड़ा जाना चाहिए")
@@ -55,14 +55,14 @@ def check_date_hr_diff_ts(doc,method):
 		t=str(i.to_time).split(" ")
 		ttime=t[1].split(":")
 		fhour=int(ftime[0])
-		fminute=int(ftime[0])
+		fminute=int(ftime[1])
 		thour=int(ttime[0])
 		tminute=int(ttime[1])
 		if thour==13:
 			if tminute>3:
 				frappe.throw("यह भोजन का समय है")
 		if fhour==13:
-			if 44>fminute:
+			if 39>fminute:
 				frappe.throw("आप 13:44 से पहले शुरू नहीं कर सकते")
 		if 13>fhour and thour>13:
 			frappe.throw("दोपहर के भोजन का समय नहीं जोड़ा जाना चाहिए")
