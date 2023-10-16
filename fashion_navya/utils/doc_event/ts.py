@@ -33,7 +33,7 @@ def check_date_hr_diff(doc,method):
 		thour=int(ttime[0])
 		tminute=int(ttime[1])
 		if thour==13:
-			if tminute>3:
+			if tminute>10:
 				frappe.throw("यह भोजन का समय है")
 		if fhour==13:
 			if 39>fminute:
@@ -59,7 +59,7 @@ def check_date_hr_diff_ts(doc,method):
 		thour=int(ttime[0])
 		tminute=int(ttime[1])
 		if thour==13:
-			if tminute>3:
+			if tminute>10:
 				frappe.throw("यह भोजन का समय है")
 		if fhour==13:
 			if 39>fminute:

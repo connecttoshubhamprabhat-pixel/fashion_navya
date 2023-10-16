@@ -169,6 +169,7 @@ def remove_item_rtw(doc,method):
 @frappe.whitelist(allow_guest=True)
 def make_mr_manufacture(doc,method):
 	items=[]
+	print()
 	if doc.doctype=="Sales Invoices":
 		if doc.is_pos or doc.update_stock:
 			for i in doc.items:
@@ -181,21 +182,7 @@ def make_mr_manufacture(doc,method):
 				if qty==0:
 					items.append(i.item_code)
 
-
-    if doc.doctype=="Sales Order":
-        for i in doc.items:
-			qty=0
-			data=get_data(item_code=i.item_code)
-			if data:
-				for j in data:
-					if j['actual_qty']>0:
-						qty+=j['actual_qty']
-			if qty==0:
-				items.append(i.item_code)
-
-
-    #delivery # NOTE
-    if doc.doctype=="Delivery Notes":
+	if doc.doctype=="Sales Order":
 		for i in doc.items:
 			qty=0
 			data=get_data(item_code=i.item_code)
@@ -206,17 +193,28 @@ def make_mr_manufacture(doc,method):
 			if qty==0:
 				items.append(i.item_code)
 
+	#delivery # NOTE
+	if doc.doctype=="Delivery Notes":
+		for i in doc.items:
+			qty=0
+			data=get_data(item_code=i.item_code)
+			if data:
+				for j in data:
+					if j['actual_qty']>0:
+						qty+=j['actual_qty']
+			if qty==0:
+				items.append(i.item_code)
 
-    if items:
-        d={'doctype':"Material Request","material_request_type":"Manufacture"}
-        mr=frappe.get_doc(d)
-        for i in items:
-            row = mr.append("items", {})
-            row.item_code=i
-            row.qty=1
+	if items:
+		d={'doctype':"Material Request","material_request_type":"Manufacture"}
+		mr=frappe.get_doc(d)
+		for i in items:
+			row = mr.append("items", {})
+			row.item_code=i
+			row.qty=1
 
-        mr.insert()
-        mr.submit()
+		mr.insert()
+		mr.submit()
 
 
 @frappe.whitelist()

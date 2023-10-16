@@ -435,3 +435,24 @@ def name_fetch_wo(doc,method):
 		if frappe.db.exists("Item",doc.custom_parent_item):
 			item=frappe.get_doc("Item",doc.custom_parent_item)
 			doc.set("custom_pname",item.item_name)
+
+
+
+#item name rename with size
+@frappe.whitelist()
+def rename_item_with_size(doc,method):
+	if doc.cms:
+		for i in doc.items:
+			if i.item_type=="Customize":
+				if not i.size:
+					frappe.throw("Size missing for Customise")
+
+				item=frappe.get_doc("Item",i.item_code)
+				name=item.item_name.split("-")
+				d=re.findall(r'\d+',item.item_code)
+				join_d="-".join(d)
+				size="-C"+str(i.size)
+				final_name=join_d+str(size)+"-"+name[-1]
+				item.set('item_name',final_name)
+				item.save(ignore_permissions=True)
+				i.set('item_name',final_name)
