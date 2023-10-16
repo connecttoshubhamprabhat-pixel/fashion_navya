@@ -139,7 +139,6 @@ doc_events = {
         "before_submit":["fashion_navya.utils.doc_event.custom.rename_item_with_size","fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.make_mr_manufacture"],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
-        "before_save":["fashion_navya.utils.doc_event.so.make_mr_rtw"],
     },
     "Stock Ledger Entry":{
         #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
