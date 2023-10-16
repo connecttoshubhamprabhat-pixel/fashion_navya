@@ -167,53 +167,44 @@ def remove_item_rtw(doc,method):
 
 
 @frappe.whitelist(allow_guest=True)
-def create_mr_reoder(doc,method):
-    items=[]
-    if doc.doctype=="Sales Invoices":
-        if doc.is_pos or doc.update_stock:
-            for i in doc.items:
-                item=i.item_code.split("-")
-                exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
-                if len(exists)!=0 and "RTW" in item:
-                    qty=0
-                    data=get_data(item_code=i.item_code)
-                    if data:
-                        for j in data:
-                            if j['actual_qty']>0:
-                                qty+=j['actual_qty']
-                    if qty==0:
-                        items.append(i.item_code)
+def make_mr_manufacture(doc,method):
+	items=[]
+	if doc.doctype=="Sales Invoices":
+		if doc.is_pos or doc.update_stock:
+			for i in doc.items:
+				qty=0
+				data=get_data(item_code=i.item_code)
+				if data:
+					for j in data:
+						if j['actual_qty']>0:
+							qty+=j['actual_qty']
+				if qty==0:
+					items.append(i.item_code)
 
 
     if doc.doctype=="Sales Order":
         for i in doc.items:
-            item=i.item_code.split("-")
-            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
-            if len(exists)!=0 and "RTW" in item:
-                qty=0
-                data=get_data(item_code=i.item_code)
-                if data:
-                    for j in data:
-                        if j['actual_qty']>0:
-                            qty+=j['actual_qty']
-                if qty==0:
-                    items.append(i.item_code)
+			qty=0
+			data=get_data(item_code=i.item_code)
+			if data:
+				for j in data:
+					if j['actual_qty']>0:
+						qty+=j['actual_qty']
+			if qty==0:
+				items.append(i.item_code)
 
 
     #delivery # NOTE
     if doc.doctype=="Delivery Notes":
-        for i in doc.items:
-            item=i.item_code.split("-")
-            exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' """.format(i.item_code),as_dict=1)
-            if len(exists)!=0 and "RTW" in item:
-                qty=0
-                data=get_data(item_code=i.item_code)
-                if data:
-                    for j in data:
-                        if j['actual_qty']>0:
-                            qty+=j['actual_qty']
-                if qty==0:
-                    items.append(i.item_code)
+		for i in doc.items:
+			qty=0
+			data=get_data(item_code=i.item_code)
+			if data:
+				for j in data:
+					if j['actual_qty']>0:
+						qty+=j['actual_qty']
+			if qty==0:
+				items.append(i.item_code)
 
 
     if items:
@@ -231,36 +222,23 @@ def create_mr_reoder(doc,method):
 @frappe.whitelist()
 def report_stock_bal():
 	is_reposting_item_valuation_in_progress()
-	items=frappe.db.sql("""select name from `tabItem` where disabled=0 """,as_dict=1)
+	print()
 
 
 
 
 @frappe.whitelist()
 def fetched_warehouse_qty(values=None):
-	is_reposting_item_valuation_in_progress()
+	#is_reposting_item_valuation_in_progress()
 	values=json.loads(values)
-	warehouse=values.get("warehouse")
-	if not warehouse:
+	item_group=values.get("item_group")
+	if not item_group:
 		return
 	all_items=[]
-	ws=[]
-	check_groups=frappe.get_doc("Warehouse",warehouse)
-	if check_groups.is_group==0:
-		ws.append(warehouse)
-	if check_groups.is_group==1:
-		get_child=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='{}' and disabled=0  """.format(warehouse),as_dict=1)
-		if len(get_child)!=0:
-			for i in get_child:
-				ws.append(i['name'])
-
-	for k in ws:
-		data=get_data(warehouse=k)
-		print(k)
-		if data:
-			for i in data:
-				if i['actual_qty']>0 and i['item_code'] not in all_items:
-					all_items.append(i['item_code'])
+	items=frappe.db.sql("""select name from `tabItem` where disabled=0 and item_group='{}' """.format(item_group),as_dict=1)
+	if items:
+		for i in items:
+			all_items.append(i['name'])
 	if all_items:
 		for j in all_items:
 			doc=frappe.get_doc("Item",j)
@@ -295,19 +273,13 @@ def fetched_warehouse_qty_w(doc,method):
 
 @frappe.whitelist()
 def fetched_warehouse_sch(values=None):
-	ws=['Courier Station - NAVYA','Navya Finish Product RACK - NAVYA','Navya Store Office - NAVYA','Sampling Unit - NAVYA']
-	get_child=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='{}' and disabled=0  """.format('Santushti - NAVYA'),as_dict=1)
-	if len(get_child)!=0:
-		for i in get_child:
-			ws.append(i['name'])
+	is_reposting_item_valuation_in_progress()
+	all_items=[]
+	items=frappe.db.sql("""select name from `tabItem` where disabled=0 and item_group in ('Sample','Ready Stock')  """,as_dict=1)
+	if items:
+		for i in items:
+			all_items.append(i['name'])
 
-	for k in ws:
-		data=get_data(warehouse=k)
-		print(k)
-		if data:
-			for i in data:
-				if i['actual_qty']>0 and i['item_code'] not in all_items:
-					all_items.append(i['item_code'])
 	if all_items:
 		for j in all_items:
 			doc=frappe.get_doc("Item",j)
@@ -315,7 +287,7 @@ def fetched_warehouse_sch(values=None):
 				doc.set("ignore_project",0)
 			else:
 				doc.set("ignore_project",1)
-			doc.save()
+			doc.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
@@ -356,3 +328,15 @@ def update_images_item(name=None,image=None):
 		image_doc=frappe.get_doc("Item",m)
 		image_doc.db_set("image",image, update_modified=False)
 		image_doc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def update_item_si(doc,method):
+	if doc.update_stock:
+		for i in doc.items:
+			item=frappe.get_doc("Item",i.item_code)
+			if item.ignore_project==1:
+				item.set("ignore_project",0)
+			else:
+				item.set("ignore_project",1)
+				item.save(ignore_permissions=True)
