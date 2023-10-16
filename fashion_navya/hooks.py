@@ -132,11 +132,11 @@ doc_events = {
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
+            "before_submit":["fashion_navya.utils.doc_event.item.update_item"],
         },
     "Sales Order":{
         "before_update_after_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
-        "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.create_mr_reoder"],
-        "on_submit":[],
+        "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items","fashion_navya.utils.doc_event.item.make_mr_manufacture"],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
         "before_save":["fashion_navya.utils.doc_event.so.make_mr_rtw"],
@@ -209,7 +209,7 @@ doc_events = {
         "Sales Invoice":{
               #"before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
               "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
-              "on_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder"],
+              "on_submit":["fashion_navya.utils.doc_event.item.update_item_si","fashion_navya.utils.doc_event.item.create_mr_reoder"],
 
                 },
         "Project":{
@@ -227,7 +227,7 @@ doc_events = {
                 },
             "Delivery Note":{
 
-                "on_submit":["fashion_navya.utils.doc_event.item.create_mr_reoder"],
+                "on_submit":["fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.item.create_mr_reoder"],
                     },
             "Subcontracting Order":{
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
