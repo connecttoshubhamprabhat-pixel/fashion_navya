@@ -239,13 +239,15 @@ def fetched_warehouse_qty(values=None):
 			all_items.append(i['name'])
 	if all_items:
 		for j in all_items:
-			doc=frappe.get_doc("Item",j)
-			if doc.ignore_project==1:
-				doc.set("ignore_project",0)
-			else:
-				doc.set("ignore_project",1)
-			doc.save()
-			frappe.db.commit()
+			if frappe.db.exists("Item",j):
+				doc=frappe.get_doc("Item",j)
+				if doc.ignore_project==1:
+					doc.set("ignore_project",0)
+				else:
+					doc.set("ignore_project",1)
+				doc.save()
+				frappe.db.commit()
+
 		frappe.msgprint("updated successfully")
 
 
@@ -253,19 +255,20 @@ def fetched_warehouse_qty(values=None):
 
 @frappe.whitelist()
 def fetched_warehouse_qty_w(doc,method):
-	data=get_data(item_code=doc.name)
-	if len(data)!=0:
-		doc.custom_witem_stock=[]
-		for j in data:
-			if j['actual_qty']>0:
-				check_warehouse=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and name='{}' """.format(j['warehouse']),as_dict=1)
-				row = doc.append("custom_witem_stock", {})
-				row.warehouse=j['warehouse']
-				row.qty=j['actual_qty']
-				if len(check_warehouse)!=0:
-					row1 = doc.append("custom_witem_stock", {})
-					row1.warehouse="Santushti - NAVYA"
-					row1.qty=j['actual_qty']
+	if frappe.db.exists("Item",doc.name):
+		data=get_data(item_code=doc.name)
+		if len(data)!=0:
+			doc.custom_witem_stock=[]
+			for j in data:
+				if j['actual_qty']>0:
+					check_warehouse=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and name='{}' """.format(j['warehouse']),as_dict=1)
+					row = doc.append("custom_witem_stock", {})
+					row.warehouse=j['warehouse']
+					row.qty=j['actual_qty']
+					if len(check_warehouse)!=0:
+						row1 = doc.append("custom_witem_stock", {})
+						row1.warehouse="Santushti - NAVYA"
+						row1.qty=j['actual_qty']
 
 
 
@@ -280,12 +283,13 @@ def fetched_warehouse_sch(values=None):
 
 	if all_items:
 		for j in all_items:
-			doc=frappe.get_doc("Item",j)
-			if doc.ignore_project==1:
-				doc.set("ignore_project",0)
-			else:
-				doc.set("ignore_project",1)
-			doc.save(ignore_permissions=True)
+			if frappe.db.exists("Item",j):
+				doc=frappe.get_doc("Item",j)
+				if doc.ignore_project==1:
+					doc.set("ignore_project",0)
+				else:
+					doc.set("ignore_project",1)
+				doc.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
