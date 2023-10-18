@@ -269,6 +269,8 @@ def fetched_warehouse_qty_w(doc,method):
 						row1 = doc.append("custom_witem_stock", {})
 						row1.warehouse="Santushti - NAVYA"
 						row1.qty=j['actual_qty']
+		else:
+			doc.custom_witem_stock=[]
 
 
 

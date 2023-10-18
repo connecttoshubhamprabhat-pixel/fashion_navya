@@ -131,3 +131,14 @@ def wo_items_fetch_ns():
 				items.append(d)
 				duplicate.append(i['production_item'])
 	return items
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_parent_item(doc,method):
+	item=frappe.get_doc("Item",doc.production_item)
+	if item.parent_item:
+		if frappe.db.exists("Item",item.parent_item):
+			doc.set("custom_item_smpl",item.parent_item)

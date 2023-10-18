@@ -147,8 +147,8 @@ doc_events = {
         "validate":["fashion_navya.utils.doc_event.suborder.only_take_kit_item"],
     },
     "Work Order":{
-        "validate":["fashion_navya.utils.doc_event.work.check_item_no_subo","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
-        "before_save":["fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
+        "validate":["fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
+        "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "after_insert":["fashion_navya.utils.doc_event.wo.bom_stage_changes"],
     },
     "Document Record":{
