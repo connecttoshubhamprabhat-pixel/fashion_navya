@@ -149,7 +149,7 @@ doc_events = {
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "after_insert":["fashion_navya.utils.doc_event.wo.bom_stage_changes"],
+        "after_insert":["fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.wo.bom_stage_changes"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
