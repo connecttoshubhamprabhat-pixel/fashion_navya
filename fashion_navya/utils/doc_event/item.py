@@ -344,3 +344,53 @@ def update_item_si(doc,method):
 			else:
 				item.set("ignore_project",1)
 				item.save(ignore_permissions=True)
+
+
+#fetch with same size of attributes
+@frappe.whitelist()
+def images_same_attributes(image=None,name=None):
+	if not image and name:
+		return
+	doc=frappe.get_doc("Item",name)
+	items=[]
+	get_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}' and disabled=0 """.format(doc.variant_of),as_dict=1)
+	if get_items:
+		for i in get_items:
+			if i['name'] not in items and doc.name!=i['name']:
+				items.append(i['name'])
+
+	att_list=[]
+	item_to_update=[]
+	for j in doc.attributes:
+		if j.attribute!="Size":
+			d={}
+			d['attribute']=j.attribute
+			d['attribute_value']=j.attribute_value
+			att_list.append(d)
+
+	print(att_list,'att_list')
+
+	for i in items:
+		print(i,'iiiiiiiiiiii')
+		item=frappe.get_doc("Item",i)
+		item_att=item.attributes
+		matched=0
+		for m in att_list:
+			print(m,'m')
+			if m['attribute']!="Size":
+				att_exists=frappe.get_all('Item Variant Attribute', filters ={'parent':i,"attribute":m['attribute'],"attribute_value":m['attribute_value']},fields = ['parent'])
+				if len(att_exists)!=0:
+					print(att_exists,'att_exists')
+					matched+=1
+
+		print(matched,'matched')
+		print(len(att_list),"att_list")
+		if matched==len(att_list):
+			item_to_update.append(i)
+
+	if item_to_update:
+		print(item_to_update,'item_to_update')
+		for k in item_to_update:
+			item_doc=frappe.get_doc("Item",k)
+			item_doc.db_set("image",image, update_modified=False)
+			item_doc.save(ignore_permissions=True)
