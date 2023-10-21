@@ -37,3 +37,17 @@ def set_sell_offline():
 							print(doc.name)
 							frappe.db.sql("""update `tabPurchase Receipt Item` set fgkitem='{}' ,nop={},fg_parent='{}'  where docstatus < 2 and parent='{}' """.format(get_po_item[0]['fg_item'],get_np,get_po_item[0]['fg_parent'],doc.name))
 							frappe.db.commit()
+
+
+
+@frappe.whitelist()
+def perm_check_pr(doc,method):
+	user=frappe.session.user
+	user_list=["sujeets@navyacustom.com","vivekd@navyacustom.com","kalim@navyacustom.com"]
+	if user in user_list:
+		for i in doc.items:
+			mr=frappe.get_doc("Material Request",i.material_request)
+			if user!=mr.owner:
+				frappe.throw("Material Request is not created by you.")
+
+

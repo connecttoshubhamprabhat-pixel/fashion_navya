@@ -203,6 +203,8 @@ doc_events = {
 
         "Purchase Receipt":{
                 "before_save":["fashion_navya.utils.doc_event.pr.set_kit_parent_pr"],
+                "after_insert":["fashion_navya.utils.doc_event.pr.perm_check_pr"],
+                "before_submit":["fashion_navya.utils.doc_event.pr.perm_check_pr"],
 
                 },
         "Sales Invoice":{
