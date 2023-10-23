@@ -179,7 +179,7 @@ doc_events = {
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
             "before_save":["fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
-            "after_insert":["fashion_navya.utils.doc_event.item.make_kit_item","fashion_navya.utils.doc_event.item.set_item_project_reorder"],
+            "after_insert":["fashion_navya.utils.doc_event.item.set_item_project_reorder"],
             "on_delete":["fashion_navya.utils.doc_event.item.remove_item_rtw"],
 
         },

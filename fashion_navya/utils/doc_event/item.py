@@ -401,13 +401,16 @@ def images_same_attributes(image=None,name=None):
 
 
 frappe.whitelist()
-def make_kit_item(doc,method):
-	if doc.has_variants==0 and  not doc.variant_of and doc.item_code:
-		split=doc.name.split("-")
-		if split[-1]!="k":
-			new_item=doc.name+"-k"
-			d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
-			d['project']=doc.project
-			d['item_name']=doc.item_name
-			ndoc=frappe.get_doc(d)
-			ndoc.save(ignore_permissions=True)
+def make_kit_item(name=None):
+	if not name:
+		return
+
+	doc=frappe.get_doc("Item",name)
+	split=doc.name.split("-")
+	if split[-1]!="k":
+		new_item=doc.name+"-k"
+		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
+		d['project']=doc.project
+		d['item_name']=doc.item_name
+		ndoc=frappe.get_doc(d)
+		ndoc.save(ignore_permissions=True)

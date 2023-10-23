@@ -5,6 +5,7 @@ from frappe.utils import add_to_date
 from navya.api_folder.py.project import make_pattren_from_variant_so,bom_copy_so_enabled_item
 import json
 import re
+fashion_navya.utils.doc_event.item import make_kit_item
 from navya.api_folder.py.item_variants import create_multiple_variants_custom,create_variant_custom
 
 
@@ -118,7 +119,8 @@ def make_rtw_item_so(items=None,so=None):
 		variants.save(ignore_permissions=True)
 		if variants:
 			make_ptt_so(smpl=item_doc.name,new=variants.name)
-			make_bom(smpl=item_doc.name,new=variants.name)
+			#make_bom(smpl=item_doc.name,new=variants.name)
+			bom_copy_so_enabled_item(item_doc.name,variants.name)
 			return variants.name
 
 
@@ -320,6 +322,7 @@ def make_customer_items(items=None,customer=None,rate=0,so=None):
 			row =n.append("customer_list", {})
 			row.customer=customer
 			n.save(ignore_permissions=True)
+			make_kit_item(name=n.name)
 			make_price_doc(item=n.name,rate=rate)
 			make_pattren_from_variant_so(doc.name,n.name)
 			bom_copy_so_enabled_item(doc.name,n.name)
@@ -402,6 +405,7 @@ def make_made_tmso(items=None,customer=None,rate=0,so=None):
 			n.save(ignore_permissions=True)
 			if n:
 				n.db_set("parent_item",doc.name, update_modified=False)
+				make_kit_item(name=n.name)
 				make_price_doc(item=n.name,rate=rate)
 				make_pattren_from_variant_so(doc.name,n.name)
 				bom_copy_so_enabled_item(doc.name,n.name)
