@@ -16,3 +16,20 @@ def wo_stop_pp(doc,method):
 		pp=frappe.get_doc("Production Plan",doc.production_plan)
 		if pp.custom_wo_items==1:
 			frappe.throw("Sorry You can't make Work order for W/o Items")
+@frappe.whitelist()
+def fetch_supplier(name=None):
+	if not name:
+		return
+
+	doc=frappe.get_doc("Production Plan",name)
+	if doc.sub_assembly_items:
+		for i in doc.sub_assembly_items:
+			split=i.parent_item_code.split("-")
+			if "DP" in split:
+				i.set("supplier","PRINTTECH")
+			if "BP" in split:
+				i.set("supplier","Samsudeen Aakil Khan")
+
+			if "DP" not in split and "BP" not in split:
+				i.set("supplier","Jiwan Singh and Sons")
+	doc.save()

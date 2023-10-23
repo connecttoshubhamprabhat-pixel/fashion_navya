@@ -184,7 +184,7 @@ doc_events = {
 
         },
 	"Timesheet":{
-		"after_insert":["fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
+		"after_insert":["fashion_navya.utils.doc_event.jc.se_check_all","fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
                 "before_submit":["fashion_navya.utils.doc_event.ts.check_date_hr_diff_ts","fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
 
 },
@@ -258,6 +258,10 @@ doc_events = {
                         "before_save":["fashion_navya.utils.doc_event.production.remove_disabled"],
 
                         },
+			"Job Card":{
+				"validate":["fashion_navya.utils.doc_event.jc.se_check_all_jc"],
+
+			},
 }
 
 # Scheduled Tasks
