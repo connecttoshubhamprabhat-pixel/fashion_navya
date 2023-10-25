@@ -43,7 +43,7 @@ def set_sell_offline():
 @frappe.whitelist()
 def perm_check_pr(doc,method):
 	user=frappe.session.user
-	user_list=["sujeets@navyacustom.com","vivekd@navyacustom.com","kalim@navyacustom.com"]
+	user_list=["narendrak@navyacustom.com","vivekd@navyacustom.com","kalim@navyacustom.com"]
 	if user in user_list:
 		for i in doc.items:
 			mr=frappe.get_doc("Material Request",i.material_request)
