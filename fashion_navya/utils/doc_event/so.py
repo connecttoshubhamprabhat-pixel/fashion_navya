@@ -62,53 +62,78 @@ def delete_item_so(doc,method):
 
 
 
+#make mr request if out of stock
 @frappe.whitelist()
-def make_mr_rtw(doc,method):
+def make_mr_so(doc,method):
 	d={"doctype":"Material Request"}
 	all_warehouses=[]
+	m_req=[]
+	t_req=[]
+	dd=str(doc.delivery_date)
+	b_2_days = add_to_date(dd, days=2, as_string=True)
 	warehouse=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
 	if warehouse:
 		for w in warehouse:
 			all_warehouses.append(w['name'])
 	for i in doc.items:
 		item=frappe.get_doc("Item",i.item_code)
-		split=item.name.split("-")
-		if  "RTW"  in split:
-			qty=[0]
-			santushti=[0]
-			stock=get_data(item_code=item.name)
-			if len(stock)!=0:
-				for j in stock:
-					if j['actual_qty']>0 and j['warehouse'] in all_warehouses:
-						santushti.append(j['actual_qty'])
-					if j['actual_qty']>0 and j['warehouse'] not in all_warehouses:
-						qty.append(j['actual_qty'])
+		qty=[0]
+		santushti=[0]
+		stock=get_data(item_code=item.name)
+		if len(stock)!=0:
+			for j in stock:
+				if j['actual_qty']>0 and j['warehouse'] in all_warehouses:
+					santushti.append(j['actual_qty'])
+				if j['actual_qty']>0 and j['warehouse'] not in all_warehouses:
+					qty.append(j['actual_qty'])
 
-			dd=doc.delivery_date
-			b_2_days = add_to_date(dd, days=2, as_string=True)
-			d['schedule_date']=str(b_2_days)
-			if i.qty>sum(santushti):
-				dd=doc.delivery_date
-				b_2_days = add_to_date(dd, days=2, as_string=True)
-			
 
-				d["material_request_type"]="Material Transfer"
-				if sum(qty)==0 and sum(santushti)==0:
-					d['material_request_type']="Manufacture"
-				mr=frappe.get_doc(d)
-				if d['material_request_type']=="Material Transfer":
-					row = mr.append("items", {})
-					row.warehouse="SStore - NAVYA"
-					row.qty=i.qty
-					row.schedule_date=str(b_2_days)
-					row.item_code=item.name
 
-				if d['material_request_type']=="Manufacture":
-					row = mr.append("items", {})
-					row.warehouse="Navya Store Office - NAVYA"
-					row.qty=i.qty
-					row.schedule_date=str(b_2_days)
-					row.item_code=item.name
+		remain_qty_santushti=sum(santushti)-i.qty
+		subtract_with_total=sum(qty)-abs(remain_qty_santushti)
+		if sum(santushti)==0 and sum(qty)==0:
+			m_req.append(i.item_code)
+		if sum(santushti)==0 and sum(qty)!=0:
+			if subtract_with_total==0 or  subtract_with_total<0:
+				m_req.append(i.item_code)
+				t_req.append(i.item_code)
+			if remain_qty_other_stock>0:
+				t_req.append(i.item_code)
 
-				mr.insert()
-				frappe.msgprint("MR is created for RTW")
+		if sum(santushti)!=0 and sum(qty)!=0:
+			if remain_qty_santushti<0:
+				if subtract_with_total<0 or subtract_with_total==0:
+					m_req.append(i.item_code)
+					t_req.append(i.item_code)
+				if subtract_with_total>0:
+					t_req.append(i.item_code)
+
+		if sum(santushti)!=0 and sum(qty)==0:
+			if remain_qty_santushti==0 or remain_qty_santushti<0:
+				m_req.append(i.item_code)
+
+	if t_req:
+		d={"doctype":"Material Request","material_request_type":"Material Transfer"}
+		d['schedule_date']=str(b_2_days)
+		mr=frappe.get_doc(d)
+		for i in t_req:
+			row = mr.append("items", {})
+			row.warehouse="SStore - NAVYA"
+			row.qty=1
+			row.schedule_date=str(b_2_days)
+			row.item_code=i
+		mr.insert()
+		frappe.msgprint("MR created for Transfer")
+
+	if m_req:
+		m={"doctype":"Material Request","material_request_type":"Manufacture"}
+		m['schedule_date']=str(b_2_days)
+		mrm=frappe.get_doc(d)
+		for i in m_req:
+			row = mrm.append("items", {})
+			row.warehouse="Navya Store Office - NAVYA"
+			row.qty=1
+			row.schedule_date=str(b_2_days)
+			row.item_code=i
+		mrm.insert()
+		frappe.msgprint("MR created for Manufacture")
