@@ -400,7 +400,8 @@ def images_same_attributes(image=None,name=None):
 
 
 
-frappe.whitelist()
+
+@frappe.whitelist()
 def make_kit_item(name=None):
 	if not name:
 		return
@@ -414,3 +415,24 @@ def make_kit_item(name=None):
 		d['item_name']=doc.item_name
 		ndoc=frappe.get_doc(d)
 		ndoc.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def make_se_entry(items=None,values=None):
+	items=json.loads(items)
+	values=json.loads(values)
+	sw=values.get("s_warehouse")
+	tw=values.get("t_warehouse")
+	if items:
+		d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
+		d['rfse']="Stock Transfer"
+		se=frappe.get_doc(d)
+		for i in items:
+			print(i,'iiiii')
+			row = se.append("items", {})
+			row.item_code=i.get('name')
+			row.s_warehouse=sw
+			row.t_warehouse=tw
+		se.insert()
+		frappe.msgprint("Created")
+		if se:
+			return se.name
