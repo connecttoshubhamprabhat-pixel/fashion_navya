@@ -422,17 +422,64 @@ def make_se_entry(items=None,values=None):
 	values=json.loads(values)
 	sw=values.get("s_warehouse")
 	tw=values.get("t_warehouse")
+	child_w=[]
 	if items:
 		d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
 		d['rfse']="Stock Transfer"
+		if sw=="Santushti - NAVYA":
+			warehouses=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
+			for wc in warehouses:
+				child_w.append(wc['name'])
+
 		se=frappe.get_doc(d)
-		for i in items:
-			print(i,'iiiii')
-			row = se.append("items", {})
-			row.item_code=i.get('name')
-			row.s_warehouse=sw
-			row.t_warehouse=tw
-		se.insert()
-		frappe.msgprint("Created")
-		if se:
-			return se.name
+		if sw!="Santushti - NAVYA":
+			for i in items:
+				row = se.append("items", {})
+				row.item_code=i.get('name')
+				row.s_warehouse=sw
+				row.t_warehouse=tw
+			se.insert()
+			if se:
+				frappe.msgprint("Created")
+				return se.name
+
+		if sw=="Santushti - NAVYA":
+			for k in items:
+				frappe.msgprint(k.get("name"))
+				stock=get_data(item_code=k.get("name"))
+				w_new=[]
+				if len(stock)!=0:
+					for j in stock:
+						if j['actual_qty']>0 and j['warehouse'] in child_w:
+							w_new.append(j)
+				else:
+					frappe.msgprint("Item is  not in Santushti: {}".format(k.get('name')))
+					continue
+				if not w_new:
+					frappe.msgprint("Item is  not in Santushti: {}".format(k.get('name')))
+					continue
+				if w_new:
+					for m in w_new:
+						row = se.append("items", {})
+						row.item_code=m.get('item_code')
+						row.s_warehouse=m.get("warehouse")
+						row.t_warehouse=tw
+			se.insert()
+			#frappe.msgprint("Created")
+
+
+
+
+
+
+
+@frappe.whitelist()
+def make_new_item_sub(doc,method):
+	for i in doc.items:
+		old=frappe.get_doc("Item",i.item_code)
+		item=i.item_code+"-"+doc.supplier
+		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":item,"image":doc.image}
+		d['item_name']=old.item_name
+		d['project']=old.project
+		new=frappe.get_doc(d)
+		new.insert(ignore_permissions=True)
