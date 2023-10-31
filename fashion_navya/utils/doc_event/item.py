@@ -255,24 +255,16 @@ def fetched_warehouse_qty(values=None):
 
 @frappe.whitelist()
 def fetched_warehouse_qty_w(doc,method):
-	if frappe.db.exists("Item",doc.name):
+	if not doc.get("__islocal"):
+		doc.custom_witem_stock=[]
 		data=get_data(item_code=doc.name)
-		if len(data)!=0:
-			doc.custom_witem_stock=[]
+		all_child=[]
+		if data:
 			for j in data:
 				if j['actual_qty']>0:
-					check_warehouse=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA' and name='{}' """.format(j['warehouse']),as_dict=1)
-					row = doc.append("custom_witem_stock", {})
-					row.warehouse=j['warehouse']
-					row.qty=j['actual_qty']
-					if len(check_warehouse)!=0:
-						row1 = doc.append("custom_witem_stock", {})
-						row1.warehouse="Santushti - NAVYA"
-						row1.qty=j['actual_qty']
-		else:
-			doc.custom_witem_stock=[]
-
-
+					row1 = doc.append("custom_witem_stock", {})
+					row1.warehouse=j['warehouse']
+					row1.qty=j['actual_qty']
 
 @frappe.whitelist()
 def fetched_warehouse_sch(values=None):
@@ -423,6 +415,7 @@ def make_se_entry(items=None,values=None):
 	sw=values.get("s_warehouse")
 	tw=values.get("t_warehouse")
 	child_w=[]
+	user=frappe.session.user
 	if items:
 		d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
 		d['rfse']="Stock Transfer"
@@ -431,21 +424,29 @@ def make_se_entry(items=None,values=None):
 			for wc in warehouses:
 				child_w.append(wc['name'])
 
+
+
 		se=frappe.get_doc(d)
 		if sw!="Santushti - NAVYA":
+			exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(sw,user),as_dict=1)
+			if len(exists)==0:
+				frappe.throw("You can't transfer from this warehouse")
+
 			for i in items:
 				row = se.append("items", {})
 				row.item_code=i.get('name')
 				row.s_warehouse=sw
 				row.t_warehouse=tw
+
 			se.insert()
 			if se:
 				frappe.msgprint("Created")
 				return se.name
 
+
 		if sw=="Santushti - NAVYA":
 			for k in items:
-				frappe.msgprint(k.get("name"))
+				#frappe.msgprint(k.get("name"))
 				stock=get_data(item_code=k.get("name"))
 				w_new=[]
 				if len(stock)!=0:
@@ -460,10 +461,15 @@ def make_se_entry(items=None,values=None):
 					continue
 				if w_new:
 					for m in w_new:
+						exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(m.get("warehouse"),user),as_dict=1)
+						if len(exists)==0:
+							msg="You can't transfer from this warehouse: {}".format(m.get("warehouse"))
+							frappe.throw(msg)
 						row = se.append("items", {})
 						row.item_code=m.get('item_code')
 						row.s_warehouse=m.get("warehouse")
 						row.t_warehouse=tw
+
 			se.insert()
 			#frappe.msgprint("Created")
 

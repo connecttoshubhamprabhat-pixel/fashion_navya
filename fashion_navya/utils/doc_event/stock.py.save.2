@@ -123,8 +123,9 @@ def updte_incharge_wo(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def create_tag_m(doc,method):
-    get_tag=frappe.db.sql(""" select name from `tabItem Tag` where stock_entry='{}'  """.format(doc.name),as_dict=1)
-    if len(get_tag)!=0:
+
+	get_tag=frappe.db.sql(""" select name from `tabItem Tag` where stock_entry='{}'  """.format(doc.name),as_dict=1)
+if len(get_tag)!=0:
         frappe.delete_doc("Item Tag",get_tag[0]['name'])
 
     if doc.stock_entry_type=="Manufacture":
@@ -145,12 +146,11 @@ def create_tag_m(doc,method):
                     if len(ip)!=0:
                         row.rate=ip[0]['price_list_rate']
                     else:
-                        row.rate=0.0
-                        
-        
-        if tag.items:
-            tag.insert(ignore_permissions=True)
-            frappe.msgprint("Item tag is Created")
+
+	                        row.rate=0.0
+
+        tag.insert(ignore_permissions=True)
+        frappe.msgprint("Item tag is Created")
 
 
 

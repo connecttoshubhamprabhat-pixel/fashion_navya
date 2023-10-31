@@ -438,7 +438,7 @@ def make_price_doc(item=None,rate=None):
 	ip.save(ignore_permissions=True)
 	ip.db_set("workflow_state","Approved", update_modified=False)
 	ip.db_set("valid_from",before_2_days, update_modified=False)
-	frappe.msgprint("craeted")
+	frappe.msgprint("Item created successfully")
 
 
 @frappe.whitelist()

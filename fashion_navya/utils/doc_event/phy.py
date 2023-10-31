@@ -32,14 +32,18 @@ def calculate_stock_phy(doc,method):
 		if len(p)!=0:
 			i.set('price',p[0]['price_list_rate'])
 		i.set('dqty',diff)
-		dt.append(diff)
+		#dt.append(diff)
 		a.append(i.aqty)
 		s.append(i.sqty)
 
+
+
+	diff_all=sum(a)-sum(s)
+	doc.set('td',0)
 	doc.set('total_qty',0)
 	doc.set('total_qty',sum(s))
 	doc.set('atotal',0)
-	doc.set('td',sum(dt))
+	doc.set('td',diff_all)
 	doc.set('atotal',sum(a))
 
 
@@ -165,3 +169,32 @@ def merge_entry(items=None):
 			row.aqty=k['aqty']
 		phy.insert()
 		frappe.msgprint("created")
+
+
+
+
+@frappe.whitelist()
+def collab_items(doc,method):
+	if doc.items and doc.warehouse:
+		w=frappe.get_doc("Warehouse",doc.warehouse)
+		items=[]
+		dup=[]
+		ilist=[]
+		if w.is_group==1:
+			for i  in doc.items:
+				if i.item_code not in ilist:
+					dc=i.as_dict()
+					items.append(dc)
+					ilist.append(i.item_code)
+
+				else:
+					dup.append('es')
+					for k in items:
+						if k['item_code']==i.item_code:
+							k['aqty']+=i.aqty
+		if dup:
+			doc.items=[]
+			for j in items:
+				row = doc.append("items", {})
+				row.item_code=j.item_code
+				row.aqty=j.aqty

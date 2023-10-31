@@ -46,8 +46,9 @@ def perm_check_pr(doc,method):
 	user_list=["narendrak@navyacustom.com","vivekd@navyacustom.com","kalim@navyacustom.com"]
 	if user in user_list:
 		for i in doc.items:
-			mr=frappe.get_doc("Material Request",i.material_request)
-			if user!=mr.owner:
-				frappe.throw("Material Request is not created by you.")
+			if i.material_request:
+				mr=frappe.get_doc("Material Request",i.material_request)
+				if user!=mr.owner:
+					frappe.throw("Material Request is not created by you.")
 
 

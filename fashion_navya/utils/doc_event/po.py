@@ -61,3 +61,14 @@ def set_parent_item_qty(item=None,nop=None):
 		fqty=n*float(nop)
 		f=round(fqty,3)
 		return f or 0
+
+
+
+frappe.whitelist(allow_guest=True)
+def check_delete_draft(doc,method):
+	user=frappe.session.user
+	if user!="Administrator":
+		if doc.owner!=user:
+			users=['pawasthy11@gmail.com','erpsupport@uttamenergy.com','amita@navya.biz']
+			if user not in users:
+				frappe.throw("Sorry you can't delete")

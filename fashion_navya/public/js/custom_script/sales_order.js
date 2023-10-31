@@ -19,15 +19,16 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
                     row['delivery_order']=r.message[1]
                   }
 
-                 // if(r.message[1]=="POS"){
+                 if(r.message[1]=="POS"){
+			row['delivery_date']=frappe.datetime.nowdate()
                     //frappe.msgprint("Please handle by POS")
-                    // var idx=row['idx']-1
-                    // console.log(row['idx'],'idx')
-                    // cur_frm.get_field("items").grid.grid_rows[idx].remove();
-                    // row['item_code']=undefined
+                    //var idx=row['idx']-1
+                    //console.log(row['idx'],'idx')
+                    //cur_frm.get_field("items").grid.grid_rows[idx].remove();
+                    //row['item_code']=undefined
 
 
-                  //}
+                  }
 
 
 
@@ -60,35 +61,17 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
     var row = frappe.get_doc(cdt, cdn);
     var item = row['item_code']
 
-    if(item && cur_frm.doc.customer){
-    frappe.call({
-        method: "frappe.client.get",
-        args: {
-            doctype: "Item",
-            name: item,
-        },
-        callback(r) {
-            if (r.message) {
-                var items = r.message;
-                if (!items.variant_of)
-                    if (cur_frm.doc.otd == "Customize") {
-                        var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 26)
+    if(cur_frm.doc.customer){
+	if (row['item_type']=="Customize"){
+		var td=frappe.datetime.add_days(cur_frm.doc.transaction_date, 26)
+		row['delivery_date'] = td
+}
+	if	(row['item_type']=="Measure"){
+		var td=frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
+		row['delivery_date'] = td
 
-                        row['delivery_date'] = td
+	}
 
-
-                    }
-
-                if (cur_frm.doc.otd == "Made To Measure") {
-                    var td = frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
-
-                    row['delivery_date'] = td
-
-
-                }
-            }
-        }
-    });    
 }
 
 })

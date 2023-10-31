@@ -255,7 +255,7 @@ def automated_wo_pe(doc,method):
 						wodoc=frappe.get_doc(d)
 						try:
 							wodoc.insert(ignore_permissions=True)
-							#wodoc.submit()
+							wodoc.submit()
 							msg2="Work order {} is Created for row no {} Line Item".format(wodoc.name,i.idx)
 							frappe.msgprint(msg2)
 						except:

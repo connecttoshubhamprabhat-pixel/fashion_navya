@@ -128,7 +128,7 @@ def make_mr_so(doc,method):
 	if m_req:
 		m={"doctype":"Material Request","material_request_type":"Manufacture"}
 		m['schedule_date']=str(b_2_days)
-		mrm=frappe.get_doc(d)
+		mrm=frappe.get_doc(m)
 		for i in m_req:
 			row = mrm.append("items", {})
 			row.warehouse="Navya Store Office - NAVYA"

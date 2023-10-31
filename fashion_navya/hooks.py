@@ -149,7 +149,7 @@ doc_events = {
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "after_insert":["fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.wo.bom_stage_changes"],
+        "after_insert":["fashion_navya.utils.doc_event.production.wo_stop_pp"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
@@ -171,6 +171,7 @@ doc_events = {
     "Purchase Order":{
         "before_save":["fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
+        "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
     },
     "Item Tag":{
         #"before_save":["fashion_navya.utils.doc_event.stock.check_item_is_ma"],
@@ -220,6 +221,7 @@ doc_events = {
 
             "Physical Stock  Review":{
                         "before_submit":["fashion_navya.utils.doc_event.phy.calculate_stock_phy"],
+                        "after_insert":["fashion_navya.utils.doc_event.phy.collab_items"],
 
             },
             "BOM":{
@@ -240,6 +242,7 @@ doc_events = {
 	},
                 "Customer":{
                             "before_insert":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
+			    "before_save":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
 
                         },
                 "Estimate Sheet":{
