@@ -1,1 +1,76 @@
 import frappe
+import json
+from erpnext.stock.dashboard.item_dashboard import get_data
+from datetime import datetime
+from frappe.utils import add_to_date
+from navya.api_folder.py.project import make_pattren_from_variant_so,bom_copy_so_enabled_item
+import json
+import re
+from fashion_navya.utils.doc_event.item import make_kit_item
+from navya.api_folder.py.item_variants import create_multiple_variants_custom,create_variant_custom
+
+
+#smpl duplicate in project
+@frappe.whitelist()
+def make_smpl_sizes(values=None,items=None):
+    values=json.loads(values)
+    items=json.loads(items)
+    print(items,'items')
+    print(values,'values')
+    size=values.get("size")
+    if items:
+        for i in items:
+            item_doc=frappe.get_doc("Item",i)
+            if not item_doc.variant_of:
+                return
+            d={}
+            get_ptt=frappe.db.sql("""select name from `tabPattern` where docstatus=1 and item_code='{}'  """.format(i),as_dict=1)
+            get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}' and is_active=1 and is_default=1   """.format(i),as_dict=1)
+            for m in item_doc.attributes:
+                if m.attribute!="Size":
+                    d[m.attribute]=m.attribute_value
+            d['Size']=size
+            variants=create_variant_custom(item_doc.variant_of,d)
+            if item_doc.project:
+                variants.set("project",item_doc.project)
+
+            if item_doc.image:
+                variants.set("image",item_doc.image)
+
+            variants.set("item_group","Sample")
+            if frappe.db.exists('Item',variants.name):
+                continue
+            variants.save(ignore_permissions=True)
+            if len(get_ptt)!=0:
+                for p in get_ptt:
+                    docpt=frappe.get_doc("Pattern",p['name'])
+                    dp=frappe.copy_doc(docpt)
+                    dp.set("item_code",variants.name)
+                    dp.set("workflow_state","Draft")
+                    try:
+                        dp.insert(ignore_permissions=True)
+                        dp.submit()
+                    except:
+                        pass
+
+            if len(get_bom)!=0:
+                for k in get_bom:
+                    bm=frappe.get_doc("BOM",k['name'])
+                    bom_copy_so_enabled_item(item_doc.name,variants.name)
+
+            frappe.db.commit()
+            frappe.msgprint("Item created successfully")
+
+
+
+
+@frappe.whitelist()
+def set_silvit_cus(doc,method):
+    if not doc.get("__islocal") and not doc.measurement:
+        mes=["Shoulder","Upper Bust","Cross Back","Cross front","Bust","Under Bust","Waist","Abdomen","Armhole","Bicep","Sleeve Length","Jacket Length","Bottom Waist","Hip","Crouch","Upper Thigh","Lower Thigh","knee","Ankle Mori","Bottom Length","Full Outfit Length","Top Length","Kurta Length"]
+        for m  in mes:
+            if frappe.db.exists("Measurements",m):
+                row = doc.append("measurement", {})
+                row.parameter = m
+                row.round=0.0
+                row.label=0.0
