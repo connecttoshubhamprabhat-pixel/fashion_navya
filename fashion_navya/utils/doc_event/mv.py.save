@@ -1,0 +1,14 @@
+import frappe
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_attribues(doc,method):
+	if doc.sales_order:
+		so=frappe.get_doc("Sales Order",doc.sales_order)
+		items=[]
+		for i in so.items:
+			items.append(i.item_code)
+		for j in  doc.purposes:
+			if j.item_code  not in items:
+				frappe.throw("It is not Sales order Item")
+	

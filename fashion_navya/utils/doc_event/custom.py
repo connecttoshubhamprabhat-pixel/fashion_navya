@@ -237,19 +237,8 @@ def make_rtw_item_project(items=None):
 					except:
 						pass
 
-			if len(get_bom)!=0:
-				for k in get_bom:
-					bm=frappe.get_doc("BOM",k['name'])
-					d=frappe.copy_doc(bm)
-					print(variants.name,'aawwwwwww')
-					d.set("item",variants.name)
-					d.set('pattern_not_required',1)
-					d.set("workflow_state","Draft")
-					try:
-						d.insert(ignore_permissions=True)
-						#d.submit()
-					except:
-						pass
+
+			bom_copy_so_enabled_item(item_doc.name,variants.name)
 
 			frappe.db.commit()
 			frappe.msgprint("Item created successfully")
@@ -316,7 +305,8 @@ def make_customer_items(items=None,customer=None,rate=0,so=None):
 				return item_code
 			d={'doctype':"Item","item_group":"Customise","project":doc.project ,"stock_uom":doc.stock_uom,"image":doc.image}
 			d['item_code']=item_code
-			d['item_name']=doc.item_name+"-"+customer
+			#d['item_name']=doc.item_name+"-"+customer
+			d['item_name']=doc.item_name
 			d['parent_item']=doc.name
 			d['image']=doc.image
 			d['customise']=1

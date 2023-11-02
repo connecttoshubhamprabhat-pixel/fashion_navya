@@ -498,9 +498,7 @@ def make_add_kt(doc,method):
 			s_add=split[0:-1]
 			join="-".join(s_add)
 			if frappe.db.exists("Item",join):
-				olddoc=frappe.get_doc("Item",join)
 				doc.set("parent_item",join)
-				doc.set("project",olddoc.project)
 
 
 
@@ -508,7 +506,7 @@ def make_add_kt(doc,method):
 
 @frappe.whitelist()
 def make_kit_item_parent(doc,method):
-	if doc.get("__islocal") and doc.variant_of:
+	if doc.variant_of:
 		new_item=doc.name+"-k"
 		if frappe.db.exists("Item",new_item):
 			return
@@ -524,12 +522,11 @@ def make_kit_item_parent(doc,method):
 
 
 @frappe.whitelist()
-def make_kit_item_parent_save(doc,method):
-	if not doc.get("__islocal") and doc.variant_of:
+def make_kit_item_parent(doc,method):
+	if doc.variant_of and not doc.get("__islocal"):
 		new_item=doc.name+"-k"
 		if frappe.db.exists("Item",new_item):
 			return
-
 
 		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
@@ -537,6 +534,3 @@ def make_kit_item_parent_save(doc,method):
 		d['parent_item']=doc.name
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
-
-
-

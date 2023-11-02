@@ -101,23 +101,9 @@ def template_bom(doc,method):
 
 
 
-#after insert
+
 @frappe.whitelist()
 def create_perm_exis(doc,method):
 	if doc.event_name:
-		for i in doc.items:
-			get_w=frappe.db.sql("""select source_warehouse from `tabWexhibition` where source_warehouse='{}' and parent='PFL-2023-00009' and create=1  """.format(i.s_warehouse),as_dict=1)
-			if len(get_w)==0:
-				msg="No Permision for {}".format(i.s_warehouse)
-				frappe.throw(msg)
-
-
-#before submit
-@frappe.whitelist()
-def create_perm_submit(doc,method):
-	if doc.event_name:
-		for i in doc.items:
-			get_w=frappe.db.sql("""select target_warehouse from `tabWexhibition` where target_warehouse='{}' and parent='PFL-2023-00009' and receive=1  """.format(i.t_warehouse),as_dict=1)
-			if len(get_w)==0:
-				msg="No Permision for {}".format(i.t_warehouse)
-				frappe.throw(msg)
+		if method=="after_insert":
+			

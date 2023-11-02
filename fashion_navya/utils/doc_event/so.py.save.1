@@ -65,12 +65,6 @@ def delete_item_so(doc,method):
 #make mr request if out of stock
 @frappe.whitelist()
 def make_mr_so(doc,method):
-	target_w=["Navya Store Office - NAVYA"]
-	if doc.custom_shop_location:
-		if frappe.db.exists("Shop Location",doc.custom_shop_location):
-			wt=frappe.get_doc("Shop Location",doc.custom_shop_location)
-			if wt.default_warehouse:
-				target_w.append(wt.default_warehouse)
 	d={"doctype":"Material Request"}
 	all_warehouses=[]
 	m_req=[]
@@ -124,7 +118,6 @@ def make_mr_so(doc,method):
 		mr=frappe.get_doc(d)
 		for i in t_req:
 			row = mr.append("items", {})
-			row.warehouse=target_w[-1]
 			row.qty=1
 			row.schedule_date=str(b_2_days)
 			row.item_code=i
@@ -137,9 +130,9 @@ def make_mr_so(doc,method):
 		mrm=frappe.get_doc(m)
 		for i in m_req:
 			row = mrm.append("items", {})
+			row.warehouse="Navya Store Office - NAVYA"
 			row.qty=1
 			row.schedule_date=str(b_2_days)
 			row.item_code=i
-			row.warehouse=target_w[-1]
 		mrm.insert()
 		frappe.msgprint("MR created for Manufacture")

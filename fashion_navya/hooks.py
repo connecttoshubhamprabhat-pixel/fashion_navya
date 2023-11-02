@@ -169,7 +169,7 @@ doc_events = {
     "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
     },
     "Purchase Order":{
-        "before_save":["fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_save":["fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
         "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
     },
@@ -179,8 +179,8 @@ doc_events = {
     "Item":{
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
-            "before_save":["fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
-            "after_insert":["fashion_navya.utils.doc_event.item.set_item_project_reorder"],
+            "before_save":["fashion_navya.utils.doc_event.item.make_kit_item_parent_save","fashion_navya.utils.doc_event.item.make_add_kt","fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
+            "after_insert":["fashion_navya.utils.doc_event.item.make_kit_item_parent","fashion_navya.utils.doc_event.item.set_item_project_reorder"],
             "on_delete":["fashion_navya.utils.doc_event.item.remove_item_rtw"],
 
         },
@@ -226,6 +226,7 @@ doc_events = {
             },
             "BOM":{
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
+               "before_submit":["fashion_navya.utils.doc_event.api_2.template_bom"],
 
                 },
             "Delivery Note":{
@@ -242,7 +243,7 @@ doc_events = {
 	},
                 "Customer":{
                             "before_insert":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
-			    "before_save":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
+			    "before_save":["fashion_navya.utils.doc_event.api_2.set_silvit_cus","fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
 
                         },
                 "Estimate Sheet":{
@@ -265,6 +266,12 @@ doc_events = {
 				"validate":["fashion_navya.utils.doc_event.jc.se_check_all_jc"],
 
 			},
+                        "Maintenance Visit":{
+                                "after_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
+                                "before_submit":["fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
+
+
+                                },
 }
 
 # Scheduled Tasks
