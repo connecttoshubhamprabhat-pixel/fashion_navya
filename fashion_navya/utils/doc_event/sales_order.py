@@ -65,6 +65,7 @@ def show_live_update(item=None,customer=None):
 
 	if sum(customer_wo)==0:
 		after_26_days = add_to_date(datetime.now(), days=26, as_string=True)
+		print(after_26_days,'after_26_days')
 		return after_26_days,'Pre-Order'
 
 

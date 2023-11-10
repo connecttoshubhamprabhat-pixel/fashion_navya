@@ -65,81 +65,142 @@ def delete_item_so(doc,method):
 #make mr request if out of stock
 @frappe.whitelist()
 def make_mr_so(doc,method):
-	target_w=["Navya Store Office - NAVYA"]
-	if doc.custom_shop_location:
-		if frappe.db.exists("Shop Location",doc.custom_shop_location):
-			wt=frappe.get_doc("Shop Location",doc.custom_shop_location)
-			if wt.default_warehouse:
-				target_w.append(wt.default_warehouse)
-	d={"doctype":"Material Request"}
-	all_warehouses=[]
-	m_req=[]
-	t_req=[]
-	dd=str(doc.delivery_date)
-	b_2_days = add_to_date(dd, days=2, as_string=True)
-	warehouse=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
-	if warehouse:
-		for w in warehouse:
-			all_warehouses.append(w['name'])
+	so=[]
+	if doc.references:
+		if doc.references[0].reference_doctype=="Sales Order":
+			so.append(doc.references[0].reference_name)
+	if so:
+		sodoc=frappe.get_doc("Sales Order",so[0])
+		get_percent=40/100*sodoc.grand_total
+		amt_adv=doc.paid_amount+sodoc.advance_paid
+		if get_percent>amt_adv:
+			frappe.msgprint("Payment is less then 40 percent")
+			return
+		maintenance_visit(so=so[0],pe=doc.name)
+
+		target_w=["Navya Store Office - NAVYA"]
+		if sodoc.custom_shop_location:
+			if frappe.db.exists("Shop Location",sodoc.custom_shop_location):
+				wt=frappe.get_doc("Shop Location",sodoc.custom_shop_location)
+				if wt.default_warehouse:
+					target_w.append(wt.default_warehouse)
+		d={"doctype":"Material Request"}
+		all_warehouses=[]
+		m_req=[]
+		t_req=[]
+		dd=str(sodoc.delivery_date)
+		b_2_days = add_to_date(dd, days=2, as_string=True)
+		warehouse=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
+		if warehouse:
+			for w in warehouse:
+				all_warehouses.append(w['name'])
+		for i in sodoc.items:
+			item=frappe.get_doc("Item",i.item_code)
+			qty=[0]
+			santushti=[0]
+			stock=get_data(item_code=item.name)
+			if len(stock)!=0:
+				for j in stock:
+					if j['actual_qty']>0 and j['warehouse'] in all_warehouses:
+						santushti.append(j['actual_qty'])
+					if j['actual_qty']>0 and j['warehouse'] not in all_warehouses:
+						qty.append(j['actual_qty'])
+
+			remain_qty_santushti=sum(santushti)-i.qty
+			subtract_with_total=sum(qty)-abs(remain_qty_santushti)
+			if sum(santushti)==0 and sum(qty)==0:
+				m_req.append(i.item_code)
+				t_req.append(i.item_code)
+
+			if sum(santushti)==0 and sum(qty)!=0:
+				t_req.append(i.item_code)
+
+			if remain_qty_santushti<0 and subtract_with_total<0:
+				m_req.append(i.item_code)
+				t_req.append(i.item_code)
+
+			if remain_qty_santushti<0 and subtract_with_total>=0:
+				t_req.append(i.item_code)
+
+
+		#make MR code per item
+		if t_req:
+			mr_item_t=list(set(t_req))
+			for i in mr_item_t:
+				qty=0
+				get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
+				if len(get_id_soi)!=0:
+					for item_qty in get_id_soi:
+						qty +=item_qty['qty']
+
+
+				d={"doctype":"Material Request","material_request_type":"Material Transfer"}
+				d['schedule_date']=sodoc.delivery_date
+				mr=frappe.get_doc(d)
+				row = mr.append("items", {})
+				row.warehouse=target_w[-1]
+				row.qty=qty
+				row.sales_order=sodoc.name
+				row.schedule_date=get_id_soi[0]['delivery_date']
+				row.item_code=i
+				if len(get_id_soi)!=0:
+					row.sales_order_item=get_id_soi[0]['name']
+
+				mr.insert()
+				mr.submit()
+				frappe.msgprint("MR created for Transfer")
+
+		if m_req:
+			mr_items_m=list(set(m_req))
+			for i in mr_items_m:
+				qty=0
+				get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
+				if len(get_id_soi)!=0:
+					for item_qty in get_id_soi:
+						qty +=item_qty['qty']
+
+				#get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
+				m={"doctype":"Material Request","material_request_type":"Manufacture"}
+				m['schedule_date']=sodoc.delivery_date
+				m['custom_payment_entry']=doc.name
+				mrm=frappe.get_doc(m)
+				row = mrm.append("items", {})
+				row.qty=qty
+				row.schedule_date=get_id_soi[0]['delivery_date']
+				row.item_code=i
+				row.sales_order=sodoc.name
+				row.warehouse=target_w[-1]
+				if len(get_id_soi)!=0:
+					row.sales_order_item=get_id_soi[0]['name']
+
+				mrm.insert()
+				mrm.submit()
+				frappe.msgprint("MR created for Manufacture")
+
+@frappe.whitelist()
+def maintenance_visit(so=None,pe=None):
+	if not so:
+		return
+
+	doc=frappe.get_doc("Sales Order",so)
+	d={"doctype":"Maintenance Visit","customer":doc.customer,"completion_status":"Partially Completed"}
+	d['sales_order']=doc.name
+	d['custom_payment_entry']=pe
+	mv=frappe.get_doc(d)
 	for i in doc.items:
 		item=frappe.get_doc("Item",i.item_code)
-		qty=[0]
-		santushti=[0]
-		stock=get_data(item_code=item.name)
-		if len(stock)!=0:
-			for j in stock:
-				if j['actual_qty']>0 and j['warehouse'] in all_warehouses:
-					santushti.append(j['actual_qty'])
-				if j['actual_qty']>0 and j['warehouse'] not in all_warehouses:
-					qty.append(j['actual_qty'])
+		if i.custom_customise_item==1:
+			row=mv.append("purposes", {})
+			row.item_code=i.item_code
+			row.description=item.name
+			row.custom_sales_order=doc.name
+			row.custom_bust=i.custom_bust
+			row.custom_top_waist=i.custom_top_waist
+			row.custom_top_hip=i.custom_top_hip
+			row.custom_lower_waist=i.custom_lower_waist
+			row.custom_lower_hip=i.custom_lower_hip
+			row.custom_sleeve_length=i.custom_sleeve_length
+			row.custom_bottom_length=i.custom_bottom_length
 
-
-
-		remain_qty_santushti=sum(santushti)-i.qty
-		subtract_with_total=sum(qty)-abs(remain_qty_santushti)
-		if sum(santushti)==0 and sum(qty)==0:
-			m_req.append(i.item_code)
-		if sum(santushti)==0 and sum(qty)!=0:
-			if subtract_with_total==0 or  subtract_with_total<0:
-				m_req.append(i.item_code)
-				t_req.append(i.item_code)
-			if remain_qty_other_stock>0:
-				t_req.append(i.item_code)
-
-		if sum(santushti)!=0 and sum(qty)!=0:
-			if remain_qty_santushti<0:
-				if subtract_with_total<0 or subtract_with_total==0:
-					m_req.append(i.item_code)
-					t_req.append(i.item_code)
-				if subtract_with_total>0:
-					t_req.append(i.item_code)
-
-		if sum(santushti)!=0 and sum(qty)==0:
-			if remain_qty_santushti==0 or remain_qty_santushti<0:
-				m_req.append(i.item_code)
-
-	if t_req:
-		d={"doctype":"Material Request","material_request_type":"Material Transfer"}
-		d['schedule_date']=str(b_2_days)
-		mr=frappe.get_doc(d)
-		for i in t_req:
-			row = mr.append("items", {})
-			row.warehouse=target_w[-1]
-			row.qty=1
-			row.schedule_date=str(b_2_days)
-			row.item_code=i
-		mr.insert()
-		frappe.msgprint("MR created for Transfer")
-
-	if m_req:
-		m={"doctype":"Material Request","material_request_type":"Manufacture"}
-		m['schedule_date']=str(b_2_days)
-		mrm=frappe.get_doc(m)
-		for i in m_req:
-			row = mrm.append("items", {})
-			row.qty=1
-			row.schedule_date=str(b_2_days)
-			row.item_code=i
-			row.warehouse=target_w[-1]
-		mrm.insert()
-		frappe.msgprint("MR created for Manufacture")
+	mv.insert(ignore_permissions=True)
+	frappe.msgprint("Maintenance Visit created")

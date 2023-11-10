@@ -20,7 +20,7 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
                   }
 
                  if(r.message[1]=="POS"){
-			row['delivery_date']=frappe.datetime.nowdate()
+			                row['delivery_date']=frappe.datetime.nowdate()
                     //frappe.msgprint("Please handle by POS")
                     //var idx=row['idx']-1
                     //console.log(row['idx'],'idx')
@@ -34,7 +34,7 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 
             }
 
-        
+
 
 
         }
@@ -47,7 +47,7 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 //     frm.fields_dict['sample_table'].grid.get_field('item').get_query = function(doc, cdt, cdn) {
 //         var child = locals[cdt][cdn];
 //         //console.log(child);
-//         return {    
+//         return {
 //             filters:[
 //                 ['item_group', '=',"Sample"]
 //             ]
@@ -56,26 +56,26 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 // });
 
 //delivery date set for customize item
-frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
-
-    var row = frappe.get_doc(cdt, cdn);
-    var item = row['item_code']
-
-    if(cur_frm.doc.customer){
-	if (row['item_type']=="Customize"){
-		var td=frappe.datetime.add_days(cur_frm.doc.transaction_date, 26)
-		row['delivery_date'] = td
-}
-	if	(row['item_type']=="Measure"){
-		var td=frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
-		row['delivery_date'] = td
-
-	}
-
-}
-
-})
-
+// frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
+//
+//     var row = frappe.get_doc(cdt, cdn);
+//     var item = row['item_code']
+//
+//     if(cur_frm.doc.customer){
+// 	if (row['item_type']=="Customize"){
+// 		var td=frappe.datetime.add_days(cur_frm.doc.transaction_date, 26)
+// 		row['delivery_date'] = td
+// }
+// 	if	(row['item_type']=="Measure"){
+// 		var td=frappe.datetime.add_days(cur_frm.doc.delivery_date, 30)
+// 		row['delivery_date'] = td
+//
+// 	}
+//
+// }
+//
+// })
+//
 
 
 //delivery date set for customize item
@@ -96,7 +96,7 @@ frappe.ui.form.on("Sales Order Item", "item_code", function(frm, cdt, cdn) {
 // frappe.ui.form.on("Sales Order", "onload", function(frm, cdt, cdn) {
 
 //     cur_frm.doc.items[0].item_code=""
-    
+
 
 
 // })
