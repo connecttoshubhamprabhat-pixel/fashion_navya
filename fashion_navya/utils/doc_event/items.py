@@ -238,7 +238,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
 
         d={'doctype':"Item","item_group":"Customise","project":parent_doc.project ,"stock_uom":parent_doc.stock_uom,"image":parent_doc.image}
         d['item_code']=cus_name
-        d['item_name']=parent_doc.item_name+customer
+        d['item_name']=parent_doc.item_name+"-"+"MTM"+"-"+customer
         d['parent_item']=parent_doc.name
         d['customise']=1
         d['description']=des
@@ -248,7 +248,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
         n.save(ignore_permissions=True)
         n_name_new=name_set+"-"+customer
         n.db_set("description",des, update_modified=False)
-        n.db_set("item_name",n_name_new, update_modified=False)
+        #n.db_set("item_name",n_name_new, update_modified=False)
         make_kit_item(name=n.name)
         make_price_doc(item=n.name,rate=price)
         all_item.append(n.name)
