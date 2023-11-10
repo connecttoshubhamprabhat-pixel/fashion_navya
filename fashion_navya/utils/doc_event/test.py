@@ -91,3 +91,30 @@ def update_images_item():
 				frappe.db.commit()
 			except:
 				continue
+
+
+
+
+@frappe.whitelist()
+def fetch_details_wo():
+	#get_po=frappe.db.sql("""select name,work_order from `tabPurchase Order` where work_order is not null and is_subcontracted=1 and docstatus=1 """,as_dict=1)
+	get_po=frappe.db.sql(""" select DISTINCT parent as name,work_order from `tabPurchase Order Item` where work_order is not null and docstatus=1 """,as_dict=1)
+	if get_po:
+		for i in get_po:
+			print(i['name'],"po")
+			get_sbo=frappe.db.sql("""select * from `tabSubcontracting Order` where docstatus=1 and purchase_order='{}'  """.format(i['name']),as_dict=1)
+			if len(get_sbo)!=0:
+				frappe.db.sql("""update `tabWork Order` set custom_supplier='{}' where docstatus=1 and name='{}'  """.format(get_sbo[0]['supplier'],i['work_order']))
+				get_se=frappe.db.sql("""select * from `tabStock Entry` where docstatus <2 and subcontracting_order='{}'   """.format(get_sbo[0]['name']),as_dict=1)
+				if len(get_se)!=0:
+					print(i['name'],"s")
+					frappe.db.sql("""update `tabWork Order` set custom_materials_sent='{}' where docstatus=1 and name='{}'  """.format(get_se[0]['workflow_state'],i['work_order']))
+					frappe.db.sql("""update `tabWork Order` set custom_date_sent='{}' where docstatus=1 and name='{}'  """.format(get_se[0]['posting_date'],i['work_order']))
+					frappe.db.sql("""update `tabWork Order` set custom_subcontracting_order='{}' where docstatus=1 and name='{}'  """.format(get_sbo[0]['name'],i['work_order']))
+					frappe.db.commit()
+				get_sbr=frappe.db.sql("""select * from `tabSubcontracting Receipt` where docstatus=1 and purchase_order='{}'  """.format(i['name']),as_dict=1)
+				if len(get_sbr)!=0:
+					frappe.db.sql("""update `tabWork Order` set custom_subcontracting_receipt='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['name'],i['work_order']))
+					frappe.db.sql("""update `tabWork Order` set custom_sreceipt_date='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['posting_date'],i['work_order']))
+					frappe.db.sql("""update `tabWork Order` set custom_srstatus='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['status'],i['work_order']))
+					frappe.db.commit()

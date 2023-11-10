@@ -143,3 +143,22 @@ def set_parent_item(doc,method):
 	if item.parent_item:
 		if frappe.db.exists("Item",item.parent_item):
 			doc.set("custom_item_smpl",item.parent_item)
+
+
+
+#fetch sub order status of stock entry
+@frappe.whitelist(allow_guest=True)
+def fetch_status_in_wo(doc,method):
+	if doc.stock_entry_type=="Send to Subcontractor" and doc.subcontracting_order and doc.custom_work_sub:
+		sub_doc=frappe.get_doc("Work Order",doc.custom_work_sub)
+		po_sub=frappe.get_doc("Subcontracting Order",doc.subcontracting_order)
+		frappe.db.sql("""update `tabWork Order` set custom_supplier='{}' where docstatus=1 and name='{}'  """.format(po_sub.supplier,i['work_order']))
+		frappe.db.sql("""update `tabWork Order` set custom_subcontracting_order='{}' where name='{}' """.format(doc.subcontracting_order,sub_doc.name))
+		frappe.db.sql("""update `tabWork Order` set custom_materials_sent='{}' where name='{}' """.format(doc.workflow_state,doc.custom_work_sub))
+		frappe.db.sql("""update `tabWork Order` set custom_date_sent='{}' where name='{}' """.format(doc.posting_date,sub_doc.name))
+		get_sbr=frappe.db.sql("""select * from `tabSubcontracting Receipt` where docstatus=1 and purchase_order='{}'   """.format(po_sub.purchase_order),as_dict=1)
+		if len(get_sbr)!=0:
+			frappe.db.sql("""update `tabWork Order` set custom_subcontracting_receipt='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['name'],i['work_order']))
+			frappe.db.sql("""update `tabWork Order` set custom_sreceipt_date='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['posting_date'],i['work_order']))
+			frappe.db.sql("""update `tabWork Order` set custom_srstatus='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['status'],i['work_order']))
+			frappe.db.commit()

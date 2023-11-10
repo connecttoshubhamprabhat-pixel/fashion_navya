@@ -341,7 +341,7 @@ def update_item_si(doc,method):
 #fetch with same size of attributes
 @frappe.whitelist()
 def images_same_attributes(image=None,name=None):
-	if not image and name:
+	if not image and not  name:
 		return
 	doc=frappe.get_doc("Item",name)
 	items=[]
@@ -354,7 +354,7 @@ def images_same_attributes(image=None,name=None):
 	att_list=[]
 	item_to_update=[]
 	for j in doc.attributes:
-		if j.attribute!="Size":
+		if j.attribute not in ["Size","Item Group"]:
 			d={}
 			d['attribute']=j.attribute
 			d['attribute_value']=j.attribute_value
@@ -416,6 +416,7 @@ def make_se_entry(items=None,values=None):
 	tw=values.get("t_warehouse")
 	child_w=[]
 	user=frappe.session.user
+	super_user=["amita@navya.biz"]
 	if items:
 		d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
 		d['rfse']="Stock Transfer"
@@ -429,7 +430,7 @@ def make_se_entry(items=None,values=None):
 		se=frappe.get_doc(d)
 		if sw!="Santushti - NAVYA":
 			exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(sw,user),as_dict=1)
-			if len(exists)==0:
+			if len(exists)==0 and user not in super_user:
 				frappe.throw("You can't transfer from this warehouse")
 
 			for i in items:
@@ -462,7 +463,7 @@ def make_se_entry(items=None,values=None):
 				if w_new:
 					for m in w_new:
 						exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(m.get("warehouse"),user),as_dict=1)
-						if len(exists)==0:
+						if len(exists)==0 and user not in super_user:
 							msg="You can't transfer from this warehouse: {}".format(m.get("warehouse"))
 							frappe.throw(msg)
 						row = se.append("items", {})
