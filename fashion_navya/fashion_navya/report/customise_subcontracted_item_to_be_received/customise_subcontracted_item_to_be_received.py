@@ -19,31 +19,58 @@ def execute(filters=None):
 def get_columns(filters):
 	return [
         {
-			"label": _("Purchase Order"),
-			"fieldtype": "Link",
-			"fieldname": "po",
-			"options":"Purchase Order",
-			"width": 150,
+			"label": _("wo/Date"),
+			"fieldtype": "Data",
+			"fieldname": "wodate",
+			"width": 100,
 		},
+
         {
 			"label": _("Work Order"),
 			"fieldtype": "Link",
 			"fieldname": "wo",
 			"options":"Work Order",
-			"width": 150,
+			"width":200,
 		},
         {
-			"label": _("W/o QTY"),
-			"fieldtype": "Int",
-			"fieldname": "wo_qty",
-			"width": 150,
+			"label": _("SE/Date"),
+			"fieldtype": "Data",
+			"fieldname": "sedate",
+			"width": 100,
 		},
-		{
+
+        {
+			"label": _("SUB/Stock Entry"),
+			"fieldtype": "Link",
+			"fieldname": "se",
+			"options":"Stock Entry",
+			"width":100,
+		},
+        {
+			"label": _("SE/status"),
+			"fieldtype": "Data",
+			"fieldname": "sestatus",
+			"width":100,
+		},
+
+
+
+
+
+        {
+			"label": _("Purchase Order"),
+			"fieldtype": "Link",
+			"fieldname": "po",
+			"options":"Purchase Order",
+			"width":150,
+		},
+
+        		{
 			"label": _("Subcontract Order"),
 			"fieldtype": "Link",
 			"fieldname": "subcontract_order",
 			"options": filters.order_type,
-			"width": 150,
+			"width":150,
 		},
 		{"label": _("Date"), "fieldtype": "Date", "fieldname": "date", "hidden": 1, "width": 150},
 		{
@@ -51,7 +78,7 @@ def get_columns(filters):
 			"fieldtype": "Link",
 			"fieldname": "supplier",
 			"options": "Supplier",
-			"width": 150,
+			"width": 100,
 		},
 		{
 			"label": _("Finished Good Item Code"),
@@ -59,18 +86,24 @@ def get_columns(filters):
 			"fieldname": "fg_item_code",
 			"width": 100,
 		},
-		{"label": _("Item name"), "fieldtype": "Data", "fieldname": "item_name", "width": 100},
-		{
+		{"label": _("Item name"), "fieldtype": "Data", "fieldname": "item_name", "width":200},
+        {
+			"label": _("W/o QTY"),
+			"fieldtype": "Int",
+			"fieldname": "wo_qty",
+			"width":40,
+		},
+        {
 			"label": _("Required Quantity"),
 			"fieldtype": "Float",
 			"fieldname": "required_qty",
-			"width": 100,
+			"width": 80,
 		},
 		{
 			"label": _("Received Quantity"),
 			"fieldtype": "Float",
 			"fieldname": "received_qty",
-			"width": 100,
+			"width": 80,
 		},
 		{"label": _("Pending Quantity"), "fieldtype": "Float", "fieldname": "pending_qty", "width": 100},
 	]
@@ -95,6 +128,10 @@ def get_data(data, filters):
                     "po":item.po,
                     "wo":item.wo,
                     "wo_qty":item.wqty,
+                    "se":item.se,
+                    "sedate":item.sedate,
+                    "sestatus":item.sestatus,
+                    "wodate":item.wodate
 				}
 				data.append(row)
 
@@ -132,11 +169,19 @@ def get_subcontract_order_supplied_item(order_type, orders):
         for i in data:
             print(i)
             sodoc=frappe.get_doc("Subcontracting Order",i['parent'])
+            #get_scr=frappe.db.sql("""sel  """)
             i['po']=sodoc.purchase_order
-            get_po=frappe.db.sql("""select work_order from `tabPurchase Order Item` where docstatus=1 and parent='{}' """.format(sodoc.purchase_order),as_dict=1)
+            get_se=frappe.db.sql("""select * from `tabStock Entry` where docstatus<2 and subcontracting_order='{}' """.format(i['parent']),as_dict=1)
+            if get_se:
+                i['se']=get_se[0]['name']
+                i['sedate']=get_se[0]['posting_date']
+                i['sestatus']=get_se[0]['workflow_state']
+
+            get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus<2 and parent='{}' """.format(sodoc.purchase_order),as_dict=1)
             if get_po:
                 if frappe.db.exists("Work Order",get_po[0]['work_order']):
                     wodoc=frappe.get_doc("Work Order",get_po[0]['work_order'])
                     i['wo']=wodoc.name
                     i['wqty']=wodoc.qty
+                    i['wodate']=wodoc.planned_start_date
         return data
