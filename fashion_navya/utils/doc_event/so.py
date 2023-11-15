@@ -187,9 +187,11 @@ def maintenance_visit(so=None,pe=None):
 	d['sales_order']=doc.name
 	d['custom_payment_entry']=pe
 	mv=frappe.get_doc(d)
+	cus=[]
 	for i in doc.items:
 		item=frappe.get_doc("Item",i.item_code)
 		if i.custom_customise_item==1:
+			cus.append("yes")
 			row=mv.append("purposes", {})
 			row.item_code=i.item_code
 			row.description=item.name
@@ -202,5 +204,7 @@ def maintenance_visit(so=None,pe=None):
 			row.custom_sleeve_length=i.custom_sleeve_length
 			row.custom_bottom_length=i.custom_bottom_length
 
-	mv.insert(ignore_permissions=True)
-	frappe.msgprint("Maintenance Visit created")
+
+	if cus:
+		mv.insert(ignore_permissions=True)
+		frappe.msgprint("Maintenance Visit created")

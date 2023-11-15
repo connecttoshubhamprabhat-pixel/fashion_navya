@@ -29,14 +29,14 @@ def old_image_smpl():
 #fetch with same size of attributes
 @frappe.whitelist()
 def images_same_attributes():
-	get_smpl=frappe.db.sql("""select * from `tabItem` where project='PROJ-1593'  and variant_of is not null and  image is not null and disabled=0  """,as_dict=1)
+	get_smpl=frappe.db.sql("""select * from `tabItem` where  variant_of is not null and  image is not null and disabled=0  """,as_dict=1)
 	if len(get_smpl)!=0:
 		for y in get_smpl:
 			name=y['name']
 			image=y['image']
 			doc=frappe.get_doc("Item",name)
 			items=[]
-			get_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}' and disabled=0 """.format(doc.variant_of),as_dict=1)
+			get_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}' and disabled=0 and image is null """.format(doc.variant_of),as_dict=1)
 			if get_items:
 				for i in get_items:
 					if i['name'] not in items and doc.name!=i['name']:

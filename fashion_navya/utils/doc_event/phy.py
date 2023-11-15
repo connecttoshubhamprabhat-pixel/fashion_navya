@@ -26,7 +26,7 @@ def calculate_stock_phy(doc,method):
 	s=[0]
 	dt=[0]
 	for i in doc.items:
-		diff=abs(i.sqty-i.aqty)
+		diff=i.sqty-i.aqty
 		item=i.item_code
 		p=frappe.db.sql("""select price_list_rate,name from `tabItem Price` where item_code='{}' ORDER BY modified  """.format(item),as_dict=1)
 		if len(p)!=0:
@@ -38,7 +38,7 @@ def calculate_stock_phy(doc,method):
 
 
 
-	diff_all=sum(a)-sum(s)
+	diff_all=sum(s)- sum(a)
 	doc.set('td',0)
 	doc.set('total_qty',0)
 	doc.set('total_qty',sum(s))
