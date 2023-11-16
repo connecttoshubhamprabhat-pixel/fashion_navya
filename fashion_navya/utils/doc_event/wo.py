@@ -99,7 +99,7 @@ def fetch_items_wo(values=None):
 
 @frappe.whitelist(allow_guest=True)
 def fetch_attributes_so(doc,method):
-	if doc.sales_order:
+	if doc.sales_order and doc.docstatus==0:
 		so=frappe.get_doc("Sales Order",doc.sales_order)
 		for i in so.items:
 			if i.item_code==doc.production_item:
@@ -112,6 +112,14 @@ def fetch_attributes_so(doc,method):
 				doc.set("minus",i.minus)
 				doc.set("custom_extra",i.custom_extra)
 				doc.set("size",i.size)
+				doc.set("custom_bust",i.custom_bust)
+				doc.set("custom_top_waist",i.custom_top_waist)
+				doc.set("custom_top_hip",i.custom_top_hip)
+				doc.set("custom_lower_waist",i.custom_lower_waist)
+				doc.set("custom_lower_hip",i.custom_lower_hip)
+				doc.set("custom_sleeve_length",i.custom_sleeve_length)
+				doc.set("custom_bottom_length",i.custom_bottom_length)
+
 
 
 
