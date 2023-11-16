@@ -28,8 +28,9 @@ def fetch_attribues(doc,method):
 @frappe.whitelist(allow_guest=True)
 def custom_maintence_visit(doc,method):
 	for i in doc.purposes:
-		so=frappe.get_doc("Sales Order",i.custom_sales_order)
-		for j in so.items:
-			if j.item_code==i.item_code:
-				frappe.db.sql("""update `tabSales Order Item` set custom_maintenance_visit='{}' where parent='{}' and docstatus=1  """.format(doc.name,so.name))
-				frappe.db.commit()
+		if i.custom_sales_order:
+			so=frappe.get_doc("Sales Order",i.custom_sales_order)
+			for j in so.items:
+				if j.item_code==i.item_code:
+					frappe.db.sql("""update `tabSales Order Item` set custom_maintenance_visit='{}' where parent='{}' and docstatus=1  """.format(doc.name,so.name))
+					frappe.db.commit()

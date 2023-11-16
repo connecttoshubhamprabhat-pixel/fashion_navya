@@ -121,3 +121,35 @@ def create_perm_submit(doc,method):
 			if len(get_w)==0:
 				msg="No Permision for {}".format(i.t_warehouse)
 				frappe.throw(msg)
+
+
+
+@frappe.whitelist()
+def customer_added_mr(doc,method):
+	for i in doc.items:
+		if i.custom_customer and i.idx==1:
+			doc.set("custom_customer",i.custom_customer)
+		if i.sales_order and not i.custom_customer and i.idx==1:
+			get_customer=frappe.db.sql("""select customer from `tabSales Order` where name='{}'   """.format(i.sales_order),as_dict=1)
+			if get_customer:
+				i.set("custom_customer",get_customer[0]['customer'])
+				doc.set("custom_customer",get_customer[0]['customer'])
+
+
+
+
+@frappe.whitelist()
+def set_so_mr(doc,method):
+	if doc.material_request:
+		get_so=frappe.db.sql("""select *  from `tabMaterial Request` where docstatus<2 and name='{}'  """.format(doc.material_request),as_dict=1)
+		if get_so:
+			if get_so[0]['sales_order']:
+				so=frappe.get_doc("Sales Order",get_so[0]['sales_order'])
+				doc.set("sales_order",so.name)
+				doc.set("customer",so.customer)
+
+
+
+@frappe.whitelist()
+def status_updated(doc,method):
+	doc.db_set("custom_status",doc.satatus, update_modified=False)

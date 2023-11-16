@@ -42,3 +42,24 @@ def bom_rpl_disabled():
 	#print(sample,"sample item",len(sample))
 	print(sbom,"sample bom",len(smplbom))
 	print(tbom,'tem bom',len(tempbom))
+
+
+
+
+
+
+
+@frappe.whitelist()
+def old_customer():
+	get_mr=frappe.db.sql("""select * from `tabMaterial Request Item` where sales_order is not null and docstatus=1  """,as_dict=1)
+	if get_mr:
+		for i in get_mr:
+			print(i['parent'])
+			if i['sales_order']:
+				so=frappe.get_doc("Sales Order",i['sales_order'])
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus<2 and material_request='{}'  """.format(i['parent']),as_dict=1)
+				if get_wo:
+					frappe.db.sql("""update `tabWork Order` set sales_order='{}' where name='{}'  """.format(so.name,get_wo[0]['name']))
+				frappe.db.sql("""update `tabMaterial Request` set custom_customer='{}' where name='{}'  """.format(so.customer,i['parent']))
+				frappe.db.sql("""update `tabMaterial Request Item` set custom_customer='{}' where  parent='{}'  """.format(so.customer,i['parent']))
+				frappe.db.commit()
