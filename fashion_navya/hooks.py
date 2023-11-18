@@ -126,7 +126,7 @@ doctype_list_js ={
 
 doc_events = {
 	"Stock Entry": {
-		        "before_save":["fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
+		        "before_save":["fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_submit":["fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
@@ -169,7 +169,7 @@ doc_events = {
     "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
     },
     "Purchase Order":{
-        "before_save":["fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_save":["fashion_navya.utils.doc_event.po.get_wo_set_po","fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
         "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
     },
@@ -235,6 +235,7 @@ doc_events = {
                     },
             "Subcontracting Order":{
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
+                "before_save":["fashion_navya.utils.doc_event.api_2.get_wo_sub"],
 
             },
 		"Journal Entry":{

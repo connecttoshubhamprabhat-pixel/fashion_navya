@@ -72,3 +72,22 @@ def check_delete_draft(doc,method):
 			users=['pawasthy11@gmail.com','erpsupport@uttamenergy.com','amita@navya.biz']
 			if user not in users:
 				frappe.throw("Sorry you can't delete")
+
+
+
+
+frappe.whitelist(allow_guest=True)
+def get_wo_set_po(doc,method):
+	if doc.is_subcontracted and doc.docstatus==0:
+		for i in doc.items:
+			if i.production_plan:
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}' and production_plan='{}'  """.format(i.fg_parent,i.production_plan),as_dict=1)
+				if get_wo:
+					i.set('work_order',get_wo[0]['name'])
+				else:
+					frappe.throw("Work order is missing for row :- {}".format(i.idx))
+
+			else:
+				if not i.work_order:
+					frappe.throw("Work Order is missing")
+

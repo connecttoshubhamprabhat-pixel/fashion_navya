@@ -185,33 +185,4 @@ def fetch_val_old():
 				if get_po:
 					po=get_po[0]['purchase_order']
 					for i in doc.items:
-						get_val=frappe.db.sql("""select work_order,fg_parent,fg_item_qty from `tabPurchase Order Item` where parent='{}' and docstatus=1  and fg_item='{}' """.format(po,i.subcontracted_item),as_dict=1)
-						if get_val:
-							print(doc.name,"name")
-							frappe.db.sql("""update `tabStock Entry Detail` set custom_mitem='{}',custom_work_order='{}'  ,custom_mqty='{}'  where parent='{}' and subcontracted_item='{}' """.format(get_val[0]['fg_parent'],get_val[0]['work_order'],get_val[0]['fg_item_qty'],doc.name,i.subcontracted_item))
-							frappe.db.commit()
-
-
-
-@frappe.whitelist()
-def get_wo_sub(doc,method):
-	for i in doc.items:
-		get_wo=frappe.db.sql("""select work_order from `tabPurchase Order Item` where docstatus=1 and fg_item='{}' and parent='{}'  """.format(i.item_code,doc.purchase_order),as_dict=1)
-		if get_wo:
-			i.set("work_order",get_wo[0]['work_order'])
-
-
-
-
-@frappe.whitelist()
-def get_wo_sub_old():
-	get_sub=frappe.db.sql("""select name from `tabSubcontracting Order` where docstatus=1 """,as_dict=1)
-	if get_sub:
-		for m in get_sub:
-			doc=frappe.get_doc("Subcontracting Order",m['name'])
-			for i in doc.items:
-				get_wo=frappe.db.sql("""select work_order from `tabPurchase Order Item` where docstatus=1 and fg_item='{}' and parent='{}'  """.format(i.item_code,doc.purchase_order),as_dict=1)
-				if get_wo:
-					print(doc.name,"aa")
-					frappe.db.sql("""update `tabSubcontracting Order Item` set work_order='{}' where parent='{}' and item_code='{}'  """.format(get_wo[0]['work_order'],doc.name,i.item_code))
-					frappe.db.commit()
+						get_val=frappe.db.sql("""select work_order,fg_parent,fg_item_qty from `tabPurchase Order Item` where parent='{}' and docstatus=1  and fg_item='{}' """.format(po,i.subcontracted_item)

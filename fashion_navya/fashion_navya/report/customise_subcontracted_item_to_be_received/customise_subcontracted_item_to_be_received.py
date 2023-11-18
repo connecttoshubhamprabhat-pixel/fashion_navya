@@ -167,7 +167,7 @@ def get_subcontract_orders(filters):
 
 def get_subcontract_wo(order_type):
 	if order_type=="Work Order":
-		datas=frappe.db.sql("""select wo.name as wo,qty as wo_qty,planned_start_date as wodate from `tabWork Order` as wo where wo.docstatus <2 and wo.production_item like "%RTW" and not exists (select 1 from `tabPurchase Order Item` as poi where poi.docstatus<2 and poi.work_order=wo.name )  """,as_dict=1)
+		datas=frappe.db.sql("""select wo.name as wo,qty as wo_qty,planned_start_date as wodate from `tabWork Order` as wo where wo.status="In Process" and  wo.docstatus <2 and wo.production_item like "%RTW" and not exists (select 1 from `tabPurchase Order Item` as poi where poi.docstatus<2 and poi.work_order=wo.name )  """,as_dict=1)
 		print(datas,"a")
 		return datas
 
