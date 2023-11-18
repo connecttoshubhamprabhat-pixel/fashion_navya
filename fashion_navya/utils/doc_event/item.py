@@ -540,4 +540,18 @@ def make_kit_item_parent_save(doc,method):
 		ndoc.insert(ignore_permissions=True)
 
 
+#fetch source warehouse se
+@frappe.whitelist()
+def fetch_source_se(items=None):
+	items=json.loads(items)
+	print(items,'items')
+	item_dict=[]
+	if items:
+		for i in items:
+			data=get_data(item_code=i)
+			if data:
+				for j in data:
+					if j['actual_qty']>0:
+						item_dict.append(j)
 
+	return item_dict
