@@ -10,9 +10,8 @@ def execute(filters=None):
 	if filters.from_date >= filters.to_date:
 		frappe.msgprint(_("To Date must be greater than From Date"))
 
-	data = []
 	columns = get_columns(filters)
-	get_data(data, filters)
+	data=get_data(filters) or []
 	return columns, data
 
 
@@ -53,6 +52,13 @@ def get_columns(filters):
 			"width":100,
 		},
 
+		{
+			"label": _("PO/date"),
+			"fieldtype": "Data",
+			"fieldname": "podate",
+			"width":100,
+		},
+
 
 
 
@@ -69,9 +75,17 @@ def get_columns(filters):
 			"label": _("Subcontract Order"),
 			"fieldtype": "Link",
 			"fieldname": "subcontract_order",
-			"options": filters.order_type,
+			"options":"Subcontracting Order",
 			"width":150,
 		},
+
+		{
+	"label": _("Subcontracting Receipt"),
+	"fieldtype": "Link",
+	"fieldname": "sr",
+	"options":"Subcontracting Receipt",
+	"width":150,
+},
 		{"label": _("Date"), "fieldtype": "Date", "fieldname": "date", "hidden": 1, "width": 150},
 		{
 			"label": _("Supplier"),
@@ -93,6 +107,12 @@ def get_columns(filters):
 			"fieldname": "wo_qty",
 			"width":40,
 		},
+		{
+			"label": _("PO/FG QTY"),
+			"fieldtype": "Int",
+			"fieldname": "pofg",
+			"width":40,
+		},
         {
 			"label": _("Required Quantity"),
 			"fieldtype": "Float",
@@ -109,93 +129,60 @@ def get_columns(filters):
 	]
 
 
-def get_data(data, filters):
-	if filters.order_type=="Work Order":
-		subcontracted_items = get_subcontract_wo(filters.order_type)
-		if subcontracted_items:
-			for i in subcontracted_items:
-				data.append(i)
-
-
-
-
-	if filters.order_type=="Subcontracting Order":
-		orders = get_subcontract_orders(filters)
-		orders_name = [order.name for order in orders]
-		subcontracted_items = get_subcontract_order_supplied_item(filters.order_type, orders_name)
-		for item in subcontracted_items:
-			for order in orders:
-				if order.name == item.parent and item.received_qty < item.qty:
-					row = {
-						"subcontract_order": item.parent,
-						"date": order.transaction_date,
-						"supplier": order.supplier,
-						"fg_item_code": item.item_code,
-						"item_name": item.item_name,
-						"required_qty": item.qty,
-						"received_qty": item.received_qty,
-						"pending_qty": item.qty - item.received_qty,
-	                    "po":item.po,
-	                    "wo":item.wo,
-	                    "wo_qty":item.wqty,
-	                    "se":item.se,
-	                    "sedate":item.sedate,
-	                    "sestatus":item.sestatus,
-	                    "wodate":item.wodate
-					}
-					data.append(row)
-
-
-def get_subcontract_orders(filters):
+def get_data(filters):
+	data=[]
 	record_filters = [
-		["transaction_date", "<=", filters.to_date],
-		["transaction_date", ">=", filters.from_date],
+		["planned_start_date", "<=", filters.to_date],
+		["planned_start_date", ">=", filters.from_date],
 		["docstatus", "=", 1],
-	]
-	if filters.supplier:
-		record_filters.append(["supplier", "=", filters.supplier])
+		["status","=","In Process"]]
 
+	get_alls=frappe.get_all(
+        "Work Order", filters=record_filters, fields=["name","planned_start_date"]
+    )
+	if get_alls:
+		for i in get_alls:
+			row={}
+			sup=filters.supplier
+			if sup:
+				get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus=1 and work_order='{}' and parent in (select name from `tabPurchase Order` where docstatus=1 and supplier='{}' )  """.format(i['name'],sup),as_dict=1)
+			else:
+				get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus=1 and work_order='{}'   """.format(i['name']),as_dict=1)
 
-	if filters.order_type == "Work Order":
-		record_filters.append(["is_subcontracted", "=", 1])
-
-	return frappe.get_all(
-		filters.order_type, filters=record_filters, fields=["name", "transaction_date", "supplier"]
-	)
-
-
-
-def get_subcontract_wo(order_type):
-	if order_type=="Work Order":
-		datas=frappe.db.sql("""select wo.name as wo,qty as wo_qty,planned_start_date as wodate from `tabWork Order` as wo where wo.status="In Process" and  wo.docstatus <2 and wo.production_item like "%RTW" and not exists (select 1 from `tabPurchase Order Item` as poi where poi.docstatus<2 and poi.work_order=wo.name )  """,as_dict=1)
-		print(datas,"a")
-		return datas
-
-
-def get_subcontract_order_supplied_item(order_type, orders):
-	if order_type=="Subcontracting Order":
-		data=frappe.get_all(
-    		f"{order_type} Item",
-    		filters=[("parent", "IN", orders)],
-    		fields=["parent", "item_code", "item_name", "qty", "received_qty"],
-    	)
-		print(data[5],"169")
-		for i in data:
-			sodoc=frappe.get_doc("Subcontracting Order",i['parent'])
-            #get_scr=frappe.db.sql("""sel  """)
-			i['po']=sodoc.purchase_order
-			get_se=frappe.db.sql("""select * from `tabStock Entry` where docstatus<2 and subcontracting_order='{}' """.format(i['parent']),as_dict=1)
-			if get_se:
-				i['se']=get_se[0]['name']
-				i['sedate']=get_se[0]['posting_date']
-				i['sestatus']=get_se[0]['workflow_state']
-
-			get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus<2 and parent='{}' """.format(sodoc.purchase_order),as_dict=1)
 			if get_po:
-				if frappe.db.exists("Work Order",get_po[0]['work_order']):
-					wodoc=frappe.get_doc("Work Order",get_po[0]['work_order'])
-					i['wo']=wodoc.name
-					i['wqty']=wodoc.qty
-					i['wodate']=wodoc.planned_start_date
+				for p in get_po:
+					po_doc=frappe.get_doc("Purchase Order",p['parent'])
+					get_so=frappe.db.sql("""select name from `tabSubcontracting Order` where docstatus=1 and purchase_order='{}' """.format(po_doc.name),as_dict=1)
+					get_sr=frappe.db.sql("""select name from `tabSubcontracting Receipt` where docstatus=1 and purchase_order='{}' """.format(po_doc.name),as_dict=1)
+					if get_sr:
+						row['sr']=get_sr[0]['name']
+					if get_so:
+						for s in get_so:
+							sub_doc=frappe.get_doc("Subcontracting Order",s['name'])
+							row['subcontract_order']=s['name']
+							for s_item in sub_doc.items:
+								row['required_qty']=s_item.qty
+								row['received_qty']=s_item.received_qty
+								row['pending_qty']=s_item.qty-s_item.received_qty
+							get_se=frappe.db.sql("""select name from `tabStock Entry` where docstatus<2 and subcontracting_order='{}' """.format(sub_doc.name),as_dict=1)
+							if get_se:
+								for se in get_se:
+									se_doc=frappe.get_doc("Stock Entry",se['name'])
+									row['se']=se_doc.name
+									row['sedate']=se_doc.posting_date
+									row['sestatus']=se_doc.workflow_state
 
-		return data
+					if po_doc.is_subcontracted:
+						row['po']=po_doc.name
+						row['supplier']=po_doc.supplier
+						row['fg_item_code']=p['fg_item']
+						row['pofg']=p['fg_item_qty']
+						row['item_name']=p['item_name']
+						row['podate']=po_doc.transaction_date
+
+			row['wo']=i['name']
+			row['wodate']=i['planned_start_date']
+			data.append(row)
+
+
+	return data
