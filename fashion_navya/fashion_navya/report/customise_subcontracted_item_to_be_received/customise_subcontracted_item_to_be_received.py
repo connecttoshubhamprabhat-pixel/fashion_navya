@@ -23,6 +23,12 @@ def get_columns(filters):
 			"fieldname": "wodate",
 			"width": 100,
 		},
+		{
+			"label": _("wo/status"),
+			"fieldtype": "Data",
+			"fieldname": "wos",
+			"width": 100,
+		},
 
         {
 			"label": _("Work Order"),
@@ -105,13 +111,19 @@ def get_columns(filters):
 			"label": _("W/o QTY"),
 			"fieldtype": "Int",
 			"fieldname": "wo_qty",
-			"width":40,
+			"width":80,
+		},
+		{
+			"label": _("W/oproduced/qty"),
+			"fieldtype": "Int",
+			"fieldname": "wopqty",
+			"width":100,
 		},
 		{
 			"label": _("PO/FG QTY"),
 			"fieldtype": "Int",
 			"fieldname": "pofg",
-			"width":40,
+			"width":80,
 		},
         {
 			"label": _("Required Quantity"),
@@ -135,10 +147,10 @@ def get_data(filters):
 		["planned_start_date", "<=", filters.to_date],
 		["planned_start_date", ">=", filters.from_date],
 		["docstatus", "=", 1],
-		["status","=","In Process"]]
+		["qty","!=","produced_qty"]]
 
 	get_alls=frappe.get_all(
-        "Work Order", filters=record_filters, fields=["name","planned_start_date"]
+        "Work Order", filters=record_filters, fields=["status","produced_qty","name","planned_start_date","qty"]
     )
 	if get_alls:
 		for i in get_alls:
@@ -182,6 +194,9 @@ def get_data(filters):
 
 			row['wo']=i['name']
 			row['wodate']=i['planned_start_date']
+			row['wopqty']=i['produced_qty']
+			row['wo_qty']=i['qty']
+			row['wos']=i['status']
 			data.append(row)
 
 
