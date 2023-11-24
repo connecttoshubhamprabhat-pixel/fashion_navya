@@ -147,7 +147,7 @@ def get_data(filters):
 		["planned_start_date", "<=", filters.to_date],
 		["planned_start_date", ">=", filters.from_date],
 		["docstatus", "=", 1],
-		["qty","!=","produced_qty"]]
+		["status","=","In Process"]]
 
 	get_alls=frappe.get_all(
         "Work Order", filters=record_filters, fields=["status","produced_qty","name","planned_start_date","qty"]
