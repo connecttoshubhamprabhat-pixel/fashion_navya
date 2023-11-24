@@ -186,6 +186,7 @@ def maintenance_visit(so=None,pe=None):
 	d={"doctype":"Maintenance Visit","customer":doc.customer,"completion_status":"Partially Completed"}
 	d['sales_order']=doc.name
 	d['custom_payment_entry']=pe
+	d['custom_visit_for']="Customise"
 	mv=frappe.get_doc(d)
 	cus=[]
 	for i in doc.items:

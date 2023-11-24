@@ -3,18 +3,21 @@ import frappe
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_item_po(doc,method):
-	if not doc.get("__islocal") and doc.is_subcontracted:
+	if doc.is_subcontracted:
 		for i in doc.items:
-			getwo=frappe.db.sql(""" select qty from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(i.fg_item),as_dict=1)
-			if len(getwo)!=0:
-				wqty=getwo[0]['qty']
-				i.set('qty',wqty)
-			if i.fg_item:
-				fgdoc=frappe.get_doc("Item",i.fg_item)
-				if fgdoc.parent_item!=None:
-					if not doc.project:
-						doc.set("project",fgdoc.project)
-					i.db_set("fg_parent",fgdoc.parent_item, update_modified=False)
+			if i.production_plan:
+				pp=frappe.get_doc("Production Plan",i.production_plan)
+				if pp.po_items and pp.docstatus==1:
+					for p in pp.po_items:
+						get_bom=frappe.db.sql("""select parent from `tabBOM Item` where docstatus=1 and item_code='{}' and parent='{}'  """.format(i.fg_item,p.bom_no),as_dict=1)
+						if len(get_bom)!=0:
+							item=frappe.get_doc("Item",p.item_code)
+							i.set("fg_parent",p.item_code)
+							i.set("project",item.project)
+							get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and bom_no='{}'  """.format(p.bom_no),as_dict=1)
+							if get_wo:
+								i.set("work_order",get_wo[0]['name'])
+							continue
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_offline():
@@ -80,14 +83,9 @@ frappe.whitelist(allow_guest=True)
 def get_wo_set_po(doc,method):
 	if doc.is_subcontracted and doc.docstatus==0:
 		for i in doc.items:
-			if i.production_plan:
+			if i.production_plan and i.fg_parent:
 				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}' and production_plan='{}'  """.format(i.fg_parent,i.production_plan),as_dict=1)
 				if get_wo:
 					i.set('work_order',get_wo[0]['name'])
 				else:
 					frappe.throw("Work order is missing for row :- {}".format(i.idx))
-
-			else:
-				if not i.work_order:
-					frappe.throw("Work Order is missing")
-

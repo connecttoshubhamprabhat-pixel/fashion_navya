@@ -34,3 +34,18 @@ def custom_maintence_visit(doc,method):
 				if j.item_code==i.item_code:
 					frappe.db.sql("""update `tabSales Order Item` set custom_maintenance_visit='{}' where parent='{}' and docstatus=1  """.format(doc.name,so.name))
 					frappe.db.commit()
+@frappe.whitelist(allow_guest=True)
+def make_mr_from_mv(doc,method):
+	if doc.custom_visit_for=="Alteration":
+		d={"doctype":"Material Request","material_request_type":"Material Transfer"}
+		mr=frappe.get_doc(d)
+		for i in doc.purposes:
+			row = mr.append("items", {})
+			row.item_code=i.item_code
+			row.qty=1
+			row.conversion_factor=1
+			row.uom="Nos"
+
+		mr.insert()
+		mr.submit()
+		frappe.msgprint("MR is created")
