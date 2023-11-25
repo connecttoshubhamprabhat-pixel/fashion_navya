@@ -1,6 +1,8 @@
 import frappe
 from datetime import datetime # from python std library
 from frappe.utils import add_to_date
+from erpnext.stock.dashboard.item_dashboard import get_data
+import json
 
 #Bank slip deposite
 @frappe.whitelist()
@@ -57,10 +59,10 @@ def fetch_quation_sup(from_time=None,to_time=None,supplier=None):
 def make_task_temp(name=None):
     if not name:
         return
-        
+
     today = datetime.now().strftime('%Y-%m-%d')
     after_3_days = add_to_date(datetime.now(), days=2, as_string=True)
-        
+
     get_temp=frappe.db.sql(""" select DISTINCT name from `tabItem` where  has_variants=1 and project='{}'  """.format(name),as_dict=1)
     if len(get_temp)!=0:
         d={'doctype':"Task","project":name}
@@ -75,7 +77,7 @@ def make_task_temp(name=None):
                 tk_save=frappe.get_doc(d)
                 tk_save.insert()
                 frappe.db.commit()
-                
+
     frappe.msgprint("Created")
 
 
@@ -118,3 +120,35 @@ def fetch_item_barcode(barcode=None):
 			d.append("ss")
 		if len(d)==2:
 			return d
+
+
+@frappe.whitelist()
+def add_item_se(values=None,items=None):
+    values=json.loads(values)
+    items=json.loads(items)
+    get_se=values.get("se")
+    doc=frappe.get_doc("Stock Entry",get_se)
+    target_W=doc.items[0].t_warehouse
+    for i in items:
+        item_doc=frappe.get_doc("Item",i.get("name"))
+        data=get_data(item_code=item_doc.name)
+        for j in data:
+            if j['actual_qty']>0:
+                row = doc.append("items", {})
+                row.item_code=item_doc.name
+                row.item_name=item_doc.item_name
+                row.conversion_factor=1
+                row.t_warehouse=target_W
+                row.s_warehouse=j['warehouse']
+                row.uom="Nos"
+                row.qty=j['actual_qty']
+
+    doc.save()
+    frappe.msgprint("Updated")
+
+
+
+
+@frappe.whitelist()
+def filters_se_name(doctype, txt, searchfield, page_len, start, filters):
+    return frappe.db.sql("""select name,owner from `tabStock Entry` where docstatus=0 and stock_entry_type='Material Transfer' ORDER BY modified DESC """)
