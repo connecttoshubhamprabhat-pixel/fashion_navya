@@ -276,6 +276,7 @@ doc_events = {
                             "Material Request":{
                                     "before_submit":["fashion_navya.utils.doc_event.api_2.customer_added_mr"],
                                     "before_save":["fashion_navya.utils.doc_event.api_2.status_updated"],
+                                    "after_insert":["fashion_navya.utils.doc_event.so.make_mr_manual_so"]
 
                                     },
 }

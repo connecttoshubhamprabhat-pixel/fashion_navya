@@ -136,6 +136,7 @@ def make_mr_so(doc,method):
 
 				d={"doctype":"Material Request","material_request_type":"Material Transfer"}
 				d['schedule_date']=sodoc.delivery_date
+				d['custom_automated']=1
 				mr=frappe.get_doc(d)
 				row = mr.append("items", {})
 				row.warehouse=target_w[-1]
@@ -164,6 +165,7 @@ def make_mr_so(doc,method):
 				m={"doctype":"Material Request","material_request_type":"Manufacture"}
 				m['schedule_date']=sodoc.delivery_date
 				m['custom_payment_entry']=doc.name
+				m['custom_automated']=1
 				mrm=frappe.get_doc(m)
 				row = mrm.append("items", {})
 				row.qty=qty
@@ -211,3 +213,35 @@ def maintenance_visit(so=None,pe=None):
 	if cus:
 		mv.insert(ignore_permissions=True)
 		frappe.msgprint("Maintenance Visit created")
+
+
+
+@frappe.whitelist()
+def make_mr_manual_so(doc,method):
+	for i in doc.items:
+		if i.sales_order and doc.custom_automated==0:
+			user=frappe.session.user
+			admin_roles=['Administrator','Managing Director','Amintegral item manager']
+			#admin_roles=['aa','edd']
+			logged_user=frappe.get_roles(frappe.session.user)
+			logged_user_dict,admin_roles_dict=set(logged_user),set(admin_roles)
+			super_role=list(admin_roles_dict.intersection(logged_user_dict))
+			if not super_role:
+				frappe.throw("Sorry,It won't be created manually.")
+
+
+@frappe.whitelist()
+def delete_mr_so(doc,method):
+	print(doc.docstatus,"saaaaaaaaaaaaaaa")
+	frappe.throw("aaaaaaaaaaaaaa")
+	for i in doc.items:
+		if i.sales_order and doc.custom_automated==0:
+			frappe.msgprint("aa")
+			user=frappe.session.user
+			#admin_roles=['Administrator','Managing Director','Amintegral item manager']
+			admin_roles=['aa','edd']
+			logged_user=frappe.get_roles(frappe.session.user)
+			logged_user_dict,admin_roles_dict=set(logged_user),set(admin_roles)
+			super_role=list(admin_roles_dict.intersection(logged_user_dict))
+			if not super_role:
+				frappe.throw("Sorry,You cannot cancel.")
