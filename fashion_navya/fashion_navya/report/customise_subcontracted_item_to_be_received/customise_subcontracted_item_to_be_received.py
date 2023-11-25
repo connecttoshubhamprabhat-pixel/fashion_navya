@@ -106,6 +106,13 @@ def get_columns(filters):
 			"fieldname": "fg_item_code",
 			"width": 100,
 		},
+		{
+                        "label": _("Wo/Item"),
+                        "fieldtype": "Link",
+                        "fieldname": "woitem",
+                        "options":"Item",
+                        "width":200,
+                },
 		{"label": _("Item name"), "fieldtype": "Data", "fieldname": "item_name", "width":200},
         {
 			"label": _("W/o QTY"),
@@ -147,10 +154,11 @@ def get_data(filters):
 		["planned_start_date", "<=", filters.to_date],
 		["planned_start_date", ">=", filters.from_date],
 		["docstatus", "=", 1],
-		["status","=","In Process"]]
+		["qty",">","produced_qty"],
+		["status","!=","Stopped"]]
 
 	get_alls=frappe.get_all(
-        "Work Order", filters=record_filters, fields=["status","produced_qty","name","planned_start_date","qty"]
+        "Work Order", filters=record_filters, fields=["production_item","status","produced_qty","name","planned_start_date","qty"]
     )
 	if get_alls:
 		for i in get_alls:
@@ -197,6 +205,7 @@ def get_data(filters):
 			row['wopqty']=i['produced_qty']
 			row['wo_qty']=i['qty']
 			row['wos']=i['status']
+			row['woitem']=i['production_item']
 			data.append(row)
 
 
