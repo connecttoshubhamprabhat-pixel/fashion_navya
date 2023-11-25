@@ -193,8 +193,16 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
 
     for i in items:
         parent_doc=frappe.get_doc("Item",i)
+        digital=[]
         if not parent_doc.variant_of:
             print(198)
+            return
+        #check for digital
+        for ap in parent_doc.attributes:
+            if ap.attribute_value=="Digital":
+                digital.append("a")
+        if digital:
+            frappe.msgprint("This is Digital print Item")
             return
         #get price_list
         price=set_price(item_code=i)
@@ -427,6 +435,16 @@ def bom_fetched(parent=None,size=None):
         get_bom_parent=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1 and item='{}' """.format(doc.name),as_dict=1)
         if len(get_bom_parent)!=0:
             bom_list.append(get_bom_parent[0]['name'])
+        else:
+            variant_of_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item in (select name from `tabItem` where variant_of='{}')  """.format(doc.variant_of),as_dict=1)
+            if variant_of_bom:
+                bom_list.append(variant_of_bom[0]['name'])
+            else:
+                variant_of_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.variant_of),as_dict=1)
+                if variant_of_bom:
+                    bom_list.append(variant_of_bom[0]['name'])
+
+
 
     if bom_list:
         return bom_list[-1]
