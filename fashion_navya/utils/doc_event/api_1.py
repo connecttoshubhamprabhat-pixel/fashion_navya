@@ -152,3 +152,21 @@ def add_item_se(values=None,items=None):
 @frappe.whitelist()
 def filters_se_name(doctype, txt, searchfield, page_len, start, filters):
     return frappe.db.sql("""select name,owner from `tabStock Entry` where docstatus=0 and stock_entry_type='Material Transfer' ORDER BY modified DESC """)
+
+
+#sales order after update
+@frappe.whitelist()
+def update_del_date_so(doc,method):
+    for i in doc.items:
+        get_mr=frappe.db.sql("""select parent from  `tabMaterial Request Item` where item_code='{}' and sales_order='{}'  """.format(i.item_code,doc.name),as_dict=1)
+        if get_mr:
+            mr_list=[]
+            for k in get_mr:
+                if k['parent'] not in mr_list:
+                    frappe.db.sql("""update `tabMaterial Request` set custom_delivery_date='{}' where name='{}'  """.format(i.delivery_date,k['parent']))
+                    mr_list.append(k['parent'])
+
+        frappe.db.sql("""update `tabMaterial Request Item` set custom_delivery_date='{}' where item_code='{}' and sales_order='{}'  """.format(i.delivery_date,i.item_code,doc.name))
+        frappe.db.commit()
+        frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
+        frappe.db.commit()

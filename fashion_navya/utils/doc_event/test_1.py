@@ -63,3 +63,27 @@ def old_customer():
 				frappe.db.sql("""update `tabMaterial Request` set custom_customer='{}' where name='{}'  """.format(so.customer,i['parent']))
 				frappe.db.sql("""update `tabMaterial Request Item` set custom_customer='{}' where  parent='{}'  """.format(so.customer,i['parent']))
 				frappe.db.commit()
+
+
+
+def update_del_date_so():
+	get_so=frappe.db.sql("""select  DISTINCT sales_order from `tabMaterial Request Item` where sales_order is not null  and docstatus < 2 """,as_dict=1)
+	if get_so:
+		for so in get_so:
+			print(so['sales_order'])
+			doc=frappe.get_doc("Sales Order",so['sales_order'])
+			for i in doc.items:
+				get_mr=frappe.db.sql("""select parent from  `tabMaterial Request Item` where item_code='{}' and sales_order='{}'  """.format(i.item_code,doc.name),as_dict=1)
+				if get_mr:
+					mr_list=[]
+					for k in get_mr:
+						if k['parent'] not in mr_list:
+							frappe.db.sql("""update `tabMaterial Request` set custom_delivery_date='{}' where name='{}'  """.format(i.delivery_date,k['parent']))
+							mr_list.append(k['parent'])
+
+
+				print(k['parent'],'1')
+				frappe.db.sql("""update `tabMaterial Request Item` set custom_delivery_date='{}' where item_code='{}' and sales_order='{}'  """.format(i.delivery_date,i.item_code,doc.name))
+				frappe.db.commit()
+				frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
+				frappe.db.commit()

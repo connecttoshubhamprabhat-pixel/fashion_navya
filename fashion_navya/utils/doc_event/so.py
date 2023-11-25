@@ -145,6 +145,7 @@ def make_mr_so(doc,method):
 				row.item_code=i
 				if len(get_id_soi)!=0:
 					row.sales_order_item=get_id_soi[0]['name']
+					row.custom_delivery_date=get_id_soi[0]['delivery_date']
 
 				mr.insert()
 				mr.submit()
@@ -172,6 +173,7 @@ def make_mr_so(doc,method):
 				row.warehouse=target_w[-1]
 				if len(get_id_soi)!=0:
 					row.sales_order_item=get_id_soi[0]['name']
+					row.custom_delivery_date=get_id_soi[0]['delivery_date']
 
 				mrm.insert()
 				mrm.submit()
