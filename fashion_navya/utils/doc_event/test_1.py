@@ -82,7 +82,7 @@ def update_del_date_so():
 							mr_list.append(k['parent'])
 
 
-				print(k['parent'],'1')
+				#print(k['parent'],'1')
 				frappe.db.sql("""update `tabMaterial Request Item` set custom_delivery_date='{}' where item_code='{}' and sales_order='{}'  """.format(i.delivery_date,i.item_code,doc.name))
 				frappe.db.commit()
 				frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
