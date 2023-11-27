@@ -37,8 +37,29 @@ def get_columns(filters):
 			"options":"Work Order",
 			"width":200,
 		},
+		{
+			"label": _("MT/SE/Date"),
+			"fieldtype": "Data",
+			"fieldname": "mtdate",
+			"width": 100,
+		},
+		{
+			"label": _("MT/SE/status"),
+			"fieldtype": "Data",
+			"fieldname": "mtstatus",
+			"width": 100,
+		},
+
+		{
+			"label": _("MT/SE"),
+			"fieldtype": "Link",
+			"fieldname": "mtse",
+			"options":"Stock Entry",
+			"width":200,
+		},
+
         {
-			"label": _("SE/Date"),
+			"label": _("sub/SE/Date"),
 			"fieldtype": "Data",
 			"fieldname": "sedate",
 			"width": 100,
@@ -52,7 +73,7 @@ def get_columns(filters):
 			"width":100,
 		},
         {
-			"label": _("SE/status"),
+			"label": _("sub/SE/status"),
 			"fieldtype": "Data",
 			"fieldname": "sestatus",
 			"width":100,
@@ -70,7 +91,7 @@ def get_columns(filters):
 
 
         {
-			"label": _("Purchase Order"),
+			"label": _("Purchase Order/sub"),
 			"fieldtype": "Link",
 			"fieldname": "po",
 			"options":"Purchase Order",
@@ -115,34 +136,34 @@ def get_columns(filters):
                 },
 		{"label": _("Item name"), "fieldtype": "Data", "fieldname": "item_name", "width":200},
         {
-			"label": _("W/o QTY"),
+			"label": _("W/oQTY"),
 			"fieldtype": "Int",
 			"fieldname": "wo_qty",
-			"width":80,
+			"width":100,
 		},
 		{
-			"label": _("W/oproduced/qty"),
+			"label": _("W/produced/qty"),
 			"fieldtype": "Int",
 			"fieldname": "wopqty",
-			"width":100,
+			"width":120,
 		},
 		{
 			"label": _("PO/FG QTY"),
 			"fieldtype": "Int",
 			"fieldname": "pofg",
-			"width":80,
+			"width":100,
 		},
         {
-			"label": _("Required Quantity"),
+			"label": _("Required/qty"),
 			"fieldtype": "Float",
 			"fieldname": "required_qty",
 			"width": 80,
 		},
 		{
-			"label": _("Received Quantity"),
+			"label": _("Received/qty"),
 			"fieldtype": "Float",
 			"fieldname": "received_qty",
-			"width": 80,
+			"width":100,
 		},
 		{"label": _("Pending Quantity"), "fieldtype": "Float", "fieldname": "pending_qty", "width": 100},
 	]
@@ -206,6 +227,11 @@ def get_data(filters):
 			row['wo_qty']=i['qty']
 			row['wos']=i['status']
 			row['woitem']=i['production_item']
+			get_set_mt=frappe.db.sql("""select * from `tabStock Entry` where docstatus<2 and stock_entry_type='Material Transfer for Manufacture' and work_order='{}' """.format(i['name']),as_dict=1)
+			if get_set_mt:
+				row['mtstatus']=get_set_mt[0]['workflow_state']
+				row['mtdate']=get_set_mt[0]['posting_date']
+				row['mtse']=get_set_mt[0]['name']
 			data.append(row)
 
 
