@@ -1,6 +1,7 @@
 import frappe
 from datetime import datetime # from python std library
 from frappe.utils import add_to_date
+from frappe import utils
 from erpnext.stock.dashboard.item_dashboard import get_data
 import json
 
@@ -170,3 +171,52 @@ def update_del_date_so(doc,method):
         frappe.db.commit()
         frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
         frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def create_new_po_list(values=None,items=None):
+    items=json.loads(items)
+    values=json.loads(values)
+    supplier=values.get("supplier")
+    req=str(values.get("req"))
+    if items and supplier:
+        d={'doctype':"Purchase Order"}
+        d['supplier']=supplier
+        d['schedule_date']=req
+        doc=frappe.get_doc(d)
+        for i in items:
+            item_doc=frappe.get_doc("Item",i.get("name"))
+            row = doc.append("items", {})
+            row.item_code=item_doc.name
+            row.item_name=item_doc.item_name
+            row.uom=item_doc.stock_uom
+            row.schedule_date=req
+            row.qty=1
+        doc.insert(ignore_permissions=True)
+        frappe.msgprint("Created")
+
+
+
+@frappe.whitelist()
+def create_new_mr_list(values=None,items=None):
+    items=json.loads(items)
+    values=json.loads(values)
+    purpose=values.get("purpose")
+    req=str(values.get("req"))
+    if items and purpose:
+        d={'doctype':"Material Request"}
+        d['material_request_type']=purpose
+        d['schedule_date']=req
+        doc=frappe.get_doc(d)
+        for i in items:
+            item_doc=frappe.get_doc("Item",i.get("name"))
+            row = doc.append("items", {})
+            row.item_code=item_doc.name
+            row.item_name=item_doc.item_name
+            row.uom=item_doc.stock_uom
+            row.schedule_date=req
+            row.qty=1
+        doc.insert(ignore_permissions=True)
+        frappe.msgprint("Created")
