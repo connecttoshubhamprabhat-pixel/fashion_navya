@@ -203,7 +203,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
                 digital.append("a")
         if digital:
             frappe.msgprint("This is Digital print Item")
-            return
+            #return
         #get price_list
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
@@ -389,7 +389,8 @@ def make_bom(new=None,submit=0,variant=0,bom=None):
         if variant==1:
             for raw in d.items:
                 split=raw.item_code.split("-")
-                if raw.idx==1 and split[-1]=="k":
+                new_parent_split=new.split("-")
+                if raw.idx==1 and "RTW" in new_parent_split:
                     kit_new=new+"-k"
                     if frappe.db.exists("Item",kit_new):
                         raw.set("item_code",kit_new)
@@ -448,3 +449,67 @@ def bom_fetched(parent=None,size=None):
 
     if bom_list:
         return bom_list[-1]
+
+
+
+
+
+
+#kit bom copy
+
+@frappe.whitelist(allow_guest=True)
+def make_bom_kit_new(doc,method):
+    if not doc.variant_of and doc.item_group=="M kit":
+        #frappe.throw("aaaaaa")
+        split_parent=doc.name.split("-")
+        get_parent=split_parent[:-1]
+        join_parent="-".join(get_parent)
+        print(join_parent,'join_parent')
+        if frappe.db.exists("Item",join_parent):
+            #print("468")
+            item_doc=frappe.get_doc("Item",join_parent)
+            if item_doc.variant_of:
+                #print("471")
+                item_doc_parent=item_doc.name.split("-")
+                if "RTW" in item_doc_parent:
+                    index=item_doc_parent.index("RTW")
+                    item_doc_parent[index]="SMPL"
+
+                join_smpl="-".join(item_doc_parent)
+                get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(join_smpl),as_dict=1)
+                get_bom_kit=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.name),as_dict=1)
+                if not get_bom_kit and get_bom_smpl:
+                    if doc.has_variants==0 and not doc.variant_of and doc.item_group=="M kit":
+                        bm=frappe.get_doc("BOM",get_bom_smpl[0]['name'])
+                        d=frappe.copy_doc(bm)
+                        d.set("item",doc.name)
+                        d.set('pattern_not_required',1)
+                        d.set("workflow_state","Draft")
+                        try:
+                            d.insert(ignore_permissions=True)
+                        except:
+                            pass
+            else:
+                if item_doc.parent_item:
+                    #print("490")
+                    item_doc_parent=item_doc.parent_item.split("-")
+                    if "RTW" in item_doc_parent:
+                        index=item_doc_parent.index("RTW")
+                        item_doc_parent[index]="SMPL"
+
+                    join_smpl="-".join(item_doc_parent)
+                    get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(join_smpl),as_dict=1)
+                    get_bom_kit=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.name),as_dict=1)
+                    if not get_bom_kit and get_bom_smpl:
+                        print("5000")
+                        if doc.has_variants==0 and not doc.variant_of and doc.item_group=="M kit":
+                            #print("502")
+                            bm=frappe.get_doc("BOM",get_bom_smpl[0]['name'])
+                            d=frappe.copy_doc(bm)
+                            d.set("item",doc.name)
+                            d.set('pattern_not_required',1)
+                            d.set("workflow_state","Draft")
+                            try:
+                                d.insert(ignore_permissions=True)
+                            except:
+                                pass
