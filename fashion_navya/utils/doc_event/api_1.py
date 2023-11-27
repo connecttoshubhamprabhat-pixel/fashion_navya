@@ -155,6 +155,16 @@ def filters_se_name(doctype, txt, searchfield, page_len, start, filters):
     return frappe.db.sql("""select name,owner from `tabStock Entry` where docstatus=0 and stock_entry_type='Material Transfer' ORDER BY modified DESC """)
 
 
+@frappe.whitelist()
+def filters_po_name(doctype, txt, searchfield, page_len, start, filters):
+    return frappe.db.sql("""select name,owner from `tabPurchase Order` where docstatus=0 and is_subcontracted=0    ORDER BY modified DESC """)
+
+
+@frappe.whitelist()
+def filters_mr_name(doctype, txt, searchfield, page_len, start, filters):
+    return frappe.db.sql("""select name,owner from `tabMaterial Request` where docstatus=0   ORDER BY modified DESC """)
+
+
 #sales order after update
 @frappe.whitelist()
 def update_del_date_so(doc,method):
@@ -220,3 +230,43 @@ def create_new_mr_list(values=None,items=None):
             row.qty=1
         doc.insert(ignore_permissions=True)
         frappe.msgprint("Created")
+
+
+
+@frappe.whitelist()
+def add_item_po(values=None,items=None):
+    values=json.loads(values)
+    items=json.loads(items)
+    get_po=values.get("po")
+    doc=frappe.get_doc("Purchase Order",get_po)
+    date=utils.today()
+    if items:
+        for i in items:
+            item_doc=frappe.get_doc("Item",i.get("name"))
+            row = doc.append("items", {})
+            row.item_code=item_doc.name
+            row.item_name=item_doc.item_name
+            row.uom=item_doc.stock_uom
+            row.qty=1
+
+        doc.save()
+        frappe.msgprint("Updated")
+
+
+@frappe.whitelist()
+def add_item_mr(values=None,items=None):
+    values=json.loads(values)
+    items=json.loads(items)
+    get_mr=values.get("mr")
+    doc=frappe.get_doc("Material Request",get_mr)
+    if items:
+        for i in items:
+            item_doc=frappe.get_doc("Item",i.get("name"))
+            row = doc.append("items", {})
+            row.item_code=item_doc.name
+            row.item_name=item_doc.item_name
+            row.uom=item_doc.stock_uom
+            row.qty=1
+
+        doc.save()
+        frappe.msgprint("Updated")
