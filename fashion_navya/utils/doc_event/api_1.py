@@ -282,16 +282,16 @@ def make_stock_reconcil(items=None):
         doc=frappe.get_doc(d)
         inserts=[]
         for i in items:
-            frappe.msgprint("a")
+            #frappe.msgprint("a")
             item=i.get("name")
             data=get_data(item_code=item)
             if data:
                 for a in data:
                     if a['actual_qty']>0:
-                        frappe.msgprint("aw")
+                        #frappe.msgprint("aw")
                         inserts.append("a")
-                        print(a,"aaaaa")
-                        print(item)
+                        #print(a,"aaaaa")
+                        #print(item)
                         item_doc=frappe.get_doc("Item",item)
                         row = doc.append("items", {})
                         row.item_code=a['item_code']
