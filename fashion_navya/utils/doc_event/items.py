@@ -487,6 +487,7 @@ def make_bom_kit_new(doc,method):
                         d.set("workflow_state","Draft")
                         try:
                             d.insert(ignore_permissions=True)
+                            d.submit()
                         except:
                             pass
             else:
@@ -511,5 +512,6 @@ def make_bom_kit_new(doc,method):
                             d.set("workflow_state","Draft")
                             try:
                                 d.insert(ignore_permissions=True)
+                                d.submit()
                             except:
                                 pass
