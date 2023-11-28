@@ -270,3 +270,38 @@ def add_item_mr(values=None,items=None):
 
         doc.save()
         frappe.msgprint("Updated")
+
+
+
+@frappe.whitelist()
+def make_stock_reconcil(items=None):
+    items=json.loads(items)
+    if items:
+        d={'doctype':"Stock Reconciliation"}
+        d['purpose']="Stock Reconciliation"
+        doc=frappe.get_doc(d)
+        inserts=[]
+        for i in items:
+            frappe.msgprint("a")
+            item=i.get("name")
+            data=get_data(item_code=item)
+            if data:
+                for a in data:
+                    if a['actual_qty']>0:
+                        frappe.msgprint("aw")
+                        inserts.append("a")
+                        print(a,"aaaaa")
+                        print(item)
+                        item_doc=frappe.get_doc("Item",item)
+                        row = doc.append("items", {})
+                        row.item_code=a['item_code']
+                        #row.item_name=item_doc.item_name
+                        row.qty=0
+                        row.valuation_rate=a['valuation_rate']
+                        row.current_qty=a['actual_qty']
+                        row.warehouse=a['warehouse']
+
+        if inserts:
+            #print(doc.as_dict(),"aaaaaaaaaaaa")
+            doc.insert(ignore_permissions=True)
+            frappe.msgprint("Created")
