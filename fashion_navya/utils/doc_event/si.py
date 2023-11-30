@@ -104,3 +104,14 @@ def make_record_in(no=None,status=0,name=None,commit=0):
     doc.insert(ignore_permissions=True)
     if commit==1:
         frappe.db.commit()
+
+
+
+#status update 
+@frappe.whitelist(allow_guest=True)
+def cancel_doc_si_series(doc,method):
+    if doc.custom_invoice_no:
+        get_name=frappe.db.sql("""select name from `tabInvoice No series` where series_no='{}' and si_no='{}'  """.format(doc.custom_invoice_no,doc.name),as_dict=1)
+        if get_name:
+            frappe.db.sql("""update `tabInvoice No series` set series_status="cancelled"  where series_no='{}' and si_no='{}' """.format(doc.custom_invoice_no,doc.name))
+            frappe.db.commit()
