@@ -148,6 +148,7 @@ doc_events = {
     },
     "Work Order":{
         "validate":["fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
+        "before_submit":["fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "after_insert":["fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
     },
@@ -212,6 +213,7 @@ doc_events = {
               #"before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
               "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
               "on_submit":["fashion_navya.utils.doc_event.item.update_item_si"],
+                "before_submit":["fashion_navya.utils.doc_event.si.make_new_si_id"],
 
                 },
         "Project":{

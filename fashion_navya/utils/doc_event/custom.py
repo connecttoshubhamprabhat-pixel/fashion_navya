@@ -446,9 +446,6 @@ def rename_item_with_size(doc,method):
 	if doc.cms:
 		for i in doc.items:
 			if i.item_type=="Customize":
-				if not i.size:
-					frappe.throw("Size missing for Customise")
-
 				item=frappe.get_doc("Item",i.item_code)
 				name=item.item_name.split("-")
 				d=re.findall(r'\d+',item.item_code)

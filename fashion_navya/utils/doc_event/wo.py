@@ -170,3 +170,14 @@ def fetch_status_in_wo(doc,method):
 			frappe.db.sql("""update `tabWork Order` set custom_sreceipt_date='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['posting_date'],i['work_order']))
 			frappe.db.sql("""update `tabWork Order` set custom_srstatus='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['status'],i['work_order']))
 			frappe.db.commit()
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_before_submit_disbaled_item(doc,method):
+	for i in  doc.required_items:
+		item=frappe.get_doc("Item",i.item_code)
+		if item.disabled==1:
+			msg="Disabled Item in Row {}".format(i.idx)
+			frappe.throw(msg)
