@@ -10,3 +10,17 @@ def customise_item_fetch_value(doc,method):
 	if item.has_variants==0 and item.item_group=="Customise":
 		if not doc.sales_order:
 			frappe.throw("In Case,Sales Order is required")
+
+
+
+
+
+@frappe.whitelist()
+def remove_disabled_items(doc,method):
+	if doc.items:
+		for i in doc.items:
+			item=frappe.get_doc("Item",i.item_code)
+			if item.disabled==1:
+				new_name=i.item_code+"-"+"New"
+				if frappe.db.exists("Item",new_name):
+					i.set("item_code",new_name)

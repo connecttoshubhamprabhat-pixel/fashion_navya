@@ -211,10 +211,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
             frappe.msgprint("The Price is less then 10000")
             return
 
-        perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
-        if int(perdoc.cms)>int(price):
-            frappe.msgprint("The Price is less then 10000")
-            return
+
 
         split_parent=i.split("-")
         #remove HTML tag
