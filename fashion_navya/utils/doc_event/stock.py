@@ -221,17 +221,19 @@ def create_tag_m_all(name=None):
             d['automated']=1
             tag=frappe.get_doc(d)
             for i in doc.items:
-                item_doc=frappe.get_doc("Item",i.item_code)
-                ip=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and  item_code='{}'  ORDER BY modified DESC """.format(i.item_code),as_dict=1)
-                row = tag.append("items", {})
-                row.item_code=i.item_code
-                row.item_name=i.item_name
-                row.qty=1
-                row.item_group=item_doc.item_group
-                if len(ip)!=0:
-                    row.rate=ip[0]['price_list_rate']
-                else:
-                    row.rate=0.0
+                chec_qty=int(i.qty)
+                for k in range(chec_qty):
+                    item_doc=frappe.get_doc("Item",i.item_code)
+                    ip=frappe.db.sql("""select price_list_rate from `tabItem Price` where workflow_state="Approved" and  item_code='{}'  ORDER BY modified DESC """.format(i.item_code),as_dict=1)
+                    row = tag.append("items", {})
+                    row.item_code=i.item_code
+                    row.item_name=i.item_name
+                    row.qty=1
+                    row.item_group=item_doc.item_group
+                    if len(ip)!=0:
+                        row.rate=ip[0]['price_list_rate']
+                    else:
+                        row.rate=0.0
 
             if tag.items:
                 tag.insert(ignore_permissions=True)
