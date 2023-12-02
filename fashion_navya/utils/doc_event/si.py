@@ -2,7 +2,7 @@ import frappe
 
 @frappe.whitelist(allow_guest=True)
 def make_new_si_id(doc,method):
-    split_date=doc.posting_date.split("-")
+    split_date=str(doc.posting_date).split("-")
     cyr=split_date[0]
     next_year=str(int(cyr[2:])+1)
     fyear=cyr+"-"+next_year
