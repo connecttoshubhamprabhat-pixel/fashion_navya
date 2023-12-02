@@ -16,6 +16,13 @@ frappe.query_reports["Amount received By Sales"] = {
 				"fieldtype": "Date",
 				"default": frappe.datetime.get_today()
 		},
+		{
+        fieldname: "mop",
+        label: __("Mode of Payment"),
+        fieldtype: "Link",
+        options: "Mode of Payment"
+    },
+
 
 
 

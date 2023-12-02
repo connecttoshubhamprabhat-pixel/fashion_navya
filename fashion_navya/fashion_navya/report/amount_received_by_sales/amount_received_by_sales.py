@@ -44,9 +44,20 @@ def get_data(filters):
 
 	#return data
 
+	str_filters=" where  docstatus=1  "
+	str_filters+="  and  payment_type='Receive'  "
+	str_filters+=" and posting_date between  '{}' and  '{}' ".format(from_date,to_date)
+	if filters.mop:
+		str_filters+="  and mode_of_payment='{}' ".format(filters.mop)
 
+	print(str_filters,"strrrrrrrrrrr")
+	frappe.msgprint("aaaaaaaaaa")
+	#frappe.throw("{}".format(str_filters))
 
-	get_pe=frappe.db.sql("""select * from `tabPayment Entry` where payment_type="Receive" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	get_pe=frappe.db.sql("""select * from `tabPayment Entry` {}  """.format(str_filters),as_dict=1)
+	total_cash=frappe.db.sql("""select sum(paid_amount) as cash from `tabPayment Entry` where mode_of_payment="Cash"  and payment_type="Receive" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+	interna_cash=frappe.db.sql("""select sum(paid_amount) as cash from `tabPayment Entry` where automated=1 and payment_type="Internal Transfer" and  docstatus=1 and posting_date between '{}' and '{}'  """.format(from_date,to_date),as_dict=1)
+
 	if len(get_pe)!=0:
 		so_names=[]
 		si_names=[]
@@ -96,6 +107,17 @@ def get_data(filters):
 			data.append(d)
 
 
+		if total_cash:
+			cash_dict={}
+			cash_dict['cash']=total_cash[0]['cash']
+			data.append(cash_dict)
+
+		if interna_cash:
+			cash_internal={}
+			cash_internal['incash']=interna_cash[0]['cash']
+			data.append(cash_internal)
+
+
 
 
 
@@ -127,6 +149,7 @@ def get_columns():
 			"options":"Payment Entry",
 			"width":150,
 		},
+
 		{
 			"label": _("Sales Order"),
 			"fieldtype": "Link",
@@ -249,6 +272,18 @@ def get_columns():
 			"fieldtype": "Data",
 			"fieldname": "td",
 			"width":150,
+		},
+		{
+			"label": _("Total Cash"),
+			"fieldtype": "Data",
+			"fieldname": "cash",
+			"width":150,
+		},
+		{
+			"label": _("Total Internal Cash Entry/Automated"),
+			"fieldtype": "Data",
+			"fieldname": "incash",
+			"width":200,
 		},
 
 		]
