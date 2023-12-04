@@ -141,10 +141,10 @@ def customer_added_mr(doc,method):
 @frappe.whitelist()
 def set_so_mr(doc,method):
 	if doc.material_request:
-		get_so=frappe.db.sql("""select custom__sales_order  from `tabMaterial Request` where docstatus<2 and name='{}'  """.format(doc.material_request),as_dict=1)
-		if get_so:
-			if get_so[0]['custom__sales_order']!=None:
-				so=frappe.get_doc("Sales Order",get_so[0]['custom__sales_order'])
+		mr=frappe.get_doc("Material Request",doc.material_request)
+		for m in mr.items:
+			if doc.production_item==m.item_code and m.sales_order:
+				so=frappe.get_doc("Sales Order",m.sales_order)
 				doc.set("sales_order",so.name)
 				doc.set("customer",so.customer)
 

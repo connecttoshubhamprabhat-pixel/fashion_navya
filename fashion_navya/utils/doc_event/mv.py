@@ -22,6 +22,7 @@ def fetch_attribues(doc,method):
 					j.set("custom_lower_hip",m['custom_lower_hip'])
 					j.set("custom_sleeve_length",m['custom_sleeve_length'])
 					j.set("custom_bottom_length",m['custom_bottom_length'])
+					j.set("custom_shoulder",m['custom_shoulder'])
 			j.set("custom_sales_order",so.name)
 
 

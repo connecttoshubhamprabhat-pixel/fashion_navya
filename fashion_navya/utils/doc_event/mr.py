@@ -43,3 +43,85 @@ def make_mr_select(items=None,name=None):
 
 		mr.insert()
 		frappe.msgprint("MR Created")
+
+
+
+
+
+
+
+@frappe.whitelist()
+def check_bom_mr(doc,method):
+	for i in doc.items:
+		check_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1 and item='{}'  """.format(i.item_code),as_dict=1)
+		if len(check_bom)!=0:
+			doc.set("custom_bom",1)
+
+		if i.sales_order:
+			doc.set("custom_is_so",1)
+
+		split_code=i.item_code.split("-")
+		if "MTM" in split_code:
+			doc.set("custom_mtm",1)
+
+		get_so_cms=frappe.db.sql("""select name from `tabSales Order Item` where item_type='Customize'  and  docstatus=1 and name='{}' and parent='{}'   """.format(i.sales_order_item,i.sales_order),as_dict=1)
+		if len(get_so_cms)!=0:
+			doc.set("custom_cms",1)
+
+
+
+
+
+@frappe.whitelist()
+def check_bom_mr_old():
+
+	get_mr=frappe.db.sql("""select 	DISTINCT parent from `tabMaterial Request Item` where sales_order is not null   """,as_dict=1)
+	if get_mr:
+		for m in get_mr:
+			print(m['parent'])
+			doc=frappe.get_doc("Material Request",m['parent'])
+			for i in doc.items:
+				check_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1 and item='{}'  """.format(i.item_code),as_dict=1)
+				if len(check_bom)!=0:
+					#doc.set("custom_bom",1)
+					frappe.db.sql("""update `tabMaterial Request` set custom_bom=1 where name='{}'  """.format(doc.name))
+
+				if i.sales_order:
+					#doc.set("custom_is_so",1)
+					frappe.db.sql("""update `tabMaterial Request` set custom_is_so=1 where name='{}'  """.format(doc.name))
+
+				split_code=i.item_code.split("-")
+				if "MTM" in split_code:
+					#doc.set("custom_mtm",1)
+					frappe.db.sql("""update `tabMaterial Request` set custom_mtm=1 where name='{}'  """.format(doc.name))
+
+				get_so_cms=frappe.db.sql("""select name from `tabSales Order Item` where item_type='Customize'  and  docstatus=1 and name='{}' and parent='{}'   """.format(i.sales_order_item,i.sales_order),as_dict=1)
+				if len(get_so_cms)!=0:
+					#doc.set("custom_cms",1)
+					frappe.db.sql("""update `tabMaterial Request` set custom_cms=1 where name='{}'  """.format(doc.name))
+				frappe.db.commit()
+
+
+
+
+
+@frappe.whitelist()
+def check_is_bom_mr(doc,method):
+	if doc.is_active and doc.is_default:
+		get_mr=frappe.db.sql(""" select DISTINCT  parent from `tabMaterial Request Item` where item_code='{}' and docstatus<2  """.format(doc.item),as_dict=1)
+		if len(get_mr)!=0:
+			for i in get_mr:
+				frappe.db.sql("""update `tabMaterial Request` set custom_bom=1 where name='{}' and docstatus<2  """.format(i['parent']),as_dict=1)
+				frappe.db.commit()
+
+
+#on canel
+@frappe.whitelist()
+def uncheck_is_bom_mr(doc,method):
+	check_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}' and is_active=1 and is_default=1  """.format(doc.item),as_dict=1)
+	if len(check_bom)==0:
+		get_mr=frappe.db.sql(""" select DISTINCT  parent from `tabMaterial Request Item` where item_code='{}' and docstatus<2  """.format(doc.item),as_dict=1)
+		if len(get_mr)!=0:
+			for i in get_mr:
+				frappe.db.sql("""update `tabMaterial Request` set custom_bom=0 where name='{}' and docstatus<2  """.format(i['parent']),as_dict=1)
+				frappe.db.commit()

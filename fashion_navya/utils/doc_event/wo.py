@@ -118,6 +118,7 @@ def fetch_attributes_so(doc,method):
 				doc.set("custom_lower_waist",i.custom_lower_waist)
 				doc.set("custom_lower_hip",i.custom_lower_hip)
 				doc.set("custom_sleeve_length",i.custom_sleeve_length)
+				doc.set("custom_shoulder",i.custom_shoulder)
 				doc.set("custom_bottom_length",i.custom_bottom_length)
 
 

@@ -86,3 +86,24 @@ def create_todo_cs(doctype=None,name=None,msg=None,action=None,user_list=None,do
 			td=frappe.get_doc(d)
 			td.insert()
 			frappe.db.commit()
+
+
+
+
+
+
+
+@frappe.whitelist()
+def create_todo_mr_bom(doc,method):
+	if doc.custom_bom==0:
+		doctype=doc.doctype
+		des="BOM Is missing,MR No:- {}".format(doc.name)
+		user_list=['vivekd@navyacustom.com','design@navyacustom.com']
+		for i in user_list:
+			d={'doctype':"ToDo","priority":"High","reference_type":doctype}
+			d['description']=des
+			d['reference_name']=doc.name
+			d['assigned_by']="amita@navya.biz"
+			d['allocated_to']=i
+			td=frappe.get_doc(d)
+			td.insert()
