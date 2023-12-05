@@ -1,1 +1,395 @@
+# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and contributors
+# For license information, please see license.txt
+
+
+import copy
+import json
+
 import frappe
+from frappe import _, msgprint
+from frappe.model.document import Document
+from frappe.query_builder.functions import IfNull, Sum
+from frappe.utils import (
+	add_days,
+	ceil,
+	cint,
+	comma_and,
+	flt,
+	get_link_to_form,
+	getdate,
+	now_datetime,
+	nowdate,
+)
+from frappe.utils.csvutils import build_csv_response
+from pypika.terms import ExistsCriterion
+
+from erpnext.manufacturing.doctype.bom.bom import get_children as get_bom_children
+from erpnext.manufacturing.doctype.bom.bom import validate_bom_no
+from erpnext.manufacturing.doctype.work_order.work_order import get_item_details
+from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
+from erpnext.stock.get_item_details import get_conversion_factor
+from erpnext.stock.utils import get_or_make_bin
+from erpnext.utilities.transaction_base import validate_uom_is_integer
+
+from erpnext.manufacturing.doctype.production_plan.production_plan import ProductionPlan
+
+
+class CustomProductionPlan(ProductionPlan):
+    @frappe.whitelist()
+    def get_pending_material_requests(self):
+        bom = frappe.qb.DocType("BOM")
+        mr = frappe.qb.DocType("Material Request")
+        mr_item = frappe.qb.DocType("Material Request Item")
+
+        pending_mr_query = (
+			frappe.qb.from_(mr)
+			.from_(mr_item)
+			.select(mr.name, mr.transaction_date)
+			.distinct()
+			.where(
+				(mr_item.parent == mr.name)
+				& (mr.material_request_type == "Manufacture")
+				& (mr.docstatus == 1)
+				& (mr.status != "Stopped")
+				& (mr.company == self.company)
+				& (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
+				& (
+					ExistsCriterion(
+						frappe.qb.from_(bom)
+						.select(bom.name)
+						.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+					)
+				)
+			)
+		)
+
+
+        if self.from_date:
+            pending_mr_query = pending_mr_query.where(mr.transaction_date >= self.from_date)
+
+        if self.to_date:
+            pending_mr_query = pending_mr_query.where(mr.transaction_date <= self.to_date)
+
+        if self.warehouse:
+            pending_mr_query = pending_mr_query.where(mr_item.warehouse == self.warehouse)
+
+        if self.item_code:
+            pending_mr_query = pending_mr_query.where(mr_item.item_code == self.item_code)
+
+        #custom code
+        if self.custom_production_plan_type=="Sales Order":
+            pending_mr_query = pending_mr_query.where(mr.custom_is_so==1)
+
+        pending_mr = pending_mr_query.run(as_dict=True)
+        self.add_mr_in_table(pending_mr)
+
+
+    def create_work_order(self, item):
+        print("aaqaaaaaaaaaaaaaaaaaasooo1aq1q1")
+        from erpnext.manufacturing.doctype.work_order.work_order import OverProductionError
+        if flt(item.get("qty")) <= 0:
+            return
+
+        wo = frappe.new_doc("Work Order")
+        wo.update(item)
+        wo.planned_start_date = item.get("planned_start_date") or item.get("schedule_date")
+        if item.get("warehouse"):
+            wo.fg_warehouse = item.get("warehouse")
+
+        wo.set_work_order_operations()
+        wo.set_required_items()
+
+        try:
+            wo.flags.ignore_mandatory = True
+            wo.flags.ignore_validate = True
+            wo.insert()
+            if wo.production_plan:
+                pp=frappe.get_doc("Production Plan",wo.production_plan)
+                if pp.custom_automated==1:
+                    wo.submit()
+            return wo.name
+        except OverProductionError:
+            pass
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def automated_plan():
+    d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+    doc=frappe.get_doc(d)
+    pending_mr=get_pending_material_requests_custom()
+    doc.set("material_requests", [])
+    for data in pending_mr:
+        doc.append(
+                "material_requests",
+				            {"material_request": data.name, "material_request_date": data.transaction_date},
+			)
+
+    doc_dict=doc.as_dict()
+    get_mr_items_custom(doc)
+    get_sub_assembly_items(doc, manufacturing_type=None)
+    doc.insert()
+    doc.submit()
+    frappe.db.commit()
+    print(doc.name,"doc.name")
+    make_work_order(doc)
+    frappe.db.commit()
+
+
+@frappe.whitelist()
+def make_work_order(self):
+    from erpnext.manufacturing.doctype.work_order.work_order import get_default_warehouse
+    wo_list, po_list = [], []
+    subcontracted_po = {}
+    default_warehouses = get_default_warehouse()
+
+    self.make_work_order_for_finished_goods(wo_list, default_warehouses)
+    self.make_work_order_for_subassembly_items(wo_list, subcontracted_po, default_warehouses)
+    self.make_subcontracted_purchase_order(subcontracted_po, po_list)
+    self.show_list_created_message("Work Order", wo_list)
+    self.show_list_created_message("Purchase Order", po_list)
+
+    if not wo_list:
+        frappe.msgprint(_("No Work Orders were created"))
+
+    def make_work_order_for_finished_goods(self, wo_list, default_warehouses):
+        items_data = self.get_production_items()
+        for key, item in items_data.items():
+            if self.sub_assembly_items:
+                item["use_multi_level_bom"] = 0
+
+            set_default_warehouses(item, default_warehouses)
+            work_order = self.create_work_order(item)
+            frappe.db.commit()
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_pending_material_requests_custom():
+    bom = frappe.qb.DocType("BOM")
+    mr = frappe.qb.DocType("Material Request")
+    mr_item = frappe.qb.DocType("Material Request Item")
+    pending_mr_query = (
+        frappe.qb.from_(mr)
+        .from_(mr_item)
+        .select(mr.name, mr.transaction_date)
+        .distinct()
+        .where(
+            (mr_item.parent == mr.name)
+            & (mr.material_request_type == "Manufacture")
+            & (mr.docstatus == 1)
+            & (mr.custom_is_so == 1)
+            & (mr.status != "Stopped")
+            & (mr.company ==frappe.defaults.get_user_default("company"))
+            & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
+            & (
+                ExistsCriterion(
+                    frappe.qb.from_(bom)
+                    .select(bom.name)
+                    .where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+                )
+            )
+        )
+    )
+
+    pending_mr = pending_mr_query.run(as_dict=True)
+    return pending_mr
+
+@frappe.whitelist(allow_guest=True)
+def get_mr_items_custom(self):
+        print("131")
+        if not self.get("material_requests") or not self.get_so_mr_list(
+			"material_request", "material_requests"
+            ):
+            frappe.throw(
+				_("Please fill the Material Requests table"), title=_("Material Requests Required")
+			)
+
+
+        mr_list = self.get_so_mr_list("material_request", "material_requests")
+
+
+        bom = frappe.qb.DocType("BOM")
+        mr_item = frappe.qb.DocType("Material Request Item")
+
+        items_query = (
+			frappe.qb.from_(mr_item)
+			.select(
+				mr_item.parent,
+				mr_item.name,
+				mr_item.item_code,
+				mr_item.warehouse,
+				mr_item.description,
+				((mr_item.qty - mr_item.ordered_qty) * mr_item.conversion_factor).as_("pending_qty"),
+			)
+			.distinct()
+			.where(
+				(mr_item.parent.isin(mr_list))
+				& (mr_item.docstatus == 1)
+				& (mr_item.qty > mr_item.ordered_qty)
+				& (
+					ExistsCriterion(
+						frappe.qb.from_(bom)
+						.select(bom.name)
+						.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+					)
+				)
+			)
+		)
+
+        if self.item_code:
+            items_query = items_query.where(mr_item.item_code == self.item_code)
+
+        items = items_query.run(as_dict=True)
+
+        self.add_items(items)
+        self.calculate_total_planned_qty()
+
+
+
+
+@frappe.whitelist()
+def get_sub_assembly_items(self, manufacturing_type=None):
+    "Fetch sub assembly items and optionally combine them."
+    self.sub_assembly_items = []
+    sub_assembly_items_store = []  # temporary store to process all subassembly items
+    for row in self.po_items:
+        if self.skip_available_sub_assembly_item and not row.warehouse:
+            frappe.throw(_("Row #{0}: Please select the FG Warehouse in Assembly Items").format(row.idx))
+
+        if not row.item_code:
+            frappe.throw(_("Row #{0}: Please select Item Code in Assembly Items").format(row.idx))
+
+        if not row.bom_no:
+            frappe.throw(_("Row #{0}: Please select the BOM No in Assembly Items").format(row.idx))
+
+        bom_data = []
+        warehouse = (
+            (self.sub_assembly_warehouse or row.warehouse)
+            if self.skip_available_sub_assembly_item
+            else None
+        )
+
+        get_sub_assembly_items_custom(row.bom_no, bom_data, row.planned_qty, self.company, warehouse=warehouse)
+        self.set_sub_assembly_items_based_on_level(row, bom_data, manufacturing_type)
+        sub_assembly_items_store.extend(bom_data)
+
+    if self.combine_sub_items:
+        # Combine subassembly items
+        sub_assembly_items_store = self.combine_subassembly_items(sub_assembly_items_store)
+
+    sub_assembly_items_store.sort(key=lambda d: d.bom_level, reverse=True)  # sort by bom level
+    for idx, row in enumerate(sub_assembly_items_store):
+        row.idx = idx + 1
+        self.append("sub_assembly_items", row)
+
+    self.set_default_supplier_for_subcontracting_order()
+
+
+
+
+def get_sub_assembly_items_custom(bom_no, bom_data, to_produce_qty, company, warehouse=None, indent=0):
+    data = get_bom_children(parent=bom_no)
+    for d in data:
+        if d.expandable:
+            parent_item_code = frappe.get_cached_value("BOM", bom_no, "item")
+            stock_qty = (d.stock_qty / d.parent_bom_qty) * flt(to_produce_qty)
+
+            if warehouse:
+                bin_dict = get_bin_details(d, company, for_warehouse=warehouse)
+
+                if bin_dict and bin_dict[0].projected_qty > 0:
+                    if bin_dict[0].projected_qty > stock_qty:
+                        continue
+                    else:
+                        stock_qty = stock_qty - bin_dict[0].projected_qty
+
+            bom_data.append(frappe._dict(
+					{
+						"parent_item_code": parent_item_code,
+						"description": d.description,
+						"production_item": d.item_code,
+						"item_name": d.item_name,
+						"stock_uom": d.stock_uom,
+						"uom": d.stock_uom,
+						"bom_no": d.value,
+						"is_sub_contracted_item": d.is_sub_contracted_item,
+						"bom_level": indent,
+						"indent": indent,
+						"stock_qty": stock_qty,
+					}
+				)
+			)
+
+            if d.value:
+                get_sub_assembly_items_custom(d.value, bom_data, stock_qty, company, warehouse, indent=indent + 1)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def send_nofify_wo(doc,method):
+    item=doc.production_item.split("-")
+    if "MTM" in item:
+        user_list=['sujeets@navyacustom.com']
+        for i in user_list:
+            d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
+            d['description']="MTM WOrd Order"
+            d['reference_name']=doc.name
+            d['assigned_by']="amita@navya.biz"
+            d['allocated_to']=i
+            td=frappe.get_doc(d)
+            td.insert()
+            frappe.db.commit()
+
+    if "RTW" in item:
+        user_list=['veer@example.com']
+        for i in user_list:
+            d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
+            d['description']="RTW WOrd Order"
+            d['reference_name']=doc.name
+            d['assigned_by']="amita@navya.biz"
+            d['allocated_to']=i
+            td=frappe.get_doc(d)
+            td.insert()
+            frappe.db.commit()
+
+
+
+def create_work_order_custom(self, item):
+    from erpnext.manufacturing.doctype.work_order.work_order import OverProductionError
+    if flt(item.get("qty")) <= 0:
+        return
+
+    wo = frappe.new_doc("Work Order")
+    wo.update(item)
+    wo.planned_start_date = item.get("planned_start_date") or item.get("schedule_date")
+
+    if item.get("warehouse"):
+        wo.fg_warehouse = item.get("warehouse")
+
+    wo.set_work_order_operations()
+    wo.set_required_items()
+
+    try:
+        wo.flags.ignore_mandatory = True
+        wo.flags.ignore_validate = True
+        frappe.db.msgprint("a1")
+        print('aprint')
+        wo.insert()
+        wo.submit()
+        frappe.db.commi()
+        return wo.name
+    except OverProductionError:
+        pass
+
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_work_order(doc,method):
+    if doc.production_plan and doc.material_request and doc.docstatus==0:
+        pp=frappe.get_doc("Production Plan",doc.production_plan)
+        if pp.custom_automated==1:
+            doc.submit()

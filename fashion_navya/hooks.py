@@ -150,7 +150,7 @@ doc_events = {
         "validate":["fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_submit":["fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "after_insert":["fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
+        "after_insert":["fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
@@ -316,6 +316,13 @@ scheduler_events = {
 
                 ],
 
+            "40 21 * * *":[
+
+                    "fashion_navya.utils.doc_event.mr.automated_plan",
+
+                ],
+
+
 
 
         }
@@ -344,6 +351,7 @@ override_whitelisted_methods = {
 override_doctype_class = {
     "POS Invoice":"fashion_navya.utils.overides.posi.CustomPOSInvoice",
     "File":"fashion_navya.utils.overides.file.CustomFile",
+    "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
 
 }
 
