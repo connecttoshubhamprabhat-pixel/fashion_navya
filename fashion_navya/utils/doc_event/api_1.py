@@ -168,19 +168,23 @@ def filters_mr_name(doctype, txt, searchfield, page_len, start, filters):
 #sales order after update
 @frappe.whitelist()
 def update_del_date_so(doc,method):
-    for i in doc.items:
-        get_mr=frappe.db.sql("""select parent from  `tabMaterial Request Item` where item_code='{}' and sales_order='{}'  """.format(i.item_code,doc.name),as_dict=1)
-        if get_mr:
-            mr_list=[]
-            for k in get_mr:
-                if k['parent'] not in mr_list:
-                    frappe.db.sql("""update `tabMaterial Request` set custom_delivery_date='{}' where name='{}'  """.format(i.delivery_date,k['parent']))
-                    mr_list.append(k['parent'])
+	for i in doc.items:
+		ddate_so=str(i.delivery_date)
+		nd = add_to_date(ddate_so, days=-3, as_string=True)
+		get_mr=frappe.db.sql("""select DISTINCT  parent from  `tabMaterial Request Item` where item_code='{}' and sales_order='{}'  """.format(i.item_code,doc.name),as_dict=1)
+		if get_mr:
+			mr_list=[]
+			for k in get_mr:
+				if k['parent'] not in mr_list:
+					frappe.db.sql("""update `tabMaterial Request` set schedule_date='{}' where name='{}'  """.format(nd,k['parent']))
+					frappe.db.commit()
+					mr_list.append(k['parent'])
 
-        frappe.db.sql("""update `tabMaterial Request Item` set custom_delivery_date='{}' where item_code='{}' and sales_order='{}'  """.format(i.delivery_date,i.item_code,doc.name))
-        frappe.db.commit()
-        frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
-        frappe.db.commit()
+
+		frappe.db.sql("""update `tabMaterial Request Item` set schedule_date='{}' where item_code='{}' and sales_order='{}'  """.format(nd,i.item_code,doc.name))
+		frappe.db.commit()
+		frappe.db.sql("""update `tabWork Order` set schedule_date='{}' where sales_order='{}' and production_item='{}'  """.format(nd,doc.name,i.item_code))
+		frappe.db.commit()
 
 
 

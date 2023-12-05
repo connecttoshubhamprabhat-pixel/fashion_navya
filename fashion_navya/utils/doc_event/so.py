@@ -73,6 +73,8 @@ def make_mr_so(doc,method):
 		sodoc=frappe.get_doc("Sales Order",so[0])
 		get_percent=40/100*sodoc.grand_total
 		amt_adv=doc.paid_amount+sodoc.advance_paid
+		ddate_so=str(sodoc.delivery_date)
+		new_date_delivery = add_to_date(ddate_so, days=-3, as_string=True)
 		if get_percent>amt_adv:
 			frappe.msgprint("Payment is less then 40 percent")
 			return
@@ -135,18 +137,18 @@ def make_mr_so(doc,method):
 
 
 				d={"doctype":"Material Request","material_request_type":"Material Transfer"}
-				d['schedule_date']=sodoc.delivery_date
+				d['schedule_date']=new_date_delivery
 				d['custom_automated']=1
 				mr=frappe.get_doc(d)
 				row = mr.append("items", {})
 				row.warehouse=target_w[-1]
 				row.qty=qty
 				row.sales_order=sodoc.name
-				row.schedule_date=get_id_soi[0]['delivery_date']
+				row.schedule_date=new_date_delivery
 				row.item_code=i
 				if len(get_id_soi)!=0:
 					row.sales_order_item=get_id_soi[0]['name']
-					row.custom_delivery_date=get_id_soi[0]['delivery_date']
+					row.custom_delivery_date=new_date_delivery
 
 				mr.insert()
 				mr.submit()
@@ -163,19 +165,19 @@ def make_mr_so(doc,method):
 
 				#get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
 				m={"doctype":"Material Request","material_request_type":"Manufacture"}
-				m['schedule_date']=sodoc.delivery_date
+				m['schedule_date']=new_date_delivery
 				m['custom_payment_entry']=doc.name
 				m['custom_automated']=1
 				mrm=frappe.get_doc(m)
 				row = mrm.append("items", {})
 				row.qty=qty
-				row.schedule_date=get_id_soi[0]['delivery_date']
+				row.schedule_date=new_date_delivery
 				row.item_code=i
 				row.sales_order=sodoc.name
 				row.warehouse=target_w[-1]
 				if len(get_id_soi)!=0:
 					row.sales_order_item=get_id_soi[0]['name']
-					row.custom_delivery_date=get_id_soi[0]['delivery_date']
+					row.custom_delivery_date=new_date_delivery
 
 				mrm.insert()
 				mrm.submit()

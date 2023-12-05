@@ -182,3 +182,22 @@ def check_before_submit_disbaled_item(doc,method):
 		if item.disabled==1:
 			msg="Disabled Item in Row {}".format(i.idx)
 			frappe.throw(msg)
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_msrement_mr(doc,method):
+	for s in doc.items:
+		split_item=s.item_code.split("-")
+		if "MTM" in split_item and s.sales_order:
+			so=frappe.get_doc("Sales Order",s.sales_order)
+			if so.measurements:
+				doc.custom_mso=[]
+				for i in so.measurements:
+					row = doc.append("custom_mso", {})
+					row.parameter=i.parameter
+					row.round=i.round
+					row.label=i.label

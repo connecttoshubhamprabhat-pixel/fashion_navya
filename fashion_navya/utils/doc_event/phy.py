@@ -25,16 +25,19 @@ def calculate_stock_phy(doc,method):
 	a=[0]
 	s=[0]
 	dt=[0]
+	items=[]
 	for i in doc.items:
-		diff=i.sqty-i.aqty
-		item=i.item_code
-		p=frappe.db.sql("""select price_list_rate,name from `tabItem Price` where item_code='{}' ORDER BY modified  """.format(item),as_dict=1)
-		if len(p)!=0:
-			i.set('price',p[0]['price_list_rate'])
-		i.set('dqty',diff)
-		#dt.append(diff)
-		a.append(i.aqty)
-		s.append(i.sqty)
+		if i.item_code not in items:
+			diff=i.sqty-i.aqty
+			item=i.item_code
+			p=frappe.db.sql("""select price_list_rate,name from `tabItem Price` where item_code='{}' ORDER BY modified  """.format(item),as_dict=1)
+			if len(p)!=0:
+				i.set('price',p[0]['price_list_rate'])
+
+			i.set('dqty',diff)
+			a.append(i.aqty)
+			s.append(i.sqty)
+			items.append(i.item_code)
 
 
 
@@ -198,3 +201,32 @@ def collab_items(doc,method):
 				row = doc.append("items", {})
 				row.item_code=j.item_code
 				row.aqty=j.aqty
+
+
+
+
+
+
+@frappe.whitelist()
+def remove_other_wstock(doc,method):
+	if doc.warehouse and doc.items:
+		wlist=[]
+		wdoc=frappe.get_doc("Warehouse",doc.warehouse)
+		if wdoc.is_group==1:
+			get_w=frappe.db.sql("""select name from `tabWarehouse` where disabled=0 and parent_warehouse='{}'  """.format(doc.warehouse),as_dict=1)
+			if get_w:
+				for i in get_w:
+					wlist.append(i['name'])
+
+		else:
+			wlist.append(doc.warehouse)
+
+
+		wlist=list(set(wlist))
+		items_list=[]
+		for item in doc.items:
+			for w in wlist:
+				data=get_data(item_code=item.item_code,warehouse=w)
+				if not data and item.item_code not in items_list:
+					doc.get('items').remove(item)
+			items_list.append(item.item_code)
