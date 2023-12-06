@@ -106,6 +106,7 @@ class CustomProductionPlan(ProductionPlan):
 			if wo.production_plan:
 				pp=frappe.get_doc("Production Plan",wo.production_plan)
 				if pp.custom_automated==1:
+					wo.set("status","Not Started")
 					wo.submit()
 				return wo.name
 
