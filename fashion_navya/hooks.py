@@ -266,6 +266,7 @@ doc_events = {
                         },
                 "Production Plan":{
                         "before_save":["fashion_navya.utils.doc_event.production.remove_disabled"],
+                        #"before_insert":["fashion_navya.utils.doc_event.production.remove_without_bom"],
 
                         },
 			"Job Card":{
@@ -318,7 +319,7 @@ scheduler_events = {
 
             "40 21 * * *":[
 
-                    "fashion_navya.utils.doc_event.mr.automated_plan",
+                    "fashion_navya.utils.overides.mr.automated_plan",
 
                 ],
 

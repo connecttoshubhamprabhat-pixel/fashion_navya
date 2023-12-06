@@ -183,7 +183,7 @@ def update_del_date_so(doc,method):
 
 		frappe.db.sql("""update `tabMaterial Request Item` set schedule_date='{}' where item_code='{}' and sales_order='{}'  """.format(nd,i.item_code,doc.name))
 		frappe.db.commit()
-		frappe.db.sql("""update `tabWork Order` set schedule_date='{}' where sales_order='{}' and production_item='{}'  """.format(nd,doc.name,i.item_code))
+		frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(nd,doc.name,i.item_code))
 		frappe.db.commit()
 
 

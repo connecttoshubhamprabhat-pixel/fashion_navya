@@ -33,3 +33,12 @@ def fetch_supplier(name=None):
 			if "DP" not in split and "BP" not in split:
 				i.set("supplier","Jiwan Singh and Sons")
 	doc.save()
+
+
+
+@frappe.whitelist()
+def remove_without_bom(doc,method):
+	if doc.po_items:
+		for i in doc.po_items:
+			if not i.bom_no:
+				doc.get('po_items').remove(i
