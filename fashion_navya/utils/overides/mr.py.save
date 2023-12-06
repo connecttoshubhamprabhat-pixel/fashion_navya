@@ -35,14 +35,14 @@ from erpnext.manufacturing.doctype.production_plan.production_plan import Produc
 
 
 class CustomProductionPlan(ProductionPlan):
-	@frappe.whitelist()
-	def get_pending_material_requests(self):
-		bom = frappe.qb.DocType("BOM")
-		mr = frappe.qb.DocType("Material Request")
-		mr_item = frappe.qb.DocType("Material Request Item")
+    @frappe.whitelist()
+    def get_pending_material_requests(self):
+        bom = frappe.qb.DocType("BOM")
+        mr = frappe.qb.DocType("Material Request")
+        mr_item = frappe.qb.DocType("Material Request Item")
 
-		pending_mr_query = (
-				frappe.qb.from_(mr)
+        pending_mr_query = (
+			frappe.qb.from_(mr)
 			.from_(mr_item)
 			.select(mr.name, mr.transaction_date)
 			.distinct()
@@ -50,8 +50,8 @@ class CustomProductionPlan(ProductionPlan):
 				(mr_item.parent == mr.name)
 				& (mr.material_request_type == "Manufacture")
 				& (mr.docstatus == 1)
-				&(mr.custom_bom==1)
 				& (mr.status != "Stopped")
+				
 				& (mr.company == self.company)
 				& (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
 				& (
@@ -64,53 +64,53 @@ class CustomProductionPlan(ProductionPlan):
 			)
 		)
 
-		if self.from_date:
-			pending_mr_query = pending_mr_query.where(mr.transaction_date >= self.from_date)
 
-		if self.to_date:
-			pending_mr_query = pending_mr_query.where(mr.transaction_date <= self.to_date)
+        if self.from_date:
+            pending_mr_query = pending_mr_query.where(mr.transaction_date >= self.from_date)
 
-		if self.warehouse:
-			pending_mr_query = pending_mr_query.where(mr_item.warehouse == self.warehouse)
+        if self.to_date:
+            pending_mr_query = pending_mr_query.where(mr.transaction_date <= self.to_date)
 
-		if self.item_code:
-			pending_mr_query = pending_mr_query.where(mr_item.item_code == self.item_code)
+        if self.warehouse:
+            pending_mr_query = pending_mr_query.where(mr_item.warehouse == self.warehouse)
+
+        if self.item_code:
+            pending_mr_query = pending_mr_query.where(mr_item.item_code == self.item_code)
 
         #custom code
-		if self.custom_production_plan_type=="Sales Order":
-			pending_mr_query = pending_mr_query.where(mr.custom_is_so==1)
-			pending_mr_query = pending_mr_query.where(mr.custom_bom==1)
+        if self.custom_production_plan_type=="Sales Order":
+            pending_mr_query = pending_mr_query.where(mr.custom_is_so==1)
 
-		pending_mr = pending_mr_query.run(as_dict=True)
-		self.add_mr_in_table(pending_mr)
+        pending_mr = pending_mr_query.run(as_dict=True)
+        self.add_mr_in_table(pending_mr)
 
 
-	def create_work_order(self, item):
-		from erpnext.manufacturing.doctype.work_order.work_order import OverProductionError
-		if flt(item.get("qty")) <= 0:
-			return
+    def create_work_order(self, item):
+        print("aaqaaaaaaaaaaaaaaaaaasooo1aq1q1")
+        from erpnext.manufacturing.doctype.work_order.work_order import OverProductionError
+        if flt(item.get("qty")) <= 0:
+            return
 
-		wo = frappe.new_doc("Work Order")
-		wo.update(item)
-		wo.planned_start_date = item.get("planned_start_date") or item.get("schedule_date")
-		if item.get("warehouse"):
-			wo.fg_warehouse = item.get("warehouse")
+        wo = frappe.new_doc("Work Order")
+        wo.update(item)
+        wo.planned_start_date = item.get("planned_start_date") or item.get("schedule_date")
+        if item.get("warehouse"):
+            wo.fg_warehouse = item.get("warehouse")
 
-		wo.set_work_order_operations()
-		wo.set_required_items()
+        wo.set_work_order_operations()
+        wo.set_required_items()
 
-		try:
-			wo.flags.ignore_mandatory = True
-			wo.flags.ignore_validate = True
-			wo.insert()
-			if wo.production_plan:
-				pp=frappe.get_doc("Production Plan",wo.production_plan)
-				if pp.custom_automated==1:
-					wo.submit()
-				return wo.name
-
-		except OverProductionError:
-			pass
+        try:
+            wo.flags.ignore_mandatory = True
+            wo.flags.ignore_validate = True
+            wo.insert()
+            if wo.production_plan:
+                pp=frappe.get_doc("Production Plan",wo.production_plan)
+                if pp.custom_automated==1:
+                    wo.submit()
+            return wo.name
+        except OverProductionError:
+            pass
 
 
 
@@ -183,7 +183,6 @@ def get_pending_material_requests_custom():
             & (mr.material_request_type == "Manufacture")
             & (mr.docstatus == 1)
             & (mr.custom_is_so == 1)
-            & (mr.custom_bom == 1)
             & (mr.status != "Stopped")
             & (mr.company ==frappe.defaults.get_user_default("company"))
             & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
@@ -255,7 +254,6 @@ def get_mr_items_custom(self):
 
 @frappe.whitelist()
 def get_sub_assembly_items(self, manufacturing_type=None):
-    print("a2Z")
     "Fetch sub assembly items and optionally combine them."
     self.sub_assembly_items = []
     sub_assembly_items_store = []  # temporary store to process all subassembly items
@@ -396,25 +394,3 @@ def submit_work_order(doc,method):
         pp=frappe.get_doc("Production Plan",doc.production_plan)
         if pp.custom_automated==1:
             doc.submit()
-
-
-@frappe.whitelist(allow_guest=True)
-def send_nofify_mr_custom():
-	get_mr=frappe.db.sql("""select name from `tabMaterial Request` where docstatus<2 and custom_bom=0 and custom_is_so=1  """,as_dict=1)
-	mrs=[]
-	if get_mr:
-		for m in get_mr:
-			mrs.append(m['name'])
-
-		mr_str=" ".join(mrs)
-		user_list=['veer@example.com']
-		for i in user_list:
-			print("a2")
-			d={'doctype':"ToDo","priority":"High","reference_type":"Material Request"}
-			d['description']=mr_str
-			d['reference_name']
-			d['assigned_by']="amita@navya.biz"
-			d['allocated_to']=i
-			td=frappe.get_doc(d)
-			td.insert()
-			frappe.db.commit()

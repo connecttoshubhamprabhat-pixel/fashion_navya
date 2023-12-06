@@ -41,4 +41,4 @@ def remove_without_bom(doc,method):
 	if doc.po_items:
 		for i in doc.po_items:
 			if not i.bom_no:
-				doc.get('po_items').remove(i
+				doc.get('po_items').remove(i)
