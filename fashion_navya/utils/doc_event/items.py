@@ -203,7 +203,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
                 digital.append("a")
         if digital:
             frappe.msgprint("This is Digital print Item")
-            #return
+            return
         #get price_list
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
@@ -258,6 +258,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
         make_price_doc(item=n.name,rate=price)
         all_item.append(n.name)
         make_bom(new=n.name,submit=0,variant=0,bom=bom)
+        make_ptt_so(old=parent_doc.name,new=n.name)
 
 
 
@@ -315,7 +316,19 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None):
             return
 
         d={}
-        print("276")
+        #check for digital
+
+        digital=[]
+        if type=="Customise":
+            for ap in item_doc.attributes:
+                if ap.attribute_value=="Digital":
+                    digital.append("a")
+
+            if digital:
+                frappe.msgprint("This is Digital print Item")
+                return
+
+        #print("276")
         for m in item_doc.attributes:
             if m.attribute!="Item Group":
                 d[m.attribute]=m.attribute_value
@@ -381,7 +394,8 @@ def make_bom(new=None,submit=0,variant=0,bom=None):
         bm=frappe.get_doc("BOM",bom)
         d=frappe.copy_doc(bm)
         d.set("item",new)
-        d.set('pattern_not_required',1)
+        if bm.pattern_not_required==1:
+            d.set('pattern_not_required',1)
         d.set("workflow_state","Draft")
         if variant==1:
             for raw in d.items:

@@ -98,7 +98,7 @@ def create_todo_mr_bom(doc,method):
 	if doc.custom_bom==0:
 		doctype=doc.doctype
 		des="BOM Is missing,MR No:- {}".format(doc.name)
-		user_list=['vivekd@navyacustom.com','design@navyacustom.com']
+		user_list=['veer@example.com','design@navyacustom.com']
 		for i in user_list:
 			d={'doctype':"ToDo","priority":"High","reference_type":doctype}
 			d['description']=des

@@ -322,6 +322,11 @@ scheduler_events = {
                     "fashion_navya.utils.overides.mr.automated_plan",
 
                 ],
+            "50 21 * * *":[
+
+                    "fashion_navya.utils.overides.mr.automated_plan_without_so",
+
+                ],
 
 
 
