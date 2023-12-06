@@ -296,7 +296,7 @@ scheduler_events = {
 #		"fashion_navya.tasks.all"
 #	],
 	"daily": [
-	    "fashion_navya.utils.doc_event.item.delete_item_customise","fashion_navya.utils.doc_event.delivery.set_notify_todo"
+	    "fashion_navya.utils.overides.mr.send_nofify_mr_custom","fashion_navya.utils.doc_event.item.delete_item_customise","fashion_navya.utils.doc_event.delivery.set_notify_todo"
 	],
 #	"hourly": [
 #		"fashion_navya.tasks.hourly"
