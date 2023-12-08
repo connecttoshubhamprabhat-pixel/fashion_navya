@@ -286,6 +286,12 @@ doc_events = {
                                     #"before_update_after_submit":["fashion_navya.utils.doc_event.wo.fetch_msrement_mr"],
 
                                     },
+
+                            "ToDo":{
+                                    "before_insert":["fashion_navya.utils.doc_event.api_3.todo_link_withproject"],
+
+
+                                },
 }
 
 # Scheduled Tasks

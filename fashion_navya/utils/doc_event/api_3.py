@@ -38,3 +38,78 @@ def make_work_order_project(items=None,doc=None,wqty=None):
                 pass
     if created:
         frappe.msgprint("Work order is created")
+
+
+
+@frappe.whitelist()
+def make_work_order_project(items=None,doc=None,wqty=None):
+    items=json.loads(items)
+    created=[]
+    if items:
+        for i in items:
+            item={"production_item":i,"fg_warehouse":"Navya Store Office - NAVYA"}
+            item['wip_warehouse']="Sampling Unit - NAVYA"
+            item['scrap_warehouse']="Navya Store Office - NAVYA"
+            item['qty']=float(wqty) or 1
+            get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1 and item='{}'  """.format(i),as_dict=1)
+            if get_bom:
+                item['bom_no']=get_bom[0]['name']
+            else:
+                frappe.msgprint("bom does not exist for {} ".format(i))
+                continue
+            wo = frappe.new_doc("Work Order")
+            wo.update(item)
+            wo.set_work_order_operations()
+            wo.set_required_items()
+            try:
+                wo.flags.ignore_mandatory = True
+                wo.flags.ignore_validate = True
+                wo.insert()
+                created.append("aa")
+            except OverProductionError:
+                pass
+    if created:
+        frappe.msgprint("Work order is created")
+
+
+
+@frappe.whitelist()
+def todo_link_withproject(doc,method):
+    if doc.reference_type=="Item":
+        link_doc=frappe.get_doc("Item",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
+
+    if doc.reference_type=="Purchase Order":
+        link_doc=frappe.get_doc("Purchase Order",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
+
+    if doc.reference_type=="Material Request":
+        link_doc=frappe.get_doc("Material Request",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
+
+
+    if doc.reference_type=="Work Order":
+        link_doc=frappe.get_doc("Work Order",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
+
+    if doc.reference_type=="Stock Entry":
+        link_doc=frappe.get_doc("Stock Entry",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("custom_project",link_doc.project, update_modified=False)
+
+
+    if doc.reference_type=="Pattern":
+        link_doc=frappe.get_doc("Pattern",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
+
+
+
+    if doc.reference_type=="Task":
+        link_doc=frappe.get_doc("Task",doc.reference_name)
+        if link_doc.project:
+            doc.db_set("project",link_doc.project, update_modified=False)
