@@ -24,3 +24,9 @@ def remove_disabled_items(doc,method):
 				new_name=i.item_code+"-"+"New"
 				if frappe.db.exists("Item",new_name):
 					i.set("item_code",new_name)
+
+
+
+@frappe.whitelist()
+def before_submit_check_kit(doc,method):
+	pass

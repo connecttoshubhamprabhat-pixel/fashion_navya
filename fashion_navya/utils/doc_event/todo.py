@@ -98,7 +98,7 @@ def create_todo_mr_bom(doc,method):
 	if doc.custom_bom==0:
 		doctype=doc.doctype
 		des=" Measurement के हिसाब से BOM  को सेट करो ||,MR No:- {}".format(doc.name)
-		user_list=['veer@example.com','design@navyacustom.com','sujeets@navyacustom.com']
+		user_list=['vivekd@navyacustom.com','gaurav@example.com']
 		for i in user_list:
 			d={'doctype':"ToDo","priority":"High","reference_type":doctype}
 			d['description']=des

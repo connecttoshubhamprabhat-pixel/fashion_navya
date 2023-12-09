@@ -362,7 +362,7 @@ def get_sub_assembly_items_custom(bom_no, bom_data, to_produce_qty, company, war
 def send_nofify_wo(doc,method):
     item=doc.production_item.split("-")
     if "MTM" in item:
-        user_list=['sujeets@navyacustom.com']
+        user_list=['sujeets@navyacustom.com','veer@example.com']
         for i in user_list:
             d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
             d['description']="MTM WOrd Order"
@@ -374,7 +374,7 @@ def send_nofify_wo(doc,method):
             frappe.db.commit()
 
     if "RTW" in item:
-        user_list=['veer@example.com']
+        user_list=['veer@example.com','sujeets@navyacustom.com']
         for i in user_list:
             d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
             d['description']="RTW WOrd Order"
