@@ -12,10 +12,10 @@ def fetch_work_order(doc,method):
 #rate change after submit
 @frappe.whitelist()
 def update_rate_after_submit(doc,method):
-	if doc.docstatus==3 and doc.status in ['Partially Received','Partial Material Transferred',"Open","Material Transferred"]:
-		po=frappe.get_doc("Purchase Order",doc.purchase_order)
-		if po.docstatus==1:
-			for i in po.items:
-				frappe.db.sql("""update `tabSubcontracting Order Item` set rate='{}' where parent='{}' and item_code='{}'  """.format(i.rate,doc.name,i.fg_item))
+	if doc.docstatus==1:
+		get_sub_order=frappe.db.sql("""select name from `tabSubcontracting Order` where docstatus=1 and purchase_order='{}' """.format(doc.name),as_dict=1)
+		if get_sub_order:
+			so=get_sub_order[0]['name']
+			for i in doc.items:
+				frappe.db.sql("""update `tabSubcontracting Order Item` set service_cost_per_qty={} where parent='{}' and item_code='{}'  """.format(i.rate,so,i.fg_item))
 				frappe.db.commit()
-
