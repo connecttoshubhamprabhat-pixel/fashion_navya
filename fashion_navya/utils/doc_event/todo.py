@@ -107,3 +107,27 @@ def create_todo_mr_bom(doc,method):
 			d['allocated_to']=i
 			td=frappe.get_doc(d)
 			td.insert()
+
+
+
+@frappe.whitelist()
+def create_todo_project(items=None,values=None):
+	items=json.loads(items)
+	values=json.loads(values)
+	date=values.get("date")
+	users=values.get("assign_to")
+	des=values.get("description")
+	if users:
+		for i in users:
+			#print(i,'iuuuuuuu')
+			user=i
+			for item in items:
+				#print(item,'s')
+				d={'doctype':"ToDo","priority":"High","reference_type":"Item"}
+				d['description']=des
+				d['reference_name']=item
+				d['assigned_by']="amita@navya.biz"
+				d['allocated_to']=user
+				td=frappe.get_doc(d)
+				td.insert()
+				frappe.msgprint("Created")
