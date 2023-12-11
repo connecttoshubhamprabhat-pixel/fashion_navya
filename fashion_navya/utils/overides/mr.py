@@ -106,7 +106,6 @@ class CustomProductionPlan(ProductionPlan):
 			if wo.production_plan:
 				pp=frappe.get_doc("Production Plan",wo.production_plan)
 				if pp.custom_automated==1:
-					wo.set("status","Not Started")
 					wo.submit()
 				return wo.name
 
@@ -116,12 +115,12 @@ class CustomProductionPlan(ProductionPlan):
 
 
 
-#sales order automated
+
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
     d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
     doc=frappe.get_doc(d)
-    pending_mr=get_pending_material_requests_so()
+    pending_mr=get_pending_material_requests_custom()
     doc.set("material_requests", [])
     for data in pending_mr:
         doc.append(
@@ -138,31 +137,6 @@ def automated_plan():
     print(doc.name,"doc.name")
     make_work_order(doc)
     frappe.db.commit()
-
-
-#without sales order
-@frappe.whitelist(allow_guest=True)
-def automated_plan_without_so():
-	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
-	doc=frappe.get_doc(d)
-	pending_mr=get_pending_material_requests_automated()
-	doc.set("material_requests", [])
-	for data in pending_mr:
-		doc.append(
-                "material_requests",
-				            {"material_request": data.name, "material_request_date": data.transaction_date},
-			)
-
-	doc_dict=doc.as_dict()
-	get_mr_items_custom(doc)
-	get_sub_assembly_items(doc, manufacturing_type=None)
-	doc.insert()
-	doc.submit()
-	frappe.db.commit()
-	print(doc.name,"doc.name")
-	make_work_order(doc)
-	frappe.db.commit()
-
 
 
 @frappe.whitelist()
@@ -195,7 +169,7 @@ def make_work_order(self):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_pending_material_requests_so():
+def get_pending_material_requests_custom():
     bom = frappe.qb.DocType("BOM")
     mr = frappe.qb.DocType("Material Request")
     mr_item = frappe.qb.DocType("Material Request Item")
@@ -362,7 +336,7 @@ def get_sub_assembly_items_custom(bom_no, bom_data, to_produce_qty, company, war
 def send_nofify_wo(doc,method):
     item=doc.production_item.split("-")
     if "MTM" in item:
-        user_list=['sujeets@navyacustom.com','veer@example.com']
+        user_list=['sujeets@navyacustom.com']
         for i in user_list:
             d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
             d['description']="MTM WOrd Order"
@@ -374,7 +348,7 @@ def send_nofify_wo(doc,method):
             frappe.db.commit()
 
     if "RTW" in item:
-        user_list=['veer@example.com','sujeets@navyacustom.com']
+        user_list=['veer@example.com']
         for i in user_list:
             d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
             d['description']="RTW WOrd Order"
@@ -444,37 +418,3 @@ def send_nofify_mr_custom():
 			td=frappe.get_doc(d)
 			td.insert()
 			frappe.db.commit()
-
-
-
-@frappe.whitelist(allow_guest=True)
-def get_pending_material_requests_automated():
-	bom = frappe.qb.DocType("BOM")
-	mr = frappe.qb.DocType("Material Request")
-	mr_item = frappe.qb.DocType("Material Request Item")
-	pending_mr_query = (
-        frappe.qb.from_(mr)
-        .from_(mr_item)
-        .select(mr.name, mr.transaction_date)
-        .distinct()
-        .where(
-            (mr_item.parent == mr.name)
-            & (mr.material_request_type == "Manufacture")
-            & (mr.docstatus == 1)
-            & (mr.custom_is_so==0)
-            & (mr.custom_bom == 1)
-            & (mr.status != "Stopped")
-            & (mr.company ==frappe.defaults.get_user_default("company"))
-            & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
-            & (
-                ExistsCriterion(
-                    frappe.qb.from_(bom)
-                    .select(bom.name)
-                    .where((bom.item == mr_item.item_code) & (bom.is_active == 1))
-                )
-            )
-        )
-    )
-
-	pending_mr = pending_mr_query.run(as_dict=True)
-	return pending_mr

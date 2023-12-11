@@ -51,7 +51,7 @@ def make_new_si_id(doc,method):
 def make_new_si_id_old(year=0,months=0):
     prefix="SINV"
     fyear="2023-24"
-    used_no=["00583"]
+    used_no=["00497"]
     get_all_in=frappe.db.sql("""select * from `tabSales Invoice`  where  custom_invoice_no is null and docstatus>0 and year(posting_date)='{}' and month(posting_date) ='{}'   ORDER BY posting_date """.format(year,months),as_dict=1)
     if get_all_in:
         for i in get_all_in:

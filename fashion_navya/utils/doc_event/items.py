@@ -324,9 +324,9 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None):
                 if ap.attribute_value=="Digital":
                     digital.append("a")
 
-            if digital:
-                frappe.msgprint("This is Digital print Item")
-                return
+            #if digital:
+             #   frappe.msgprint("This is Digital print Item")
+              #  return
 
         #print("276")
         for m in item_doc.attributes:

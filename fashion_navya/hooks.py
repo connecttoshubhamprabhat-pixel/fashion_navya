@@ -44,6 +44,7 @@ doctype_js = {
                 "Sales Order":"public/js/custom_script/sales_order.js",
                 "Pattern":"public/js/custom_script/pattern.js",
                 "Payment Entry":"public/js/custom_script/payment_entry.js",
+                "Purchase Order":"public/js/custom_script/purchase_order.js",
             }
 
 
@@ -173,6 +174,7 @@ doc_events = {
         "before_save":["fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_submit":["fashion_navya.utils.doc_event.po.get_wo_set_po","fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
         "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
+        "before_update_after_submit":["fashion_navya.utils.doc_event.sub.update_rate_after_submit"],
     },
     "Item Tag":{
         #"before_save":["fashion_navya.utils.doc_event.stock.check_item_is_ma"],
