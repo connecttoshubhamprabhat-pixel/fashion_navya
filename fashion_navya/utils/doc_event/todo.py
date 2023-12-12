@@ -97,8 +97,8 @@ def create_todo_cs(doctype=None,name=None,msg=None,action=None,user_list=None,do
 def create_todo_mr_bom(doc,method):
 	if doc.custom_bom==0:
 		doctype=doc.doctype
-		des=" Measurement के हिसाब से BOM  को सेट करो ||,MR No:- {}".format(doc.name)
-		user_list=['vivekd@navyacustom.com','gaurav@example.com']
+		des="BOM  is missing for MR items ||,MR No:- {}".format(doc.name)
+		user_list=['veer@example.com']
 		for i in user_list:
 			d={'doctype':"ToDo","priority":"High","reference_type":doctype}
 			d['description']=des
@@ -107,6 +107,36 @@ def create_todo_mr_bom(doc,method):
 			d['allocated_to']=i
 			td=frappe.get_doc(d)
 			td.insert()
+
+
+	#bom notification
+	for i in doc.items:
+		if i.sales_order:
+			bom_users=["vivekd@navyacustom.com","gaurav@example.com"]
+			get_bom=frappe.db.sql("""select distinct name from `tabBOM` where item='{}' and docstatus=0  """.format(i.item_code),as_dict=1)
+			if get_bom:
+				for b in get_bom:
+					for u in bom_users:
+						d={'doctype':"ToDo","priority":"High","reference_type":"BOM"}
+						d['description']="Please Approved BOM"
+						d['reference_name']=b['name']
+						d['assigned_by']="amita@navya.biz"
+						d['allocated_to']=u
+						td=frappe.get_doc(d)
+						td.insert()
+
+			else:
+				for ur in bom_users:
+					d={'doctype':"ToDo","priority":"High","reference_type":"Item"}
+					d['description']="Please Make BOM for Item"
+					d['reference_name']=i.item_code
+					d['assigned_by']="amita@navya.biz"
+					d['allocated_to']=ur
+					td=frappe.get_doc(d)
+					td.insert()
+
+
+
 
 
 
