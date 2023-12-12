@@ -125,3 +125,32 @@ def uncheck_is_bom_mr(doc,method):
 			for i in get_mr:
 				frappe.db.sql("""update `tabMaterial Request` set custom_bom=0 where name='{}' and docstatus<2  """.format(i['parent']),as_dict=1)
 				frappe.db.commit()
+
+
+
+@frappe.whitelist()
+def automated_mr_se(doc,method):
+	if doc.items and doc.stock_entry_type=="Material Transfer":
+		mr_exists=doc.items[0].material_request
+		if mr_exists:
+			doc.set("custom_automated_mr",1)
+
+#link so mr both
+@frappe.whitelist()
+def mr_links_transfer(doc,method):
+	so_list=[]
+	for i in doc.items:
+		if i.sales_order not in so_list:
+			so_list.append(i.sales_order)
+	if so_list:
+		for i in so_list:
+			if doc.material_request_type=="Manufacture":
+				get_mr_transfer=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item`  where sales_order='{}' and parent in (select name from `tabMaterial Request` where docstatus<2 and material_request_type='Material Transfer' )  """.format(i),as_dict=1)
+				if get_mr_transfer:
+					frappe.db.sql("""update `tabMaterial Request` set custom_mrm='{}' where name='{}' and docstatus<2  """.format(doc.name,get_mr_transfer[0]['parent']))
+					frappe.db.commit()
+
+			if doc.material_request_type=="Material Transfer":
+				get_mr_transfers=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item`  where sales_order='{}' and parent in (select name from `tabMaterial Request` where docstatus<2 and material_request_type='Manufacture' )  """.format(i),as_dict=1)
+				if get_mr_transfers:
+					doc.set("custom_mrm",get_mr_transfers[0]['parent'])
