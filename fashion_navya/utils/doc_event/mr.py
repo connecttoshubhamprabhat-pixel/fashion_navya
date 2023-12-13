@@ -133,6 +133,7 @@ def automated_mr_se(doc,method):
 	if doc.items and doc.stock_entry_type=="Material Transfer":
 		mr_exists=doc.items[0].material_request
 		if mr_exists:
+			doc.set("add_to_transit",1)
 			doc.set("custom_automated_mr",1)
 
 #link so mr both

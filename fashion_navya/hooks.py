@@ -282,7 +282,7 @@ doc_events = {
 
                                 },
                             "Material Request":{
-                                    "before_submit":["fashion_navya.utils.doc_event.mr.mr_links_transfer","fashion_navya.utils.doc_event.todo.create_todo_mr_bom","fashion_navya.utils.doc_event.mr.check_bom_mr","fashion_navya.utils.doc_event.api_2.customer_added_mr"],
+                                    "before_submit":["ashion_navya.utils.doc_event.sow.set_warehouse_target_mr","fashion_navya.utils.doc_event.mr.mr_links_transfer","fashion_navya.utils.doc_event.todo.create_todo_mr_bom","fashion_navya.utils.doc_event.mr.check_bom_mr","fashion_navya.utils.doc_event.api_2.customer_added_mr"],
                                     "before_save":["fashion_navya.utils.doc_event.wo.fetch_msrement_mr","fashion_navya.utils.doc_event.api_2.status_updated"],
                                     "after_insert":["fashion_navya.utils.doc_event.so.make_mr_manual_so"],
                                     #"before_update_after_submit":["fashion_navya.utils.doc_event.wo.fetch_msrement_mr"],
