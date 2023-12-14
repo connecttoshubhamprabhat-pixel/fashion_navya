@@ -84,6 +84,11 @@ class CustomProductionPlan(ProductionPlan):
 			pending_mr_query = pending_mr_query.where(mr.custom_is_so==1)
 			pending_mr_query = pending_mr_query.where(mr.custom_bom==1)
 
+		if self.custom_production_plan_type=="Without Sales Order":
+			pending_mr_query = pending_mr_query.where(mr.custom_is_so==0)
+			pending_mr_query = pending_mr_query.where(mr.custom_bom==1)
+
+
 		pending_mr = pending_mr_query.run(as_dict=True)
 		self.add_mr_in_table(pending_mr)
 
@@ -124,6 +129,7 @@ class CustomProductionPlan(ProductionPlan):
 def automated_plan():
 	warehouses_mr=["Raw material station  - NAVYA","All Warehouses - NAVYA"]
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	d['custom_production_plan_type']="Sales Order"
 	doc=frappe.get_doc(d)
 	pending_mr=get_pending_material_requests_custom()
 	doc.set("material_requests", [])
@@ -186,6 +192,7 @@ def automated_plan_without_so():
 	warehouse_list_mr=[{"warehouse":"Raw material station  - NAVYA"}]
 	dump_Warehoues=json.dumps(warehouse_list_mr)
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	d['custom_production_plan_type']="Without Sales Order"
 	doc=frappe.get_doc(d)
 	pending_mr=get_pending_material_requests_without_wo()
 	doc.set("material_requests", [])

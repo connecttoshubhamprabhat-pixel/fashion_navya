@@ -13,6 +13,7 @@ def set_sell_item_po(doc,method):
 						if len(get_bom)!=0:
 							item=frappe.get_doc("Item",p.item_code)
 							i.set("fg_parent",p.item_code)
+							i.set("fg_name_parent",item.item_name)
 							i.set("project",item.project)
 							get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and bom_no='{}'  """.format(p.bom_no),as_dict=1)
 							if get_wo:
