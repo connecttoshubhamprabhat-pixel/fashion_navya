@@ -259,7 +259,7 @@ doc_events = {
 
                         },
                 "Timesheet Missing":{
-                            "after_insert":["fashion_navya.utils.doc_event.ts.check_date_hr_diff","fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
+                            "after_insert":["fashion_navya.utils.doc_event.miss.add_total_hours","fashion_navya.utils.doc_event.ts.check_date_hr_diff","fashion_navya.utils.doc_event.timesheet.add_diff_miss"],
                             "before_save":["fashion_navya.utils.doc_event.ts.check_date_hr_diff","fashion_navya.utils.doc_event.timesheet.nine_hours_validations"],
                         },
                 "Supplier Quotation":{

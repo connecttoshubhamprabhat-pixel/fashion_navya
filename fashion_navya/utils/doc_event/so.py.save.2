@@ -66,17 +66,12 @@ def delete_item_so(doc,method):
 @frappe.whitelist()
 def make_mr_so(doc,method):
 	so=[]
-	if doc.custom_skip_mr:
-		return
+	
 	if doc.references:
 		if doc.references[0].reference_doctype=="Sales Order":
 			so.append(doc.references[0].reference_name)
 	if so:
 		sodoc=frappe.get_doc("Sales Order",so[0])
-		get_mr=frappe.db.sql("""select name from `tabMaterial Request Item` where docstatus<2 and sales_order='{}'  """.format(sodoc.name),as_dict=1)
-		if len(get_mr)!=0:
-			#frappe.msgprint("MR Already ")
-			return
 		get_percent=40/100*sodoc.grand_total
 		amt_adv=doc.paid_amount+sodoc.advance_paid
 		ddate_so=str(sodoc.delivery_date)
