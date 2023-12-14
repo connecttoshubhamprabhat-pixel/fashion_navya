@@ -83,8 +83,8 @@ frappe.whitelist(allow_guest=True)
 def get_wo_set_po(doc,method):
 	if doc.is_subcontracted and doc.docstatus==0 and doc.custom_skip_work_order==0:
 		for i in doc.items:
-			if i.production_plan and i.fg_parent:
-				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}' and production_plan='{}'  """.format(i.fg_parent,i.production_plan),as_dict=1)
+			if i.fg_parent:
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'   """.format(i.fg_parent),as_dict=1)
 				if get_wo:
 					i.set('work_order',get_wo[0]['name'])
 				else:

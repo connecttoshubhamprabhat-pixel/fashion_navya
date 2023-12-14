@@ -4,6 +4,7 @@
 
 import copy
 import json
+import datetime
 
 import frappe
 from frappe import _, msgprint
@@ -31,7 +32,9 @@ from erpnext.stock.get_item_details import get_conversion_factor
 from erpnext.stock.utils import get_or_make_bin
 from erpnext.utilities.transaction_base import validate_uom_is_integer
 
-from erpnext.manufacturing.doctype.production_plan.production_plan import ProductionPlan
+from erpnext.manufacturing.doctype.production_plan.production_plan import(ProductionPlan,
+get_items_for_material_requests,get_warehouse_list,get_exploded_items,get_bin_details,
+get_material_request_items,get_materials_from_other_locations)
 
 
 class CustomProductionPlan(ProductionPlan):
@@ -119,25 +122,126 @@ class CustomProductionPlan(ProductionPlan):
 
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
-    d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
-    doc=frappe.get_doc(d)
-    pending_mr=get_pending_material_requests_custom()
-    doc.set("material_requests", [])
-    for data in pending_mr:
-        doc.append(
+	warehouses_mr=["Raw material station  - NAVYA","All Warehouses - NAVYA"]
+	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	doc=frappe.get_doc(d)
+	pending_mr=get_pending_material_requests_custom()
+	doc.set("material_requests", [])
+	for data in pending_mr:
+		doc.append(
                 "material_requests",
 				            {"material_request": data.name, "material_request_date": data.transaction_date},
 			)
 
-    doc_dict=doc.as_dict()
-    get_mr_items_custom(doc)
-    get_sub_assembly_items(doc, manufacturing_type=None)
-    doc.insert()
-    doc.submit()
-    frappe.db.commit()
-    print(doc.name,"doc.name")
-    make_work_order(doc)
-    frappe.db.commit()
+	doc_dict=doc.as_dict()
+	get_mr_items_custom(doc)
+	get_sub_assembly_items(doc, manufacturing_type=None)
+	doc.insert()
+	doc.set("for_warehouse","Raw material station  - NAVYA")
+	for w in warehouses_mr:
+		warehouse_list_mr=[{"warehouse":w}]
+		dump_Warehoues=json.dumps(warehouse_list_mr)
+		mr_items=get_items_for_material_requests_custom(doc,warehouses=dump_Warehoues,get_parent_warehouse_data=None)
+		if mr_items:
+			for d in mr_items:
+				print(d.get("item_code"))
+				item_doc=frappe.get_doc("Item",d.get("item_code"))
+				if item_doc.disabled==1:
+					continue
+
+				doc.append(
+					"mr_items",
+					{
+							"item_code":d.get("item_code"),
+						"item_name":d.get("item_name"),
+						"description":d.get("description"),
+						"stock_uom":d.get("stock_uom"),
+						"warehouse":d.get("warehouse"),
+						"required_bom_qty":d.get("required_bom_qty"),
+						"projected_qty":d.get("projected_qty"),
+						"actual_qty":d.get("actual_qty"),
+						"ordered_qty":d.get("ordered_qty"),
+						"planned_qty":d.get("planned_qty"),
+						"reserved_qty_for_production":d.get("reserved_qty_for_production"),
+						"safety_stock":d.get("safety_stock"),
+						"quantity":d.get("quantity"),
+						"material_request_type":d.get("material_request_type"),
+
+
+						},
+					)
+
+
+	doc.submit()
+	make_material_request_custom(doc)
+	make_work_order(doc)
+	frappe.db.commit()
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def automated_plan_without_so():
+	warehouses_mr=["Raw material station  - NAVYA","All Warehouses - NAVYA"]
+	warehouse_list_mr=[{"warehouse":"Raw material station  - NAVYA"}]
+	dump_Warehoues=json.dumps(warehouse_list_mr)
+	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	doc=frappe.get_doc(d)
+	pending_mr=get_pending_material_requests_without_wo()
+	doc.set("material_requests", [])
+	for data in pending_mr:
+		print(data,'mr')
+		doc.append(
+                "material_requests",
+				            {"material_request": data.name, "material_request_date": data.transaction_date},
+			)
+
+	doc_dict=doc.as_dict()
+	get_mr_items_custom(doc)
+	get_sub_assembly_items(doc, manufacturing_type=None)
+	doc.insert()
+	#doc_into_dumps=json.loads(doc_dict)
+	dump_doc=json.dumps(doc_dict,default=datetime_handler)
+	doc.set("for_warehouse","Raw material station  - NAVYA")
+	# print(dump_doc,"dumpdoc")
+	for w in warehouses_mr:
+		warehouse_list_mr=[{"warehouse":w}]
+		dump_Warehoues=json.dumps(warehouse_list_mr)
+		mr_items=get_items_for_material_requests_custom(doc,warehouses=dump_Warehoues,get_parent_warehouse_data=None)
+
+		if mr_items:
+			for d in mr_items:
+				print(d.get("item_code"))
+				item_doc=frappe.get_doc("Item",d.get("item_code"))
+				if item_doc.disabled==1:
+					continue
+				doc.append(
+				"mr_items",
+				{
+						"item_code":d.get("item_code"),
+						"item_name":d.get("item_name"),
+						"description":d.get("description"),
+						"stock_uom":d.get("stock_uom"),
+						"warehouse":d.get("warehouse"),
+						"required_bom_qty":d.get("required_bom_qty"),
+						"projected_qty":d.get("projected_qty"),
+						"actual_qty":d.get("actual_qty"),
+						"ordered_qty":d.get("ordered_qty"),
+						"planned_qty":d.get("planned_qty"),
+						"reserved_qty_for_production":d.get("reserved_qty_for_production"),
+						"safety_stock":d.get("safety_stock"),
+						"quantity":d.get("quantity"),
+						"material_request_type":d.get("material_request_type"),
+
+
+						},
+					)
+	doc.submit()
+	make_material_request_custom(doc)
+	# print(doc.name,"doc.name")
+	make_work_order(doc)
+	frappe.db.commit()
+
 
 
 @frappe.whitelist()
@@ -200,6 +304,41 @@ def get_pending_material_requests_custom():
 
     pending_mr = pending_mr_query.run(as_dict=True)
     return pending_mr
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_pending_material_requests_without_wo():
+    bom = frappe.qb.DocType("BOM")
+    mr = frappe.qb.DocType("Material Request")
+    mr_item = frappe.qb.DocType("Material Request Item")
+    pending_mr_query = (
+        frappe.qb.from_(mr)
+        .from_(mr_item)
+        .select(mr.name, mr.transaction_date)
+        .distinct()
+        .where(
+            (mr_item.parent == mr.name)
+            & (mr.material_request_type == "Manufacture")
+            & (mr.docstatus == 1)
+            & (mr.custom_is_so == 0)
+            & (mr.custom_bom == 1)
+            & (mr.status != "Stopped")
+            & (mr.company ==frappe.defaults.get_user_default("company"))
+            & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
+            & (
+                ExistsCriterion(
+                    frappe.qb.from_(bom)
+                    .select(bom.name)
+                    .where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+                )
+            )
+        )
+    )
+
+    pending_mr = pending_mr_query.run(as_dict=True)
+    return pending_mr
+
 
 @frappe.whitelist(allow_guest=True)
 def get_mr_items_custom(self):
@@ -419,3 +558,265 @@ def send_nofify_mr_custom():
 			td=frappe.get_doc(d)
 			td.insert()
 			frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_warehouse_data=None):
+	#if isinstance(doc, str):
+		#doc = frappe._dict(json.loads(doc))
+	doc=doc.as_dict()
+	print(type(doc),"type2")
+	print(doc,'doc9')
+
+	if warehouses:
+		warehouses = list(set(get_warehouse_list(warehouses)))
+
+		if (
+			doc.get("for_warehouse")
+			and not get_parent_warehouse_data
+			and doc.get("for_warehouse") in warehouses
+		):
+			warehouses.remove(doc.get("for_warehouse"))
+
+	doc["mr_items"] = []
+
+	po_items = doc.get("po_items") if doc.get("po_items") else doc.get("items")
+
+	if doc.get("sub_assembly_items"):
+		for sa_row in doc.sub_assembly_items:
+			sa_row = frappe._dict(sa_row)
+			if sa_row.type_of_manufacturing == "Material Request":
+				po_items.append(
+					frappe._dict(
+						{
+							"item_code": sa_row.production_item,
+							"required_qty": sa_row.qty,
+							"include_exploded_items": 0,
+						}
+					)
+				)
+
+	# Check for empty table or empty rows
+	if not po_items or not [row.get("item_code") for row in po_items if row.get("item_code")]:
+		frappe.throw(
+			_("Items to Manufacture are required to pull the Raw Materials associated with it."),
+			title=_("Items Required"),
+		)
+
+	company = doc.get("company")
+	ignore_existing_ordered_qty = doc.get("ignore_existing_ordered_qty")
+	include_safety_stock = doc.get("include_safety_stock")
+
+	so_item_details = frappe._dict()
+
+	sub_assembly_items = {}
+	if doc.get("skip_available_sub_assembly_item"):
+		for d in doc.get("sub_assembly_items"):
+			sub_assembly_items.setdefault((d.get("production_item"), d.get("bom_no")), d.get("qty"))
+
+	for data in po_items:
+		if not data.get("include_exploded_items") and doc.get("sub_assembly_items"):
+			data["include_exploded_items"] = 1
+
+		planned_qty = data.get("required_qty") or data.get("planned_qty")
+		ignore_existing_ordered_qty = (
+			data.get("ignore_existing_ordered_qty") or ignore_existing_ordered_qty
+		)
+		warehouse = doc.get("for_warehouse")
+
+		item_details = {}
+		if data.get("bom") or data.get("bom_no"):
+			if data.get("required_qty"):
+				bom_no = data.get("bom")
+				include_non_stock_items = 1
+				include_subcontracted_items = 1 if data.get("include_exploded_items") else 0
+			else:
+				bom_no = data.get("bom_no")
+				include_subcontracted_items = doc.get("include_subcontracted_items")
+				include_non_stock_items = doc.get("include_non_stock_items")
+
+			if not planned_qty:
+				frappe.throw(_("For row {0}: Enter Planned Qty").format(data.get("idx")))
+
+			if bom_no:
+				if (
+					data.get("include_exploded_items")
+					and doc.get("sub_assembly_items")
+					and doc.get("skip_available_sub_assembly_item")
+				):
+					item_details = get_raw_materials_of_sub_assembly_items(
+						item_details,
+						company,
+						bom_no,
+						include_non_stock_items,
+						sub_assembly_items,
+						planned_qty=planned_qty,
+					)
+
+				elif data.get("include_exploded_items") and include_subcontracted_items:
+					# fetch exploded items from BOM
+					item_details = get_exploded_items(
+						item_details, company, bom_no, include_non_stock_items, planned_qty=planned_qty, doc=doc
+					)
+				else:
+					item_details = get_subitems(
+						doc,
+						data,
+						item_details,
+						bom_no,
+						company,
+						include_non_stock_items,
+						include_subcontracted_items,
+						1,
+						planned_qty=planned_qty,
+					)
+		elif data.get("item_code"):
+			item_master = frappe.get_doc("Item", data["item_code"]).as_dict()
+			purchase_uom = item_master.purchase_uom or item_master.stock_uom
+			conversion_factor = (
+				get_uom_conversion_factor(item_master.name, purchase_uom) if item_master.purchase_uom else 1.0
+			)
+
+			item_details[item_master.name] = frappe._dict(
+				{
+					"item_name": item_master.item_name,
+					"default_bom": doc.bom,
+					"purchase_uom": purchase_uom,
+					"default_warehouse": item_master.default_warehouse,
+					"min_order_qty": item_master.min_order_qty,
+					"default_material_request_type": item_master.default_material_request_type,
+					"qty": planned_qty or 1,
+					"is_sub_contracted": item_master.is_subcontracted_item,
+					"item_code": item_master.name,
+					"description": item_master.description,
+					"stock_uom": item_master.stock_uom,
+					"conversion_factor": conversion_factor,
+					"safety_stock": item_master.safety_stock,
+				}
+			)
+
+		sales_order = doc.get("sales_order")
+
+		for item_code, details in item_details.items():
+			so_item_details.setdefault(sales_order, frappe._dict())
+			if item_code in so_item_details.get(sales_order, {}):
+				so_item_details[sales_order][item_code]["qty"] = so_item_details[sales_order][item_code].get(
+					"qty", 0
+				) + flt(details.qty)
+			else:
+				so_item_details[sales_order][item_code] = details
+
+	mr_items = []
+	for sales_order, item_code in so_item_details.items():
+		item_dict = so_item_details[sales_order]
+		for details in item_dict.values():
+			bin_dict = get_bin_details(details, doc.company, warehouse)
+			bin_dict = bin_dict[0] if bin_dict else {}
+
+			if details.qty > 0:
+				items = get_material_request_items(
+					details,
+					sales_order,
+					company,
+					ignore_existing_ordered_qty,
+					include_safety_stock,
+					warehouse,
+					bin_dict,
+				)
+				if items:
+					mr_items.append(items)
+
+	if (not ignore_existing_ordered_qty or get_parent_warehouse_data) and warehouses:
+		new_mr_items = []
+		for item in mr_items:
+			get_materials_from_other_locations(item, warehouses, new_mr_items, company)
+
+		mr_items = new_mr_items
+
+	if not mr_items:
+		to_enable = frappe.bold(_("Ignore Existing Projected Quantity"))
+		warehouse = frappe.bold(doc.get("for_warehouse"))
+		message = (
+			_(
+				"As there are sufficient raw materials, Material Request is not required for Warehouse {0}."
+			).format(warehouse)
+			+ "<br><br>"
+		)
+		message += _("If you still want to proceed, please enable {0}.").format(to_enable)
+
+		frappe.msgprint(message, title=_("Note"))
+
+
+	print(mr_items,"aaaaaaa")
+	return mr_items
+
+def myconverter(o):
+	if isinstance(o, datetime.datetime):
+		return o.__str__()
+
+def datetime_handler(x):
+	if isinstance(x, datetime.datetime):
+		return x.isoformat()
+
+
+
+
+
+@frappe.whitelist()
+def make_material_request_custom(self):
+	"""Create Material Requests grouped by Sales Order and Material Request Type"""
+	material_request_list = []
+	material_request_map = {}
+
+	for item in self.mr_items:
+		item_doc = frappe.get_cached_doc("Item", item.item_code)
+
+		material_request_type = item.material_request_type or item_doc.default_material_request_type
+
+		# key for Sales Order:Material Request Type:Customer
+		key = "{}:{}:{}".format(item.sales_order, material_request_type, item_doc.customer or "")
+		schedule_date = item.schedule_date or add_days(nowdate(), cint(item_doc.lead_time_days))
+
+		if not key in material_request_map:
+			# make a new MR for the combination
+			material_request_map[key] = frappe.new_doc("Material Request")
+			material_request = material_request_map[key]
+			material_request.update(
+				{
+					"transaction_date": nowdate(),
+					"status": "Draft",
+					"company": self.company,
+					"material_request_type": material_request_type,
+					"customer": item_doc.customer or "",
+				}
+			)
+			material_request_list.append(material_request)
+		else:
+			material_request = material_request_map[key]
+
+		# add item
+		material_request.append(
+			"items",
+			{
+				"item_code": item.item_code,
+				"from_warehouse": item.from_warehouse
+				if material_request_type == "Material Transfer"
+				else None,
+				"qty": item.quantity,
+				"schedule_date": schedule_date,
+				"warehouse": item.warehouse,
+				"sales_order": item.sales_order,
+				"production_plan": self.name,
+				"material_request_plan_item": item.name,
+				"project": frappe.db.get_value("Sales Order", item.sales_order, "project")
+				if item.sales_order
+				else None,
+			},
+		)
+
+	for material_request in material_request_list:
+		material_request.flags.ignore_permissions = 1
+		material_request.run_method("set_missing_values")
+		material_request.save()
+		material_request.submit()
+		frappe.db.commit()
