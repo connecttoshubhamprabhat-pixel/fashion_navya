@@ -253,6 +253,8 @@ doc_events = {
                 "Customer":{
                             "before_insert":["fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
 			    "before_save":["fashion_navya.utils.doc_event.api_2.set_silvit_cus","fashion_navya.utils.doc_event.customer.customer_no_check_exists"],
+                "after_insert":["fashion_navya.utils.doc_event.customer.create_contact"],
+                "on_update":["fashion_navya.utils.doc_event.customer.contact_update"],
 
                         },
                 "Estimate Sheet":{

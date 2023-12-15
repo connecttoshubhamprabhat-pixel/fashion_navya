@@ -6,6 +6,8 @@ from erpnext.stock.utils import get_or_make_bin
 from frappe import _, msgprint
 from frappe.model.document import Document
 from frappe.query_builder.functions import IfNull, Sum
+from frappe.model.mapper import get_mapped_doc
+from frappe.model.utils import get_fetch_values
 
 
 
@@ -113,3 +115,37 @@ def todo_link_withproject(doc,method):
         link_doc=frappe.get_doc("Task",doc.reference_name)
         if link_doc.project:
             doc.db_set("project",link_doc.project, update_modified=False)
+
+
+
+@frappe.whitelist()
+def make_mv(source_name, target_doc = None):
+    #frappe.msgprint("a")
+    doc = get_mapped_doc(
+        "Sales Order",
+        source_name, {
+            "Sales Order": {
+                "doctype": "Maintenance Visit",
+                "validation": {
+                    "docstatus": ["=", 1]
+                },
+                "field_map": {
+                    "name": "sales_order",
+                    "customer": "customer",
+                    "delivery_date": "custom_delivery_date",
+                },
+            },
+            "Sales Order Item": {
+                "doctype": "Maintenance Visit Purpose",
+                "field_map": {
+                    "item_code": "item_code",
+                    "item_name": "item_name",
+                    "description": "description",
+                },
+            },
+
+        },
+        target_doc,
+    )
+
+    return doc
