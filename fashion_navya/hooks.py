@@ -137,7 +137,7 @@ doc_events = {
         },
     "Sales Order":{
         "before_update_after_submit":["fashion_navya.utils.doc_event.api_1.update_del_date_so","fashion_navya.utils.doc_event.so.check_sample_items"],
-        "before_submit":["fashion_navya.utils.doc_event.custom.rename_item_with_size","fashion_navya.utils.doc_event.so.check_sample_items"],
+        "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
     },
