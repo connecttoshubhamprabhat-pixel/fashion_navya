@@ -241,9 +241,11 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
 
         bom=bom_fetched(parent=parent_doc.name,size=size)
 
+
+        name_item_rename=item_remame(name=parent_doc.item_name)
         d={'doctype':"Item","item_group":"Customise","project":parent_doc.project ,"stock_uom":parent_doc.stock_uom,"image":parent_doc.image}
         d['item_code']=cus_name
-        d['item_name']=parent_doc.item_name+"-"+"MTM"+"-"+customer
+        d['item_name']=name_item_rename+"-"+"MTM"+"-"+customer
         d['parent_item']=parent_doc.name
         d['customise']=1
         d['description']=des
@@ -591,3 +593,21 @@ def make_bom_kit_new_manual(name=None):
                                 d.submit()
                             except:
                                 pass
+
+
+
+@frappe.whitelist(allow_guest=True)
+def item_remame(name=None):
+    if name:
+        res =" ".join(re.findall("[a-zA-Z]+", name))
+        split_res=res.split(" ")
+        new_str_list=[]
+        for i in split_res:
+            str_i=str(i)
+            if len(str_i)>2 and not str_i.isupper() and str_i not in new_str_list:
+                new_str_list.append(str_i)
+        join_final_name=" ".join(new_str_list)
+        if join_final_name:
+            return join_final_name
+        else:
+            return " .."
