@@ -30,7 +30,7 @@ def remove_disabled_items(doc,method):
 @frappe.whitelist()
 def before_submit_check_kit(doc,method):
 	parent=frappe.get_doc("Item",doc.item)
-	if parent.item_group=="M kit" or  parent.has_variants=1:
+	if parent.item_group=="M kit" or  parent.has_variants==1:
 		return
 
 	if parent.item_group in ['Sample','Ready Stock']:
