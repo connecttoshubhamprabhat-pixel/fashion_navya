@@ -232,7 +232,7 @@ doc_events = {
             },
             "BOM":{
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
-               "before_submit":["fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
+               "before_submit":["fashion_navya.utils.doc_event.bom.before_submit_check_kit","fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
                "after_insert":["fashion_navya.utils.doc_event.bom.remove_disabled_items"],
                "on_cancel":["fashion_navya.utils.doc_event.mr.uncheck_is_bom_mr"],
 

@@ -29,4 +29,13 @@ def remove_disabled_items(doc,method):
 
 @frappe.whitelist()
 def before_submit_check_kit(doc,method):
-	pass
+	parent=frappe.get_doc("Item",doc.item)
+	if parent.item_group=="M kit" or  parent.has_variants=1:
+		return
+
+	if parent.item_group in ['Sample','Ready Stock']:
+		for i in doc.items:
+			if i.idx==1:
+				doc_item=frappe.get_doc("Item",i.item_code)
+				if doc_item.item_group!="M kit":
+					frappe.throw("Frist Row Item is not Kit Item")

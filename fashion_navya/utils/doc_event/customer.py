@@ -21,6 +21,7 @@ def create_contact(doc,method):
 		c={"doctype":"Contact","first_name":doc.name,"status":"Open"}
 		c['salutation']=doc.salutation
 		c['whatsapp_no']=num
+		#d["activate_whatsapp"]=1
 		contact=frappe.get_doc(c)
 		row=contact.append("phone_nos", {})
 		row.phone=num
@@ -34,6 +35,11 @@ def create_contact(doc,method):
 
 		try:
 			contact.insert(ignore_permissions=True)
+			c=0
+			if contact.whatsapp_no and contact.activate_whatsapp==0:
+				contact.db_set("activate_whatsapp",1, update_modified=False)
+			if c==1:
+				contact.save(ignore_permissions=True)
 		except:
 			pass
 		#frappe.msgprint("Contact is created successfully")
