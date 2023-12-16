@@ -280,7 +280,7 @@ doc_events = {
 			},
                         "Maintenance Visit":{
                                 "after_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
-                                "before_submit":["fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
+                                "before_submit":["fashion_navya.utils.doc_event.mv.make_se_entry_mv","fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
 
 
                                 },

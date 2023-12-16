@@ -1,4 +1,5 @@
 import frappe
+from erpnext.stock.dashboard.item_dashboard import get_data
 
 
 @frappe.whitelist(allow_guest=True)
@@ -50,3 +51,59 @@ def make_mr_from_mv(doc,method):
 		mr.insert()
 		mr.submit()
 		frappe.msgprint("MR is created")
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_se_entry_mv(doc,method):
+	if doc.custom_visit_for=="Alteration":
+		if doc.sales_order:
+			so=frappe.get_doc("Sales Order",doc.sales_order)
+			santushti_w=[]
+			so_items=[]
+			for sitem in so.items:
+				if sitem.item_code not in so_items:
+					so_items.append(sitem.item_code)
+
+			if so.custom_shop_location=="Sainik Farms":
+				get_warehouses=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Santushti - NAVYA'  """,as_dict=1)
+				if get_warehouses:
+					for w in get_warehouses:
+						print(w,"wwwwwwwwwwwwwwwwwwwwwwwwww")
+						if w['name'] not in santushti_w:
+							santushti_w.append(w['name'])
+
+			d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
+			d['rfse']="Return of Alterations"
+			yes_make=[]
+			se=frappe.get_doc(d)
+			for k in doc.purposes:
+				itemdoc=frappe.get_doc("Item",k.item_code)
+				if k.item_code in so_items and itemdoc.item_group=="Ready Stock":
+					datas=get_data(item_code=k.item_code)
+					if datas:
+						count=0
+						for  n in datas:
+							print(n,'n')
+							print(santushti_w)
+							print(n['warehouse'])
+							if count==1:
+								continue
+
+							if n['warehouse'] in santushti_w and n['actual_qty']>0 and n['item_code']==k.item_code and count==0:
+								count+=1
+								print("no")
+								row=se.append("items", {})
+								row.item_code=itemdoc.name
+								row.uom=itemdoc.stock_uom
+								row.conversion_factor=1
+								row.s_warehouse=n['warehouse']
+								row.t_warehouse="Navya Store Office - NAVYA"
+								yes_make.append("aa")
+
+			if yes_make:
+				try:
+					se.insert(ignore_permissions=True)
+					frappe.msgprint("Stock Entry is created successfully")
+				except:
+					frappe.msgprint("Not Created Entry")
