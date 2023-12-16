@@ -155,3 +155,28 @@ def mr_links_transfer(doc,method):
 				get_mr_transfers=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item`  where sales_order='{}' and parent in (select name from `tabMaterial Request` where docstatus<2 and material_request_type='Manufacture' )  """.format(i),as_dict=1)
 				if get_mr_transfers:
 					doc.set("custom_mrm",get_mr_transfers[0]['parent'])
+
+
+
+
+@frappe.whitelist()
+def check_bom_project(doc,method):
+	for i in doc.items:
+		get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}'  """.format(i.item_code),as_dict=1)
+		if len(get_bom)!=0:
+			doc.set("custom_bom",1)
+
+
+
+
+@frappe.whitelist()
+def check_bom_project_old():
+	mr=frappe.db.sql("""select name from `tabMaterial Request`   where material_request_type='Manufacture' and docstatus=1 and custom_bom=0  """,as_dict=1)
+	if mr:
+		for m in mr:
+			doc=frappe.get_doc("Material Request",m['name'])
+			for i in doc.items:
+				get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}'  """.format(i.item_code),as_dict=1)
+				if len(get_bom)!=0:
+					frappe.db.sql("""update `tabMaterial Request` set custom_bom=1 where name='{}'  """.format(m['name']))
+					frappe.db.commit()
