@@ -403,7 +403,7 @@ def make_bom(new=None,submit=0,variant=0,bom=None):
             for raw in d.items:
                 split=raw.item_code.split("-")
                 new_parent_split=new.split("-")
-                if raw.idx==1 and "RTW" in new_parent_split:
+                if raw.idx==1:
                     kit_new=new+"-k"
                     if frappe.db.exists("Item",kit_new):
                         raw.set("item_code",kit_new)
