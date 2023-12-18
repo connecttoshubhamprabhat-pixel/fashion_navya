@@ -309,3 +309,20 @@ def make_stock_reconcil(items=None):
             #print(doc.as_dict(),"aaaaaaaaaaaa")
             doc.insert(ignore_permissions=True)
             frappe.msgprint("Created")
+
+
+
+@frappe.whitelist()
+def update_stock_cron():
+    get_items=frappe.db.sql("""select name from `tabItem` where item_group in ("Sample","Ready Stock") and variant_of is not null  """,as_dict=1)
+    if get_items:
+        for i in get_items:
+            if frappe.db.exists("Item",i['name']):
+                doc=frappe.get_doc("Item",i['name'])
+                if doc.ignore_project==1:
+                    doc.set("ignore_project",0)
+                if doc.ignore_project==0:
+                    doc.set("ignore_project",1)
+
+                doc.save(ignore_permissions=True)
+                frappe.db.commit()

@@ -339,6 +339,12 @@ scheduler_events = {
 
                 ],
 
+            "20 04 * * *":[
+
+                    "fashion_navya.utils.doc_event.api_1.update_stock_cron",
+
+                ],
+
 
 
 

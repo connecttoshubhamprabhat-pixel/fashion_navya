@@ -827,3 +827,32 @@ def make_material_request_custom(self):
 		material_request.save()
 		material_request.submit()
 		frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def create_mr_for_reorder(items=None,values=None):
+	items=json.loads(items)
+	values=json.loads(values)
+	mrq=values.get("mrq")
+	request_for=values.get("warehouse")
+	rlevel=values.get("rlevel")
+	rqty=values.get("rqty")
+	parent=frappe.db.sql("""select parent_warehouse from `tabWarehouse` where name='{}'  """.format(request_for),as_dict=1)
+	if len(parent)==0:
+		frappe.throw("This warehouse is not under Any warehouse")
+		return
+
+	if items:
+		for i in items:
+			print(i)
+			doc=frappe.get_doc("Item",i)
+			row = doc.append("reorder_levels", {})
+			row.warehouse_reorder_level=rlevel
+			row.warehouse_reorder_qty=rqty
+			row.material_request_type=mrq
+			row.warehouse=request_for
+			row.warehouse_group=parent[0]['parent_warehouse']
+			doc.save(ignore_permissions=True)
+			frappe.msgprint("Added Reorder")
