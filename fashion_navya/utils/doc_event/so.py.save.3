@@ -80,10 +80,7 @@ def make_mr_so(doc,method):
 			return
 		get_percent=40/100*sodoc.grand_total
 		amt_adv=doc.paid_amount
-		#if doc.party_type=="Customer":
-		#bal=get_balance_on(party_type="Customer",party=doc.party)
-		#if bal>amt_adv:
-		#return
+		
 		ddate_so=str(sodoc.delivery_date)
 		new_date_delivery = add_to_date(ddate_so, days=-3, as_string=True)
 		if get_percent>amt_adv:
