@@ -832,7 +832,7 @@ def make_material_request_custom(self):
 
 
 @frappe.whitelist()
-def create_mr_for_reorder(items=None,values=None):
+def create_mr_for_reorder(items=None,values=None,project=None):
 	items=json.loads(items)
 	values=json.loads(values)
 	mrq=values.get("mrq")
@@ -845,6 +845,13 @@ def create_mr_for_reorder(items=None,values=None):
 		return
 
 	if items:
+		get_re_order_items=[]
+		project_doc=frappe.get_doc("Project",project)
+		if project_doc.re_order:
+			for p in project_doc.re_order:
+				get_re_order_items.append(p.item_code)
+		project_saved=0
+
 		for i in items:
 			print(i)
 			doc=frappe.get_doc("Item",i)
@@ -856,3 +863,13 @@ def create_mr_for_reorder(items=None,values=None):
 			row.warehouse_group=parent[0]['parent_warehouse']
 			doc.save(ignore_permissions=True)
 			frappe.msgprint("Added Reorder")
+			#code for project
+			if i not in get_re_order_items:
+				project_saved+=1
+				rowp =project_doc.append("re_order", {})
+				rowp.item_code=i
+				rowp.warehouse=request_for
+				rowp.min=rqty
+
+		if project_saved>0:
+			project_doc.save()
