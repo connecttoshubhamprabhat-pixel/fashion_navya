@@ -316,9 +316,10 @@ def make_stock_reconcil(items=None):
 
 @frappe.whitelist()
 def update_stock_cron():
-    get_items=frappe.db.sql("""select name from `tabItem` where item_group in ("Sample","Ready Stock","Customise")  and variant_of is not null  """,as_dict=1)
+    get_items=frappe.db.sql("""select name from `tabItem` where item_group in ("Sample","Ready Stock","Customise") and variant_of is not null  """,as_dict=1)
     if get_items:
         for i in get_items:
+            print(i['name'],"name")
             if frappe.db.exists("Item",i['name']):
                 doc=frappe.get_doc("Item",i['name'])
                 if doc.ignore_project==1:
@@ -326,8 +327,11 @@ def update_stock_cron():
                 if doc.ignore_project==0:
                     doc.set("ignore_project",1)
 
-                doc.save(ignore_permissions=True)
-                frappe.db.commit()
+                try:
+                    doc.save(ignore_permissions=True)
+                    frappe.db.commit()
+                except:
+                    continue
 
 
 @frappe.whitelist()
@@ -364,10 +368,26 @@ def update_price_item(doc,method):
 
 
 @frappe.whitelist()
-def update_price_item(doc,method):
+def update_price_item_bom(doc,method):
     item_doc=frappe.get_doc("Item",doc.item)
     if item_doc.ignore_project==1:
         item_doc.set("ignore_project",0)
     if item_doc.ignore_project==0:
         item_doc.set("ignore_project",1)
     item_doc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def update_is_whatsapp():
+    get_contact=frappe.db.sql("""select parent from `tabContact Phone` where phone is not null and is_whatsapp_number=0 """,as_dict=1)
+    if get_contact:
+        for i in get_contact:
+            print(i,"qqqqqqqqqqqqqqq")
+            contact=frappe.get_doc("Contact",i['parent'])
+            contact.set("whatsapp_no",contact.phone_nos[0].phone)
+            contact.set("activate_whatsapp",1)
+            try:
+                contact.save()
+                frappe.db.commit()
+            except:
+                continue
