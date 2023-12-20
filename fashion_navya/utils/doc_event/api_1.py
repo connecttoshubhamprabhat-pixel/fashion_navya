@@ -4,6 +4,8 @@ from frappe.utils import add_to_date
 from frappe import utils
 from erpnext.stock.dashboard.item_dashboard import get_data
 import json
+from datetime import datetime # from python std library
+from frappe.utils import add_to_date
 
 #Bank slip deposite
 @frappe.whitelist()
@@ -326,3 +328,24 @@ def update_stock_cron():
 
                 doc.save(ignore_permissions=True)
                 frappe.db.commit()
+
+
+@frappe.whitelist()
+def before_submit_bom(doc,method):
+    doc.set("is_active",1)
+    doc.set("is_default",1)
+    today = datetime.now().strftime('%Y-%m-%d')
+    after_3_days = add_to_date(datetime.now(), days=3, as_string=True)
+    m={"doctype":"Material Request","material_request_type":"Manufacture"}
+    m['schedule_date']=after_3_days
+    m['set_warehouse']="Navya Store Office - NAVYA"
+    mr=frappe.get_doc(m)
+    row = mr.append("items", {})
+    row.item_code=doc.item
+    row.qty=1
+    row.warehouse="Navya Store Office - NAVYA"
+    row.uom="Nos"
+    row.schedule_date=after_3_days
+    mr.insert()
+    mr.submit()
+    frappe.msgprint("MR is created")

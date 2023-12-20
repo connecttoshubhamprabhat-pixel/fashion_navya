@@ -17,3 +17,4 @@ def set_warehouse_target_mr(doc,method):
 
 				if so.delivery_type=="Courier":
 					doc.set("set_warehouse","Courier Station - NAVYA")
+					i.set("warehouse","Courier Station - NAVYA")
