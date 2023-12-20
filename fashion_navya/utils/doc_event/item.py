@@ -399,11 +399,14 @@ def make_kit_item(name=None):
 		return
 
 	doc=frappe.get_doc("Item",name)
+	split_doc=doc.name.split("-")
 	split=doc.name.split("-")
 	if split[-1]!="k":
 		new_item=doc.name+"-k"
-		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
+		d={'doctype':"Item","kit_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
+		if "RTW" in split_doc:
+			d['is_sub_contracted_item']=1
 		d['item_name']=doc.item_name
 		ndoc=frappe.get_doc(d)
 		ndoc.save(ignore_permissions=True)
@@ -484,10 +487,13 @@ def make_se_entry(items=None,values=None):
 def make_new_item_sub(doc,method):
 	for i in doc.items:
 		old=frappe.get_doc("Item",i.item_code)
+		split=old.name.split("-")
 		item=i.item_code+"-"+doc.supplier
-		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":item,"image":doc.image}
+		d={'doctype':"Item","kit_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":item,"image":doc.image}
 		d['item_name']=old.item_name
 		d['project']=old.project
+		if "RTW" in split:
+			d['is_sub_contracted_item']=1
 		new=frappe.get_doc(d)
 		new.insert(ignore_permissions=True)
 
@@ -509,15 +515,18 @@ def make_add_kt(doc,method):
 
 @frappe.whitelist()
 def make_kit_item_parent(doc,method):
-	if doc.get("__islocal") and doc.variant_of:
+	if doc.variant_of:
 		new_item=doc.name+"-k"
+		split=doc.name.split("-")
 		if frappe.db.exists("Item",new_item):
 			return
 
-		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
+		d={'doctype':"Item","kit_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
 		d['item_name']=doc.item_name
 		d['parent_item']=doc.name
+		if "RTW" in  split:
+			d['is_sub_contracted_item']=1
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
 
@@ -532,7 +541,7 @@ def make_kit_item_parent_save(doc,method):
 			return
 
 
-		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
+		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":0,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
 		d['item_name']=doc.item_name
 		d['parent_item']=doc.name

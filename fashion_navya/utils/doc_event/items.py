@@ -604,7 +604,7 @@ def item_remame(name=None):
         new_str_list=[]
         for i in split_res:
             str_i=str(i)
-            if len(str_i)>2 and not str_i.isupper() and str_i not in new_str_list:
+            if len(str_i)>1 and not str_i.isupper() and str_i not in new_str_list:
                 new_str_list.append(str_i)
         join_final_name=" ".join(new_str_list)
         if join_final_name:
