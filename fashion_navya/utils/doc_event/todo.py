@@ -6,6 +6,7 @@ import json
 def create_todo(doc,method):
 	doctype=doc.doctype
 	user_list=['vivekd@navyacustom.com']
+	drawing_user=["sweetyd@navyacustom.com"]
 	for i in user_list:
 		d={'doctype':"ToDo","priority":"High","reference_type":doctype}
 		d['description']="Project is created"
@@ -14,6 +15,16 @@ def create_todo(doc,method):
 		d['allocated_to']=i
 		td=frappe.get_doc(d)
 		td.insert()
+
+	for i in drawing_user:
+		d={'doctype':"ToDo","priority":"High","reference_type":doctype}
+		d['description']="Please Start Work on Drawing"
+		d['reference_name']=doc.name
+		d['assigned_by']="amita@navya.biz"
+		d['allocated_to']=i
+		td=frappe.get_doc(d)
+		td.insert()
+
 
 
 @frappe.whitelist()
