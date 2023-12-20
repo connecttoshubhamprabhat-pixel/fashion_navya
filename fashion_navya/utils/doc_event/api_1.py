@@ -349,3 +349,25 @@ def before_submit_bom(doc,method):
     mr.insert()
     mr.submit()
     frappe.msgprint("MR is created")
+
+
+
+
+@frappe.whitelist()
+def update_price_item(doc,method):
+    item_doc=frappe.get_doc("Item",doc.item_code)
+    if item_doc.ignore_project==1:
+        item_doc.set("ignore_project",0)
+    if item_doc.ignore_project==0:
+        item_doc.set("ignore_project",1)
+    item_doc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def update_price_item(doc,method):
+    item_doc=frappe.get_doc("Item",doc.item)
+    if item_doc.ignore_project==1:
+        item_doc.set("ignore_project",0)
+    if item_doc.ignore_project==0:
+        item_doc.set("ignore_project",1)
+    item_doc.save(ignore_permissions=True)
