@@ -180,3 +180,39 @@ def check_bom_project_old():
 				if len(get_bom)!=0:
 					frappe.db.sql("""update `tabMaterial Request` set custom_bom=1 where name='{}'  """.format(m['name']))
 					frappe.db.commit()
+
+
+
+#calander mr
+@frappe.whitelist()
+def get_mr_details(filters=None):
+	events = []
+	event_color = {
+		"Stopped": "#cdf5a6",
+		"Manufactured": "#ffdd9e",
+		"Pending": "#D3D3D3",
+	}
+	#from frappe.desk.reportview import get_filters_cond
+	#conditions = get_filters_cond("", filters, [])
+
+	get_mr=frappe.db.sql("""select * from `tabMaterial Request` where docstatus<2 """,as_dict=1)
+	for d in get_mr:
+		color = event_color.get(d['status'])
+		subject_data = []
+		for field in ["name"]:
+			if not d.get(field):
+				continue
+
+		subject_data.append(d.get(field))
+
+		data = {
+			"due_date":d['schedule_date'],
+			"id":d['name'],
+			"status":d['status'],
+			"subject": "\n".join(subject_data),
+			"color": color if color else "#89bcde",
+		}
+		print(data)
+		events.append(data)
+
+	return events

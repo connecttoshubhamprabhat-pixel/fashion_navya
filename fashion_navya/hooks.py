@@ -55,7 +55,11 @@ doctype_list_js ={
 }
 
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
-# doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+doctype_calendar_js ={       
+        "Material Request" : "public/js/calendar/material_request_calendar.js",
+
+
+        }
 
 # Home Pages
 # ----------

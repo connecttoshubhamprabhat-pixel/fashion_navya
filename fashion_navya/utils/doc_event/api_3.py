@@ -149,3 +149,56 @@ def make_mv(source_name, target_doc = None):
     )
 
     return doc
+
+
+@frappe.whitelist()
+def get_mapped_subcontracting_order(source_name, target_doc=None):
+    if target_doc and isinstance(target_doc, str):
+        target_doc = json.loads(target_doc)
+        for key in ["service_items", "items", "supplied_items"]:
+            if key in target_doc:
+                del target_doc[key]
+        target_doc = json.dumps(target_doc)
+
+    target_doc = get_mapped_doc(
+		"Purchase Order",
+		source_name,
+		{
+			"Purchase Order": {
+				"doctype": "Subcontracting Order",
+				"field_map": {},
+				"field_no_map": ["total_qty", "total", "net_total"],
+				"validation": {
+					"docstatus": ["=", 1],
+				},
+			},
+			"Purchase Order Item": {
+				"doctype": "Subcontracting Order Service Item",
+				"field_map": {},
+				"field_no_map": [],
+			},
+		},
+		target_doc,
+	)
+
+
+    target_doc.populate_items_table()
+    if target_doc.set_warehouse:
+        for item in target_doc.items:
+            item.warehouse = target_doc.set_warehouse
+    else:
+        source_doc = frappe.get_doc("Purchase Order", source_name)
+        if source_doc.set_warehouse:
+            for item in target_doc.items:
+                item.warehouse = source_doc.set_warehouse
+        else:
+            for idx, item in enumerate(target_doc.items):
+                item.warehouse = source_doc.items[idx].warehouse
+
+
+
+    print(target_doc,"target_doddddddddddddddddddddddddddc")
+    target_doc.set("supplier_warehouse","Shamsudeen  - NAVYA")
+    target_doc.save()
+    target_doc.submit()
+    frappe.db.commit()
