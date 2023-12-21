@@ -335,13 +335,25 @@ def update_stock_cron():
 
 
 @frappe.whitelist()
-def before_submit_bom(doc,method):
+def make_default_bom(doc,method):
     doc.set("is_active",1)
     doc.set("is_default",1)
+
+@frappe.whitelist()
+def make_mr_first_bom(doc,method):
+    itemdoc=frappe.get_doc("Item",doc.item)
+    if not itemdoc.variant_of:
+        return
+    check_mr_exists=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item` where  item_code='{}' and  parent in (select name from `tabMaterial Request`  where docstatus=1 and custom_by_bom=1)  """.format(doc.item),as_dict=1)
+    if len(check_mr_exists)!=0:
+        return
+
+    #make mr code
     today = datetime.now().strftime('%Y-%m-%d')
     after_3_days = add_to_date(datetime.now(), days=3, as_string=True)
     m={"doctype":"Material Request","material_request_type":"Manufacture"}
     m['schedule_date']=after_3_days
+    m['custom_by_bom']=1
     m['set_warehouse']="Navya Store Office - NAVYA"
     mr=frappe.get_doc(m)
     row = mr.append("items", {})

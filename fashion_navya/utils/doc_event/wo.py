@@ -1,5 +1,18 @@
 import frappe
 import json
+import re
+from frappe.utils import cint, flt
+from frappe import utils
+from frappe.model.naming import make_autoname
+
+@frappe.whitelist(allow_guest=True)
+def autoname_wo_custom(doc,method):
+	today=utils.today()[2:4]
+	if doc.project:
+		get_project_no=re.findall(r'\d+',doc.project)
+		if get_project_no:
+			doc.name=make_autoname('WO-'+get_project_no[0]+"-"+today+"-"+".####")
+
 
 @frappe.whitelist(allow_guest=True)
 def fetch_msrement(doc,method):

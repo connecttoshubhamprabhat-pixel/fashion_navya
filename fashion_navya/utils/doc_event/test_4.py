@@ -43,3 +43,96 @@ def wo_notify():
 				td=frappe.get_doc(d)
 				td.insert()
 				frappe.db.commit()
+
+
+
+
+#remove uoms uplicate in Items
+@frappe.whitelist()
+def remove_duplicate_uoms(item_group=None):
+	get_items=frappe.db.sql("""select name from `tabItem` where item_group='{}' and disabled=0  """.format(item_group),as_dict=1)
+	added_attributes=[]
+	get_items=get_items
+	for i in get_items:
+		print(i['name'])
+		if i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+			if frappe.db.exists("Item",i['name']) and i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+				dup=[]
+				flag=[]
+				doc_item=frappe.get_doc("Item",i['name'])
+				doc_as_dict=doc_item.as_dict()
+				doc_item.uoms=[]
+				doc_item.attributes=[]
+				doc_item.item_defaults=[]
+				for m in doc_as_dict.attributes:
+					if m['attribute'] not in dup:
+						row=doc_item.append("attributes",{})
+						row.attribute=m['attribute']
+						row.attribute_value=m['attribute_value']
+						dup.append(m['attribute'])
+					else:
+						flag.append('aa')
+				if flag:
+					doc_item.save(ignore_permissions=True)
+					frappe.db.commit()
+
+
+
+@frappe.whitelist()
+def remove_duplicate_uoms_manual(name=None):
+	get_items=frappe.db.sql("""select name from `tabItem` where name='{}' and disabled=0  """.format(name),as_dict=1)
+	added_attributes=[]
+	get_items=get_items
+	for i in get_items:
+		print(i['name'])
+		if i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+			if frappe.db.exists("Item",i['name']) and i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+				dup=[]
+				flag=[]
+				doc_item=frappe.get_doc("Item",i['name'])
+				doc_as_dict=doc_item.as_dict()
+				doc_item.uoms=[]
+				doc_item.attributes=[]
+				doc_item.item_defaults=[]
+				for m in doc_as_dict.attributes:
+					if m['attribute'] not in dup:
+						row=doc_item.append("attributes",{})
+						row.attribute=m['attribute']
+						row.attribute_value=m['attribute_value']
+						dup.append(m['attribute'])
+					else:
+						flag.append('aa')
+				if flag:
+					doc_item.save(ignore_permissions=True)
+					frappe.db.commit()
+
+
+
+
+@frappe.whitelist()
+def remove_duplicate_uoms_cron():
+	get_items=frappe.db.sql("""select name from `tabItem` where item_group in ('Smaple','Ready Stock','M kit') disabled=0  """,as_dict=1)
+	added_attributes=[]
+	get_items=get_items
+	for i in get_items:
+		print(i['name'])
+		if i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+			if frappe.db.exists("Item",i['name']) and i['name'] not in ["0587SS18DBPP02.1-TUR-M-CHA\\"]:
+				dup=[]
+				flag=[]
+				doc_item=frappe.get_doc("Item",i['name'])
+				doc_as_dict=doc_item.as_dict()
+				doc_item.uoms=[]
+				doc_item.attributes=[]
+				doc_item.item_defaults=[]
+				for m in doc_as_dict.attributes:
+					if m['attribute'] not in dup:
+						row=doc_item.append("attributes",{})
+						row.attribute=m['attribute']
+						row.attribute_value=m['attribute_value']
+						dup.append(m['attribute'])
+					else:
+						flag.append('aa')
+				if flag:
+					doc_item.save(ignore_permissions=True)
+					frappe.db.commit()
