@@ -202,3 +202,15 @@ def get_mapped_subcontracting_order(source_name, target_doc=None):
     target_doc.save()
     target_doc.submit()
     frappe.db.commit()
+
+
+
+
+
+@frappe.whitelist()
+def cancel_mr_unlink(doc,method):
+	mr=frappe.db.sql("""select DISTINCT  name from `tabMaterial Request` where custom_payment_entry='{}' and docstatus=1  """.format(doc.name),as_dict=1)
+	if mr:
+		for i in mr:
+			mrdoc=frappe.get_doc("Material Request",i['name'])
+			mrdoc.cancel()
