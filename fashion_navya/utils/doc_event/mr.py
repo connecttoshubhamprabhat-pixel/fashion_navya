@@ -185,34 +185,28 @@ def check_bom_project_old():
 
 #calander mr
 @frappe.whitelist()
-def get_mr_details(filters=None):
-	events = []
-	event_color = {
-		"Stopped": "#cdf5a6",
-		"Manufactured": "#ffdd9e",
-		"Pending": "#D3D3D3",
-	}
-	#from frappe.desk.reportview import get_filters_cond
-	#conditions = get_filters_cond("", filters, [])
+def get_events_mr(start, end, filters=None):
+	from frappe.desk.calendar import get_event_conditions
+	conditions = get_event_conditions("Material Request", filters)
 
-	get_mr=frappe.db.sql("""select * from `tabMaterial Request` where docstatus<2 """,as_dict=1)
-	for d in get_mr:
-		color = event_color.get(d['status'])
-		subject_data = []
-		for field in ["name"]:
-			if not d.get(field):
-				continue
+	data = frappe.db.sql(
+		"""
+		select
+			distinct `tabMaterial Request`.name, IFNULL(`tabMaterial Request Item`.custom_customer,`tabMaterial Request Item`.project) as customer, `tabMaterial Request`.status,
+			`tabMaterial Request`.material_request_type as purpose, `tabMaterial Request`.schedule_date
+		from
+			`tabMaterial Request`, `tabMaterial Request Item`
+		where `tabMaterial Request`.name = `tabMaterial Request Item`.parent
+			and (ifnull(`tabMaterial Request Item`.schedule_date, '0000-00-00')!= '0000-00-00') \
+			and (`tabMaterial Request Item`.schedule_date between %(start)s and %(end)s)
+			and `tabMaterial Request`.docstatus < 2
+			{conditions}
+		""".format(
+			conditions=conditions
+		),
+		{"start": start, "end": end},
+		as_dict=True,
+		update={"allDay": 0},
+	)
 
-		subject_data.append(d.get(field))
-
-		data = {
-			"due_date":d['schedule_date'],
-			"id":d['name'],
-			"status":d['status'],
-			"subject": "\n".join(subject_data),
-			"color": color if color else "#89bcde",
-		}
-		print(data)
-		events.append(data)
-
-	return events
+	return data
