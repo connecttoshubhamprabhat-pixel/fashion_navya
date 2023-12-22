@@ -118,7 +118,8 @@ class CustomProductionPlan(ProductionPlan):
 					wo.submit()
 				return wo.name
 
-		except OverProductionError:
+		except Exception as e:
+			custom_logs(py_method="create_work_order",error_name=e)
 			pass
 
 
@@ -576,7 +577,7 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 	print(doc,'doc9')
 
 	if warehouses:
-		warehouses = list(set(get_warehouse_list(warehouses)))
+		warehouses = list(set(get_warehouse_list_custom(warehouses)))
 
 		if (
 			doc.get("for_warehouse")
@@ -873,3 +874,31 @@ def create_mr_for_reorder(items=None,values=None,project=None):
 
 		if project_saved>0:
 			project_doc.save()
+
+
+
+
+def get_warehouse_list_custom(warehouses):
+	warehouse_list = []
+	if isinstance(warehouses, str):
+		warehouses = json.loads(warehouses)
+
+	for row in warehouses:
+		child_warehouses = frappe.db.get_descendants("Warehouse", row.get("warehouse"))
+		if child_warehouses:
+
+			warehouse_list.extend(child_warehouses)
+		else:
+			warehouse_list.append(row.get("warehouse"))
+
+	if "Sampling Unit - NAVYA" in warehouse_list:
+		warehouse_list.remove("Sampling Unit - NAVYA")
+	return warehouse_list
+
+
+@frappe.whitelist()
+def custom_logs(py_method=None,error_name=None):
+	d={"doctype":"Custom Logs","info":error_name}
+	doc=frappe.get_doc(d)
+	doc.insert()
+	frappe.db.commit()
