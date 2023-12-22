@@ -209,8 +209,26 @@ def get_mapped_subcontracting_order(source_name, target_doc=None):
 
 @frappe.whitelist()
 def cancel_mr_unlink(doc,method):
-	mr=frappe.db.sql("""select DISTINCT  name from `tabMaterial Request` where custom_payment_entry='{}' and docstatus=1  """.format(doc.name),as_dict=1)
-	if mr:
-		for i in mr:
-			mrdoc=frappe.get_doc("Material Request",i['name'])
-			mrdoc.cancel()
+    if doc.references:
+        frappe.msgprint("aa")
+        if doc.references[0].reference_doctype=="Sales Order":
+            so=doc.references[0].reference_name
+            mr=frappe.db.sql("""select DISTINCT  parent from `tabMaterial Request Item` where sales_order='{}' and docstatus=1  """.format(so),as_dict=1)
+            if mr:
+                frappe.msgprint("aa1")
+                for i in mr:
+                    mrdoc=frappe.get_doc("Material Request",i['parent'])
+                    mrdoc.set("status","Cancelled")
+                    mrdoc.set("docstatus",2)
+                    mrdoc.set("workflow_state","Cancelled")
+                    mrdoc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def check_amount_so(doc,method):
+    if doc.references:
+        frappe.msgprint("aa")
+        if doc.references[0].reference_doctype=="Sales Order":
+            so=frappe.get_doc("Sales Order",doc.references[0].reference_name)
+            if doc.paid_amount>so.grand_total:
+                frappe.throw("Paid Amount is greater than Sales order Amount")

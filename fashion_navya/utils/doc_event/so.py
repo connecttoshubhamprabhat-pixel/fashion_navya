@@ -178,7 +178,7 @@ def make_mr_so(doc,method):
 				#get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
 				m={"doctype":"Material Request","material_request_type":"Manufacture"}
 				m['schedule_date']=new_date_delivery
-				m['custom_payment_entry']=doc.name
+				#m['custom_payment_entry']=doc.name
 				m['custom_automated']=1
 				mrm=frappe.get_doc(m)
 				row = mrm.append("items", {})
@@ -203,7 +203,7 @@ def maintenance_visit(so=None,pe=None):
 	doc=frappe.get_doc("Sales Order",so)
 	d={"doctype":"Maintenance Visit","customer":doc.customer,"completion_status":"Partially Completed"}
 	d['sales_order']=doc.name
-	d['custom_payment_entry']=pe
+	#d['custom_payment_entry']=pe
 	d['custom_visit_for']="Customise"
 	mv=frappe.get_doc(d)
 	cus=[]

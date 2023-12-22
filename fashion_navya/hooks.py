@@ -166,9 +166,9 @@ doc_events = {
 
     },
     "Payment Entry":{
-        "on_submit":["fashion_navya.utils.doc_event.so.make_mr_so"],
+        "on_submit":["fashion_navya.utils.doc_event.api_3.check_amount_so","fashion_navya.utils.doc_event.so.make_mr_so"],
         "on_cancel":["fashion_navya.utils.doc_event.api_3.cancel_mr_unlink"],
-        "after_insert":["fashion_navya.utils.doc_event.pe.check_duplicate_entry"],
+        "after_insert":["fashion_navya.utils.doc_event.api_3.check_amount_so","fashion_navya.utils.doc_event.pe.check_duplicate_entry"],
         "before_save":["fashion_navya.utils.doc_event.pe.set_account_by_user"],
     },
     "Bank Deposit Slip":{
