@@ -210,12 +210,12 @@ def get_mapped_subcontracting_order(source_name, target_doc=None):
 @frappe.whitelist()
 def cancel_mr_unlink(doc,method):
     if doc.references:
-        frappe.msgprint("aa")
+        #frappe.msgprint("aa")
         if doc.references[0].reference_doctype=="Sales Order":
             so=doc.references[0].reference_name
             mr=frappe.db.sql("""select DISTINCT  parent from `tabMaterial Request Item` where sales_order='{}' and docstatus=1  """.format(so),as_dict=1)
             if mr:
-                frappe.msgprint("aa1")
+                #frappe.msgprint("aa1")
                 for i in mr:
                     mrdoc=frappe.get_doc("Material Request",i['parent'])
                     mrdoc.set("status","Cancelled")
@@ -227,7 +227,7 @@ def cancel_mr_unlink(doc,method):
 @frappe.whitelist()
 def check_amount_so(doc,method):
     if doc.references:
-        frappe.msgprint("aa")
+        #frappe.msgprint("aa")
         if doc.references[0].reference_doctype=="Sales Order":
             so=frappe.get_doc("Sales Order",doc.references[0].reference_name)
             if doc.paid_amount>so.grand_total:

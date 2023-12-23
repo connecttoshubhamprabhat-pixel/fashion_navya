@@ -7,7 +7,7 @@ def set_barcode_all(group=None):
 	for i in items:
 		print(i['name'])
 		doc=frappe.get_doc("Item",i['name'])
-		
+
 		try:
 			doc.set("ignore_project",1)
 			doc.save()
@@ -118,3 +118,29 @@ def fetch_details_wo():
 					frappe.db.sql("""update `tabWork Order` set custom_sreceipt_date='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['posting_date'],i['work_order']))
 					frappe.db.sql("""update `tabWork Order` set custom_srstatus='{}' where docstatus=1 and name='{}'  """.format(get_sbr[0]['status'],i['work_order']))
 					frappe.db.commit()
+
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_msrement():
+	get_mr=frappe.db.sql("""select DISTINCT name from `tabWork Order` where material_request is not null or sales_order is not null and docstatus=1  """,as_dict=1)
+	if get_mr:
+		for w in get_mr:
+			doc=frappe.get_doc("Work Order",w['name'])
+			sos=[]
+			if len(doc.measurements_child)==0:
+				continue
+			if doc.sales_order:
+				sos.append(doc.sales_order)
+			else:
+				if doc.material_request:
+					mrd=frappe.get_doc("Material Request",doc.material_request)
+					for me in mrd.items:
+						sos.append(me.sales_order)
+			if sos:
+				item=doc.production_item.split("-")
+				y=[]
+				if "MTM"  in  item:
+					y.append("a")
+
+				
