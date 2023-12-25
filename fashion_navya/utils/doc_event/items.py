@@ -73,16 +73,22 @@ def create_item_customer(items=None,values=None,so=None,customer=None):
     values=json.loads(values)
     size_get=values.get("size")
     type_get=values.get("type")
+    colour=values.get("colour")
+    fabric=values.get("fabric")
+    prints=values.get("prints")
+    handwork=values.get("handwork")
+
+
 
     if type_get=="Customise":
         print(78)
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get)
+        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints)
         data=[]
         data.append(item)
         data.append("Customise")
         return data
     if type_get=="RTW":
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get)
+        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints)
         data=[]
         data.append(item)
         data.append("RTW")
@@ -272,7 +278,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
 
 #sales ordr-sales order
 @frappe.whitelist(allow_guest=True)
-def make_rtw_item_so(items=None,so=None,size=None,type=None):
+def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=None,handwork=None,fabric=None):
     if not items and not size:
         return
 
@@ -338,8 +344,12 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None):
         d['Size']=get_name_of_abr[0]['attribute_value']
         print()
         d['Item Group']="Ready To Wear"
+        d['Colour']=colour
+        d['Fabric']=fabric
+        d['Handwork']=handwork
+        d['Print']=prints
+        #color option give to varinat
         print("282",d)
-        print(size,'size')
         get_exists=get_variant(item_doc.variant_of, d)
         if get_exists:
             get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus <2 and item='{}'  """.format(get_exists),as_dict=1)
@@ -611,3 +621,32 @@ def item_remame(name=None):
             return join_final_name
         else:
             return " .."
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_color_options(items=None,aname=None):
+    items=json.loads(items)
+    projects=[]
+    for i in items:
+        ##print(i,"999")
+        item=frappe.get_doc("Item",i)
+        if item.project:
+            #print(item.project,"99")
+            projects.append(item.project)
+    if projects:
+        print(629)
+        if frappe.db.exists("Project",projects[-1]):
+            print(631)
+            project=frappe.get_doc("Project",projects[-1])
+            colours=[]
+            if project.project_item_attribute:
+                for i in project.project_item_attribute:
+                    if i.attribute==aname:
+                        splits=i.attribute_values.split(",")
+                        if splits:
+                            for c in splits:
+                                colours.append(c)
+                            break
+            print(colours,"aa")
+            return colours or []

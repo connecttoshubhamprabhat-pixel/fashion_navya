@@ -2,6 +2,7 @@ import frappe
 from datetime import datetime # from python std library
 from frappe.utils import add_to_date
 from erpnext.accounts.utils import get_balance_on
+from frappe import utils
 from erpnext.stock.dashboard.item_dashboard import get_data
 
 @frappe.whitelist()
@@ -67,6 +68,7 @@ def delete_item_so(doc,method):
 @frappe.whitelist()
 def make_mr_so(doc,method):
 	so=[]
+	today_date=utils.today()
 	if doc.custom_skip_mr:
 		return
 	if doc.references:
@@ -86,6 +88,12 @@ def make_mr_so(doc,method):
 		#return
 		ddate_so=str(sodoc.delivery_date)
 		new_date_delivery = add_to_date(ddate_so, days=-3, as_string=True)
+		print(new_date_delivery,today_date)
+		if str(today_date)>new_date_delivery:
+			return
+			#frappe.msgprint("a")
+			#new_date_delivery=str(today_date)
+
 		if get_percent>amt_adv:
 			frappe.msgprint("Payment is less then 40 percent")
 			return
@@ -162,7 +170,11 @@ def make_mr_so(doc,method):
 					row.sales_order_item=get_id_soi[0]['name']
 					row.custom_delivery_date=new_date_delivery
 
-				mr.insert()
+				#mr.flags.ignore_validate = True
+
+				mr.insert(ignore_permissions=True)
+
+				#mr.flags.ignore_validate = True
 				mr.submit()
 				frappe.msgprint("MR created for Transfer")
 

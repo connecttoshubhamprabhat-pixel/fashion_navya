@@ -23,7 +23,9 @@ def create_todo(doc,method):
 		d['assigned_by']="amita@navya.biz"
 		d['allocated_to']=i
 		td=frappe.get_doc(d)
-		td.insert()
+		exists=frappe.db.sql("""select name from `tabToDo` where reference_type='{}'  and reference_name='{}' and status!="Cancelled" """.format(doctype,doc.name),as_dict=1)
+		if len(exists)==0:
+			td.insert()
 
 
 
@@ -95,8 +97,10 @@ def create_todo_cs(doctype=None,name=None,msg=None,action=None,user_list=None,do
 			d['assigned_by']="amita@navya.biz"
 			d['allocated_to']=i
 			td=frappe.get_doc(d)
-			td.insert()
-			frappe.db.commit()
+			exists=frappe.db.sql("""select name from `tabToDo` where reference_type='{}'  and reference_name='{}' and status!="Cancelled" """.format(doctype,name),as_dict=1)
+			if len(exists)==0:
+				td.insert()
+				frappe.db.commit()
 
 
 
@@ -117,8 +121,9 @@ def create_todo_mr_bom(doc,method):
 			d['assigned_by']="amita@navya.biz"
 			d['allocated_to']=i
 			td=frappe.get_doc(d)
-			td.insert()
-
+			exists=frappe.db.sql("""select name from `tabToDo` where reference_type='{}'  and reference_name='{}' and status!="Cancelled" """.format(doctype,doc.name),as_dict=1)
+			if len(exists)==0:
+				td.insert()
 
 	#bom notification
 	for i in doc.items:
@@ -134,7 +139,9 @@ def create_todo_mr_bom(doc,method):
 						d['assigned_by']="amita@navya.biz"
 						d['allocated_to']=u
 						td=frappe.get_doc(d)
-						td.insert()
+						exists=frappe.db.sql("""select name from `tabToDo` where reference_type='{}'  and reference_name='{}' and status!="Cancelled" """.format("BOM",b['name']),as_dict=1)
+						if len(exists)==0:
+							td.insert()
 
 			else:
 				for ur in bom_users:
@@ -144,8 +151,9 @@ def create_todo_mr_bom(doc,method):
 					d['assigned_by']="amita@navya.biz"
 					d['allocated_to']=ur
 					td=frappe.get_doc(d)
-					td.insert()
-
+					exists=frappe.db.sql("""select name from `tabToDo` where reference_type='{}'  and reference_name='{}' and status!="Cancelled" """.format("Item",i.item_code),as_dict=1)
+					if len(exists)==0:
+						td.insert()
 
 
 
