@@ -639,7 +639,7 @@ def get_color_options(items=None,aname=None):
         if frappe.db.exists("Project",projects[-1]):
             print(631)
             project=frappe.get_doc("Project",projects[-1])
-            colours=[]
+            colours=[" "]
             if project.project_item_attribute:
                 for i in project.project_item_attribute:
                     if i.attribute==aname:
