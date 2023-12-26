@@ -229,5 +229,5 @@ def remove_other_wstock(doc,method):
 			for w in wlist:
 				data=get_data(item_code=item.item_code,warehouse=w)
 				if not data and item.item_code not in items_list:
-					doc.get('items').remove(item.item_code)
+					doc.get('items').remove(item)
 			items_list.append(item.item_code)

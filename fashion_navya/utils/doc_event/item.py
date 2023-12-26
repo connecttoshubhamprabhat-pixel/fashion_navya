@@ -419,7 +419,7 @@ def make_se_entry(items=None,values=None):
 	tw=values.get("t_warehouse")
 	child_w=[]
 	user=frappe.session.user
-	super_user=["amita@navya.biz"]
+	super_user=["amita@navya.biz","pawasthy11@gmail.com"]
 	if items:
 		d={"doctype":"Stock Entry","stock_entry_type":"Material Transfer"}
 		d['rfse']="Stock Transfer"
@@ -437,10 +437,17 @@ def make_se_entry(items=None,values=None):
 				frappe.throw("You can't transfer from this warehouse")
 
 			for i in items:
+				qty_total=0
+				datas=get_data(item_code=i.get('name'),warehouse=sw)
+				if datas:
+					for data in datas:
+						if data['actual_qty']>0:
+							qty_total+=data['actual_qty']
 				row = se.append("items", {})
 				row.item_code=i.get('name')
 				row.s_warehouse=sw
 				row.t_warehouse=tw
+				row.qty=qty_total or 1
 
 			se.insert()
 			if se:
@@ -453,6 +460,7 @@ def make_se_entry(items=None,values=None):
 				#frappe.msgprint(k.get("name"))
 				stock=get_data(item_code=k.get("name"))
 				w_new=[]
+				child_w=list(set(child_w))
 				if len(stock)!=0:
 					for j in stock:
 						if j['actual_qty']>0 and j['warehouse'] in child_w:
@@ -464,15 +472,25 @@ def make_se_entry(items=None,values=None):
 					frappe.msgprint("Item is  not in Santushti: {}".format(k.get('name')))
 					continue
 				if w_new:
-					for m in w_new:
-						exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(m.get("warehouse"),user),as_dict=1)
+					for m in child_w:
+						exists=frappe.db.sql("""select name from `tabLocation Wise Warehoue`  where parent="PFL-2023-00001" and warehouse='{}' and user='{}'   """.format(m,user),as_dict=1)
 						if len(exists)==0 and user not in super_user:
-							msg="You can't transfer from this warehouse: {}".format(m.get("warehouse"))
+							msg="You can't transfer from this warehouse: {}".format(m)
 							frappe.throw(msg)
+
+
+						qty_total=0
+						datas=get_data(item_code=k.get('name'),warehouse=m)
+						if datas:
+							for d1 in datas:
+								if d1['actual_qty']>0:
+									qty_total+=d1['actual_qty']
+
 						row = se.append("items", {})
-						row.item_code=m.get('item_code')
-						row.s_warehouse=m.get("warehouse")
+						row.item_code=k.get("name")
+						row.s_warehouse=m
 						row.t_warehouse=tw
+						row.qty=qty_total or 1
 
 			se.insert()
 			#frappe.msgprint("Created")
