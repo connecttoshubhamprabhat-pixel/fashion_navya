@@ -231,3 +231,26 @@ def remove_other_wstock(doc,method):
 				if not data and item.item_code not in items_list:
 					doc.get('items').remove(item.item_code)
 			items_list.append(item.item_code)
+
+
+
+
+
+@frappe.whitelist()
+def fetch_items_from_stock_entry(stock_entry_name, physical_stock_review):
+	stock_entry_doc = frappe.get_doc('Stock Entry', stock_entry_name)
+	physical_stock_review_doc = frappe.get_doc('Physical Stock Review', physical_stock_review)
+
+    # Clear existing items in physical stock review
+	physical_stock_review_doc.set('items', [])
+
+    # Loop through items in the stock entry and add them to the physical stock review
+	for item in stock_entry_doc.items:
+		physical_stock_review_doc.append('items', {
+            'item_code': item.item_code,
+            'item_name': item.item_name,
+            'aqty': item.qty,
+            # Add other necessary fields
+			})
+
+	physical_stock_review_doc.save()
