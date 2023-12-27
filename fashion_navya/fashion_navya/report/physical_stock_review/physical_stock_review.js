@@ -15,8 +15,7 @@ frappe.query_reports["Physical Stock Review"] = {
 			fieldname: "diff_type",
 			label: __("Diff Qty Type"),
 			fieldtype: "Select",
-			default:"Plus",
-			options:["PLus","Minus","Both"],
+			options:["Plus","Minus","Both"],
 			reqd:1
 		},
 

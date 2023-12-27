@@ -7,8 +7,7 @@ from frappe import _
 from frappe.utils import flt, time_diff_in_hours
 
 
-def execute(filters=None):
-	filters = frappe._dict(filters or {})
+def execute(filters):
 	columns = get_columns()
 	data = get_data(filters)
 	return columns, data
@@ -18,45 +17,49 @@ def get_data(filters):
 	data = []
 	if not filters.phy:
 		return []
-	doc=frappe.get_doc("Physical Stock Review",filters.phy)
-	if filters.diff_type=="Plus" and doc.docstatus==1:
-		if doc.items:
-			for i in doc.items:
-				if i.dqty>0:
+	phy=frappe.db.sql("""select * from `tabPhysical Scan` where parent='{}' """.format(filters.phy),as_dict=1)
+	#doc=frappe.get_doc("Physical Stock Review",filters.phy)
+	if filters.diff_type=="Plus" and len(phy)!=0:
+		if len(phy)!=0:
+			for i in phy:
+				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
+				if i['dqty']>0:
 					d={}
-					d['warehouse']=doc.warehouse
-					d['item']=i.item_code
-					d['wqty']=i.aqty
-					d['sqty']=i.sqty
-					d['dqty']=i.dqty
-					d['date']=i.posting_date
+					#d['warehouse']=i['warehouse']
+					d['item']=i['item_code']
+					d['wqty']=i['aqty']
+					d['sqty']=i['sqty']
+					d['dqty']=i['dqty']
+					#d['date']=parent[0]['posting_date']
 					data.append(d)
 
-	if filters.diff_type=="Both" and doc.docstatus==1:
-		if doc.items:
-			for i in doc.items:
+	if filters.diff_type=="Both" and len(phy)!=0:
+		if phy:
+			for i in phy:
 				d={}
-				d['warehouse']=doc.warehouse
-				d['item']=i.item_code
-				d['wqty']=i.aqty
-				d['sqty']=i.sqty
-				d['dqty']=i.dqty
-				d['date']=i.posting_date
+				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
+				#d['warehouse']=i['warehouse']
+				d['item']=i['item_code']
+				d['wqty']=i['aqty']
+				d['sqty']=i['sqty']
+				d['dqty']=i['dqty']
+				#d['date']=parent[0]['posting_date']
 				data.append(d)
 
 
 
-	if filters.diff_type=="Minus" and doc.docstatus==1:
-		if doc.items:
-			for i in doc.items:
-				if i.dqty<0:
+	if filters.diff_type=="Minus" and len(phy)!=0:
+		if phy:
+			for i in phy:
+				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
+				if i['dqty']<0:
 					d={}
-					d['warehouse']=doc.warehouse
-					d['item']=i.item_code
-					d['wqty']=i.aqty
-					d['sqty']=i.sqty
-					d['dqty']=i.dqty
-					d['date']=i.posting_date
+					#d['warehouse']=i['warehouse']
+					d['item']=i['item_code']
+					d['wqty']=i['aqty']
+					d['sqty']=i['sqty']
+					d['dqty']=i['dqty']
+					#d['date']=parent[0]['posting_date']
 					data.append(d)
 
 	return data
@@ -105,4 +108,4 @@ def get_columns():
 			"fieldtype": "int",
 			"fieldname": "dqty",
 			"width": 200,
-		},]
+		}]
