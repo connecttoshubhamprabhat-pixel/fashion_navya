@@ -144,3 +144,10 @@ def fetch_msrement():
 					y.append("a")
 
 				
+
+@frappe.whitelist()
+def check_subconrcat(doc,method):
+	name=doc.name
+	split=name.split("-")
+	if 'RTW' in  split or  'MTM' in split:
+		doc.set("is_sub_contracted_item",1)
