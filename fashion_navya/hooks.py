@@ -304,7 +304,7 @@ doc_events = {
 
                                 },
                             "Purchase Invoice":{
-                                    "before_submit":["fashion_navya.utils.doc_event.pi.link_setup_subcontrcat"],
+                                    #"before_submit":["fashion_navya.utils.doc_event.pi.link_setup_subcontrcat"],
 
 
                                     },
