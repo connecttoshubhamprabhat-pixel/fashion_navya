@@ -34,7 +34,7 @@ def make_price_doc(item=None,rate=None):
         return
 
     today = datetime.now().strftime('%Y-%m-%d')
-    before_2_days = add_to_date(datetime.now(), days=-2, as_string=True)
+    before_2_days = add_to_date(datetime.now(), days=-3, as_string=True)
     d={"doctype":"Item Price","item_code":item,"price_list":"Selling"}
     d['price_list_rate']=rate
     ip=frappe.get_doc(d)
@@ -65,11 +65,14 @@ def make_ptt_so(old=None,new=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def create_item_customer(items=None,values=None,so=None,customer=None):
+def create_item_customer(items=None,values=None,so=None,customer=None,rate=None):
     if not customer:
         frappe.throw("Please select customer")
     items=json.loads(items)
     #frappe.throw("aa")
+    rates=json.loads(rate)
+    rate=rates[0]
+
     values=json.loads(values)
     size_get=values.get("size")
     type_get=values.get("type")
@@ -82,19 +85,19 @@ def create_item_customer(items=None,values=None,so=None,customer=None):
 
     if type_get=="Customise":
         print(78)
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints)
+        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints,rate=rate)
         data=[]
         data.append(item)
         data.append("Customise")
         return data
     if type_get=="RTW":
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints)
+        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints,rate=rate)
         data=[]
         data.append(item)
         data.append("RTW")
         return data
     if type_get=="MTM":
-        item=make_MTM_item(items=items,so=so,size=size_get,customer=customer,type=type_get)
+        item=make_MTM_item(items=items,so=so,size=size_get,customer=customer,type=type_get,rate=rate)
         data=[]
         data.append(item)
         data.append("MTM")
@@ -119,7 +122,7 @@ def make_customer_items(items=None,so=None,size=None,customer=None):
         #get price_list
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
-        if int(perdoc.cms)>int(price):
+        if int(perdoc.cms)>10000:
             frappe.msgprint("The Price is less then 10000")
             return
 
@@ -163,7 +166,7 @@ def make_customer_items(items=None,so=None,size=None,customer=None):
         n.save(ignore_permissions=True)
         n.db_set("description",des, update_modified=False)
         make_kit_item(name=n.name)
-        make_price_doc(item=n.name,rate=price)
+        make_price_doc(item=n.name,rate=rate)
         make_bom(new=n.name,submit=submit,variant=0,bom=bom)
         all_item.append(n.name)
 
@@ -172,7 +175,7 @@ def make_customer_items(items=None,so=None,size=None,customer=None):
 
 
 @frappe.whitelist()
-def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
+def make_MTM_item(items=None,so=None,size=None,customer=None,type=None,rate=0):
     if not customer:
         frappe.msgprint("Please Select Customer")
         return
@@ -213,7 +216,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
         #get price_list
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
-        if int(perdoc.mtm)>int(price):
+        if int(perdoc.mtm)>rate:
             frappe.msgprint("The Price is less then 10000")
             return
 
@@ -263,7 +266,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
         n.db_set("description",des, update_modified=False)
         #n.db_set("item_name",n_name_new, update_modified=False)
         make_kit_item(name=n.name)
-        make_price_doc(item=n.name,rate=price)
+        make_price_doc(item=n.name,rate=rate)
         all_item.append(n.name)
         make_bom(new=n.name,submit=0,variant=0,bom=bom)
         make_ptt_so(old=parent_doc.name,new=n.name)
@@ -278,7 +281,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None):
 
 #sales ordr-sales order
 @frappe.whitelist(allow_guest=True)
-def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=None,handwork=None,fabric=None):
+def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=None,handwork=None,fabric=None,rate=0):
     if not items and not size:
         return
 
@@ -293,7 +296,7 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
         price=set_price(item_code=m)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
         if type=="Customise":
-            if int(perdoc.cms)>int(price):
+            if int(perdoc.cms)>rate:
                 frappe.msgprint("The Price is less then 10000")
                 return
 
@@ -640,9 +643,10 @@ def get_color_options(items=None,aname=None):
             print(631)
             project=frappe.get_doc("Project",projects[-1])
             colours=[""]
-            if project.project_item_attribute:
+            if len(project.project_item_attribute)!=0:
                 for i in project.project_item_attribute:
-                    if i.attribute==aname:
+                    print(i.attribute_values,'i.attribute_values')
+                    if i.attribute==aname and i.attribute_values!=None:
                         splits=i.attribute_values.split(",")
                         if splits:
                             for c in splits:
