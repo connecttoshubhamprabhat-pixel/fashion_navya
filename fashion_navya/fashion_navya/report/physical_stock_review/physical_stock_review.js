@@ -6,9 +6,9 @@ frappe.query_reports["Physical Stock Review"] = {
 	"filters": [
 		{
 			fieldname: "phy",
-			label:"Physical Stock  Review",
+			label:"Physical Stock Count",
 			fieldtype: "Link",
-			options: "Physical Stock  Review",
+			options: "Physical Stock Count",
 			reqd: 1
 		},
 		{

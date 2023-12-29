@@ -17,33 +17,33 @@ def get_data(filters):
 	data = []
 	if not filters.phy:
 		return []
-	phy=frappe.db.sql("""select * from `tabPhysical Scan` where parent='{}' """.format(filters.phy),as_dict=1)
-	#doc=frappe.get_doc("Physical Stock Review",filters.phy)
-	if filters.diff_type=="Plus" and len(phy)!=0:
+	#phy=frappe.db.sql("""select * from `tabPhysical Scan` where parent='{}' """.format(filters.phy),as_dict=1)
+	doc=frappe.get_doc("Physical Stock Count",filters.phy)
+	if filters.diff_type=="Plus" and len(doc)!=0:
 		if len(phy)!=0:
-			for i in phy:
+			for i in doc.items:
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
-				if i['dqty']>0:
+				if i.dqty>0:
 					d={}
-					#d['warehouse']=i['warehouse']
-					d['item']=i['item_code']
-					d['wqty']=i['aqty']
-					d['sqty']=i['sqty']
-					d['dqty']=i['dqty']
-					#d['date']=parent[0]['posting_date']
+					d['warehouse']=doc.warehouse
+					d['item']=i.item_code
+					d['wqty']=i.aqty
+					d['sqty']=i.sqty
+					d['dqty']=i.dqty
+					d['date']=doc.posting_date
 					data.append(d)
 
 	if filters.diff_type=="Both" and len(phy)!=0:
 		if phy:
-			for i in phy:
+			for i in doc.items:
 				d={}
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
-				#d['warehouse']=i['warehouse']
-				d['item']=i['item_code']
-				d['wqty']=i['aqty']
-				d['sqty']=i['sqty']
-				d['dqty']=i['dqty']
-				#d['date']=parent[0]['posting_date']
+				d['warehouse']=doc.warehouse
+				d['item']=i.item_code
+				d['wqty']=i.aqty
+				d['sqty']=i.sqty
+				d['dqty']=i.dqty
+				d['date']=doc.posting_date
 				data.append(d)
 
 
@@ -52,14 +52,14 @@ def get_data(filters):
 		if phy:
 			for i in phy:
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
-				if i['dqty']<0:
+				if i.dqty<0:
 					d={}
-					#d['warehouse']=i['warehouse']
-					d['item']=i['item_code']
-					d['wqty']=i['aqty']
-					d['sqty']=i['sqty']
-					d['dqty']=i['dqty']
-					#d['date']=parent[0]['posting_date']
+					d['warehouse']=doc.warehouse
+					d['item']=i.item_code
+					d['wqty']=i.aqty
+					d['sqty']=i.sqty
+					d['dqty']=i.dqty
+					d['date']=doc.posting_date
 					data.append(d)
 
 	return data
