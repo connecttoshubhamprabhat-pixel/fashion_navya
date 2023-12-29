@@ -232,3 +232,25 @@ def check_amount_so(doc,method):
             so=frappe.get_doc("Sales Order",doc.references[0].reference_name)
             if doc.paid_amount>so.grand_total:
                 frappe.throw("Paid Amount is greater than Sales order Amount")
+
+
+
+
+@frappe.whitelist()
+def make_putway(items=None,values=None):
+    items=json.loads(items)
+    values=json.loads(values)
+    d={"doctype":"Putaway Rule","priority":values.get("priority")}
+    d['capacity']=values.get("capacity")
+    d['warehouse']=values.get("warehouse")
+    d['stock_uom']="Nos"
+    d['uom']="Nos"
+    created=0
+    if items:
+        for i in items:
+            d['item_code']=i
+            doc=frappe.get_doc(d)
+            doc.insert()
+            created=1
+    if created:
+        frappe.msgprint("created")
