@@ -149,12 +149,12 @@ def get_items_core(
 def merge_entry(items=None):
 	items=json.loads(items)
 	if items:
-		d={"doctype":"Physical Stock Review"}
+		d={"doctype":"Physical Stock Count"}
 		all_items=[]
 		duplicate=[]
 		for i in items:
 			print(i,'qqqqqqqqqqqq')
-			doc=frappe.get_doc("Physical Stock Review",i)
+			doc=frappe.get_doc("Physical Stock Count",i)
 			for j in doc.items:
 				print(j.item_code,'11111111')
 				fdic={}
@@ -239,7 +239,7 @@ def remove_other_wstock(doc,method):
 @frappe.whitelist()
 def fetch_items_from_stock_entry(stock_entry_name, physical_stock_review):
 	stock_entry_doc = frappe.get_doc('Stock Entry', stock_entry_name)
-	physical_stock_review_doc = frappe.get_doc('Physical Stock Review', physical_stock_review)
+	physical_stock_review_doc = frappe.get_doc('Physical Stock Count', physical_stock_review)
 
     # Clear existing items in physical stock review
 	physical_stock_review_doc.set('items', [])

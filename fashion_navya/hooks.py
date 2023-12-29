@@ -230,7 +230,7 @@ doc_events = {
 
                 },
 
-            "Physical Stock  Review":{
+            "Physical Stock Count":{
                         "before_submit":["fashion_navya.utils.doc_event.phy.remove_other_wstock","fashion_navya.utils.doc_event.phy.calculate_stock_phy"],
                         "after_insert":["fashion_navya.utils.doc_event.phy.collab_items"],
                         #"before_save":["fashion_navya.utils.doc_event.phy.remove_other_wstock"],

@@ -251,7 +251,7 @@ def create_tag_m_all(name=None):
 def create_phy(name=None):
 	doc=frappe.get_doc("Stock Entry",name)
 	if doc.stock_entry_type=="Material Transfer":
-		d={"doctype":"Physical Stock Review","stock_entry":doc.name}
+		d={"doctype":"Physical Stock Count","stock_entry":doc.name}
 		tag=frappe.get_doc(d)
 		for i in doc.items:
 			item_doc=frappe.get_doc("Item",i.item_code)

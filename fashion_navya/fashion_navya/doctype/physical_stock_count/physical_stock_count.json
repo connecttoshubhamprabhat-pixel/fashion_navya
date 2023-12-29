@@ -1,0 +1,153 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2023-12-28 16:12:37.347475",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_pzws",
+  "posting",
+  "scan_barcode",
+  "column_break_wyua",
+  "skip_warehouse",
+  "stock_entry",
+  "warehouse",
+  "naming_series",
+  "section_break_kaoz",
+  "items",
+  "section_break_x6w0",
+  "total_qty",
+  "column_break_8lcs",
+  "atotal",
+  "td",
+  "section_break_fjiz",
+  "note",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_pzws",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Physical Stock Count",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting",
+   "fieldtype": "Date",
+   "label": "Posting"
+  },
+  {
+   "default": "0",
+   "fieldname": "skip_warehouse",
+   "fieldtype": "Check",
+   "label": "Skip Warehouse"
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Stock Entry",
+   "options": "Stock Entry"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "options": "PSC-.YYYY.-"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "scan_barcode",
+   "fieldtype": "Data",
+   "label": "Scan Barcode",
+   "options": "Barcode"
+  },
+  {
+   "fieldname": "section_break_kaoz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Physical Scan"
+  },
+  {
+   "fieldname": "section_break_x6w0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Float",
+   "label": "Total Scan Qty"
+  },
+  {
+   "fieldname": "column_break_8lcs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "atotal",
+   "fieldtype": "Float",
+   "label": "Warehouse Qty Total"
+  },
+  {
+   "fieldname": "td",
+   "fieldtype": "Float",
+   "label": "Total Diff"
+  },
+  {
+   "fieldname": "section_break_fjiz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Text",
+   "label": "note"
+  },
+  {
+   "fieldname": "column_break_wyua",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2023-12-29 11:22:01.965181",
+ "modified_by": "Administrator",
+ "module": "Fashion Navya",
+ "name": "Physical Stock Count",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
