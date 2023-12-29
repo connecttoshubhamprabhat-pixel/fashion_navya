@@ -19,47 +19,50 @@ def get_data(filters):
 		return []
 	#phy=frappe.db.sql("""select * from `tabPhysical Scan` where parent='{}' """.format(filters.phy),as_dict=1)
 	doc=frappe.get_doc("Physical Stock Count",filters.phy)
-	if filters.diff_type=="Plus" and len(doc)!=0:
-		if len(phy)!=0:
+	if filters.diff_type=="Plus":
+		if doc.items:
 			for i in doc.items:
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
 				if i.dqty>0:
 					d={}
 					d['warehouse']=doc.warehouse
+					d['se']=doc.stock_entry
 					d['item']=i.item_code
 					d['wqty']=i.aqty
 					d['sqty']=i.sqty
 					d['dqty']=i.dqty
-					d['date']=doc.posting_date
+					d['date']=doc.posting
 					data.append(d)
 
-	if filters.diff_type=="Both" and len(phy)!=0:
-		if phy:
+	if filters.diff_type=="Both" and doc:
+		if doc.items:
 			for i in doc.items:
 				d={}
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
 				d['warehouse']=doc.warehouse
+				d['se']=doc.stock_entry
 				d['item']=i.item_code
 				d['wqty']=i.aqty
 				d['sqty']=i.sqty
 				d['dqty']=i.dqty
-				d['date']=doc.posting_date
+				d['date']=doc.posting
 				data.append(d)
 
 
 
-	if filters.diff_type=="Minus" and len(phy)!=0:
-		if phy:
-			for i in phy:
+	if filters.diff_type=="Minus" and doc:
+		if doc.items:
+			for i in doc.items:
 				#parent=frappe.db.sql("""select * from `tabPhysical Stock Review` where name='{}'  """.format(i['parent']),as_dict=1)
 				if i.dqty<0:
 					d={}
 					d['warehouse']=doc.warehouse
+					d['se']=doc.stock_entry
 					d['item']=i.item_code
 					d['wqty']=i.aqty
 					d['sqty']=i.sqty
 					d['dqty']=i.dqty
-					d['date']=doc.posting_date
+					d['date']=doc.posting
 					data.append(d)
 
 	return data
@@ -81,6 +84,13 @@ def get_columns():
 			"options":"Warehouse",
 			"width":200,
 		},
+		{
+                        "label":"Stock Entry",
+                        "fieldtype":"Link",
+                        "fieldname":"se",
+                        "options":"Stock Entry",
+                        "width":200,
+                },
 
 		{
 			"label": _("Item"),
