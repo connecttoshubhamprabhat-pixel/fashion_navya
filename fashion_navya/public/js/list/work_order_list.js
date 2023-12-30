@@ -10,8 +10,9 @@ frappe.listview_settings['Work Order'] = {
 		// 				frappe.set_route("List", "Work Order", "Calendar");
     //            }
 			if (user_list.includes(user)){
-				frappe.route_options = {"sales_order":["is","set"]};
-				frappe.set_route("List", "Work Order");
+				console.log('a')
+			//	frappe.route_options = {"sales_order":["is","set"]};
+			//	frappe.set_route("List", "Work Order");
 
 			}
 

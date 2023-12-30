@@ -153,11 +153,11 @@ doc_events = {
     },
     "Work Order":{
         "autoname":["fashion_navya.utils.doc_event.wo.autoname_wo_custom"],
-        "validate":["fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
+        "validate":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_submit":["fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "on_update":["fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "after_insert":["fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
+        "after_insert":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
@@ -239,7 +239,7 @@ doc_events = {
             "BOM":{
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
                "before_submit":["fashion_navya.utils.doc_event.api_1.make_default_bom","fashion_navya.utils.doc_event.api_1.make_mr_first_bom","fashion_navya.utils.doc_event.bom.before_submit_check_kit","fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
-               "after_insert":["fashion_navya.utils.doc_event.bom.remove_disabled_items"],
+               "after_insert":["fashion_navya.utils.doc_event.wo.replace_items_bom","fashion_navya.utils.doc_event.bom.remove_disabled_items"],
                "on_cancel":["fashion_navya.utils.doc_event.mr.uncheck_is_bom_mr"],
 
                 },

@@ -214,3 +214,23 @@ def fetch_msrement_mr(doc,method):
 					row.parameter=i.parameter
 					row.round=i.round
 					row.label=i.label
+
+
+
+@frappe.whitelist(allow_guest=True)
+def replace_items_wo(doc,method):
+	items_problem=["SHNT50G.","POP001C","LYCFUSWHI"]
+	if doc.required_items:
+		for i in doc.required_items:
+			if i.item_code in items_problem:
+				if frappe.db.exists("Item",i.item_code+"-"+"New"):
+					i.set("item_code",i.item_code+"-"+"New")
+@frappe.whitelist(allow_guest=True)
+def replace_items_bom(doc,method):
+	items_problem=["SHNT50G.","POP001C","LYCFUSWHI"]
+	if doc.items:
+		for i in doc.items:
+			if i.item_code in items_problem:
+				if frappe.db.exists("Item",i.item_code+"-"+"New"):
+					i.set("item_code",i.item_code+"-"+"New")
+

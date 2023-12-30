@@ -254,3 +254,28 @@ def make_putway(items=None,values=None):
             created=1
     if created:
         frappe.msgprint("created")
+
+
+
+@frappe.whitelist()
+def get_pending_qty_mr(name=None):
+	if not name:
+		return
+
+	doc=frappe.get_doc("Material Request",name)
+	yes=0
+	if doc.items:
+		for i in doc.items:
+			qty=frappe.db.sql("""select sum(qty-produced_qty) as total from `tabWork Order` where docstatus=1 and production_item='{}' """.format(i.item_code),as_dict=1)
+			if qty:
+				if qty[0]['total']!=None:
+					if qty[0]['total']>0:
+						i.set("qty",qty[0]['total'])
+						yes=1
+					else:
+						#i.set("qty",4444)
+						frappe.msgprint("Pending Qty is not exists for row:-{}  ".format(i.idx))
+
+	if yes:
+		doc.save()
+		frappe.msgprint("Qty Updated")
