@@ -1,3 +1,4 @@
+
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
@@ -90,6 +91,7 @@ class CustomProductionPlan(ProductionPlan):
 
 
 		pending_mr = pending_mr_query.run(as_dict=True)
+		print(pending_mr,'pending_mr')
 		self.add_mr_in_table(pending_mr)
 
 
@@ -106,7 +108,6 @@ class CustomProductionPlan(ProductionPlan):
 
 		wo.set_work_order_operations()
 		wo.set_required_items()
-
 		try:
 			wo.flags.ignore_mandatory = True
 			wo.flags.ignore_validate = True
@@ -117,7 +118,6 @@ class CustomProductionPlan(ProductionPlan):
 					wo.set("status","Not Started")
 					wo.submit()
 				return wo.name
-
 		except Exception as e:
 			custom_logs(py_method="create_work_order",error_name=e)
 			pass
@@ -126,9 +126,10 @@ class CustomProductionPlan(ProductionPlan):
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
-	warehouses_mr=["Raw material station  - NAVYA","All Warehouses - NAVYA"]
+	warehouses_mr=["Sampling Unit - NAVYA"]
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
 	d['custom_production_plan_type']="Sales Order"
 	doc=frappe.get_doc(d)
@@ -144,7 +145,7 @@ def automated_plan():
 	get_mr_items_custom(doc)
 	get_sub_assembly_items(doc, manufacturing_type=None)
 	doc.insert()
-	doc.set("for_warehouse","Raw material station  - NAVYA")
+	doc.set("for_warehouse","Sampling Unit - NAVYA")
 	for w in warehouses_mr:
 		warehouse_list_mr=[{"warehouse":w}]
 		dump_Warehoues=json.dumps(warehouse_list_mr)
@@ -189,8 +190,8 @@ def automated_plan():
 
 @frappe.whitelist(allow_guest=True)
 def automated_plan_without_so():
-	warehouses_mr=["Raw material station  - NAVYA","All Warehouses - NAVYA"]
-	warehouse_list_mr=[{"warehouse":"Raw material station  - NAVYA"}]
+	warehouses_mr=["Sampling Unit - NAVYA"]
+	warehouse_list_mr=[{"warehouse":"Sampling Unit - NAVYA"}]
 	dump_Warehoues=json.dumps(warehouse_list_mr)
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
 	d['custom_production_plan_type']="Without Sales Order"
@@ -210,7 +211,7 @@ def automated_plan_without_so():
 	doc.insert()
 	#doc_into_dumps=json.loads(doc_dict)
 	dump_doc=json.dumps(doc_dict,default=datetime_handler)
-	doc.set("for_warehouse","Raw material station  - NAVYA")
+	doc.set("for_warehouse","Sampling Unit - NAVYA")
 	# print(dump_doc,"dumpdoc")
 	for w in warehouses_mr:
 		warehouse_list_mr=[{"warehouse":w}]
@@ -403,7 +404,7 @@ def get_mr_items_custom(self):
 
 @frappe.whitelist()
 def get_sub_assembly_items(self, manufacturing_type=None):
-    print("a2Z")
+    #print("a2Z")
     "Fetch sub assembly items and optionally combine them."
     self.sub_assembly_items = []
     sub_assembly_items_store = []  # temporary store to process all subassembly items
@@ -722,7 +723,7 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 			bin_dict = bin_dict[0] if bin_dict else {}
 
 			if details.qty > 0:
-				items = get_material_request_items(
+				items =get_material_request_items_custom(
 					details,
 					sales_order,
 					company,
@@ -900,5 +901,98 @@ def get_warehouse_list_custom(warehouses):
 def custom_logs(py_method=None,error_name=None):
 	d={"doctype":"Custom Logs","info":error_name}
 	doc=frappe.get_doc(d)
-	doc.insert()
-	frappe.db.commit()
+	try:
+		doc.insert(ignore_permissions=True)
+		frappe.db.commit()
+	except:
+		pass
+
+
+
+@frappe.whitelist()
+def create_todo_wo(wo=None):
+	doctype="Work Order"
+	user_list=['vivekd@navyacustom.com']
+	#drawing_user=["sweetyd@navyacustom.com"]
+	for i in user_list:
+		d={'doctype':"ToDo","priority":"High","reference_type":doctype}
+		d['description']="Please Its Bom,May have issue"
+		d['reference_name']=wo
+		d['assigned_by']="amita@navya.biz"
+		d['allocated_to']=i
+		try:
+			td=frappe.get_doc(d)
+			td.insert()
+			frappe.db.commit()
+		except:
+			pass
+
+
+
+
+def get_material_request_items_custom(row, sales_order, company, ignore_existing_ordered_qty, include_safety_stock, warehouse, bin_dict
+):
+	total_qty = row["qty"]
+	required_qty = 0
+	if ignore_existing_ordered_qty or bin_dict.get("projected_qty", 0) < 0:
+		required_qty = total_qty
+	elif total_qty > bin_dict.get("projected_qty", 0):
+		required_qty = total_qty - bin_dict.get("projected_qty", 0)
+	if required_qty > 0 and required_qty < row["min_order_qty"]:
+		required_qty = row["min_order_qty"]
+	item_group_defaults = get_item_group_defaults(row.item_code, company)
+
+	if not row["purchase_uom"]:
+		row["purchase_uom"] = row["stock_uom"]
+
+	if row["purchase_uom"] != row["stock_uom"]:
+		if not (row["conversion_factor"] or frappe.flags.show_qty_in_stock_uom):
+			print()
+			pass
+
+
+
+			required_qty = required_qty / row["conversion_factor"]
+
+	if frappe.db.get_value("UOM", row["purchase_uom"], "must_be_whole_number"):
+		required_qty = ceil(required_qty)
+
+	if include_safety_stock:
+		required_qty += flt(row["safety_stock"])
+
+	item_details = frappe.get_cached_value(
+		"Item", row.item_code, ["purchase_uom", "stock_uom"], as_dict=1
+	)
+	conversion_factor = 1.0
+	if (
+		row.get("default_material_request_type") == "Purchase"
+		and item_details.purchase_uom
+		and item_details.purchase_uom != item_details.stock_uom
+	):
+		conversion_factor = (
+			get_conversion_factor(row.item_code, item_details.purchase_uom).get("conversion_factor") or 1.0
+		)
+
+	if required_qty > 0:
+		return {
+			"item_code": row.item_code,
+			"item_name": row.item_name,
+			"quantity": required_qty / conversion_factor,
+			"conversion_factor": conversion_factor,
+			"required_bom_qty": total_qty,
+			"stock_uom": row.get("stock_uom"),
+			"warehouse": warehouse
+			or row.get("source_warehouse")
+			or row.get("default_warehouse")
+			or item_group_defaults.get("default_warehouse"),
+			"safety_stock": row.safety_stock,
+			"actual_qty": bin_dict.get("actual_qty", 0),
+			"projected_qty": bin_dict.get("projected_qty", 0),
+			"ordered_qty": bin_dict.get("ordered_qty", 0),
+			"reserved_qty_for_production": bin_dict.get("reserved_qty_for_production", 0),
+			"min_order_qty": row["min_order_qty"],
+			"material_request_type": row.get("default_material_request_type"),
+			"sales_order": sales_order,
+			"description": row.get("description"),
+			"uom": row.get("purchase_uom") or row.get("stock_uom"),
+		}
