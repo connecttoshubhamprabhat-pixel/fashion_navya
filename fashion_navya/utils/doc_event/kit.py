@@ -19,7 +19,7 @@ def make_all_kit_for_item(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def make_all_kit_for_item_old():
-    get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where variant_of is  not null and name like '15%'   """,as_dict=1)
+    get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where variant_of is  not null and name like '16%'   """,as_dict=1)
     if get_items:
         for dc in get_items:
             print(dc['name'])

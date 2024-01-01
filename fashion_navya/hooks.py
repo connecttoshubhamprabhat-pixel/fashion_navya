@@ -220,9 +220,10 @@ doc_events = {
                 },
         "Sales Invoice":{
               #"before_submit":["fashion_navya.utils.doc_event.pe.create_pe_for_internal_si"],
-              "on_cancel":["fashion_navya.utils.doc_event.si.cancel_doc_si_series","fashion_navya.utils.doc_event.pe.cancel_pe_si"],
+              #fashion_navya.utils.doc_event.si.cancel_doc_si_series
+              "on_cancel":["fashion_navya.utils.doc_event.pe.cancel_pe_si"],
               "on_submit":["fashion_navya.utils.doc_event.item.update_item_si"],
-                "before_submit":["fashion_navya.utils.doc_event.si.make_new_si_id"],
+                #"before_submit":["fashion_navya.utils.doc_event.si.make_new_si_id"],
 
                 },
         "Project":{
