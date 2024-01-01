@@ -7,14 +7,13 @@ def make_all_kit_for_item(doc,method):
         if doc.attributes:
             attrb=[]
             for i in doc.attributes:
-                if i.attribute_value=="Digital":
-                    attrb.append("Digital")
-                if i.attribute_value=="Block print":
-                    attrb.append("Block print")
-                if i.attribute_value=="Handwork":
-                    attrb.append("Handwork")
-            print(attrb,"attrb")
-            make_kit_level_wise(item_name=doc.item_name,item=doc.name,item_group=doc.item_group,level=attrb,image=doc.image,project=doc.project)
+                if i.attribute in ["Print","Handwork","Block Print"]:
+                    get_abr=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent='{}' and attribute_value='{}' """.format(i.attribute,i.attribute_value),as_dict=1)
+                    if len(get_abr)!=0:
+                        if get_abr[0]['abbr']!=0:
+                            ab=get_abr[0]['abbr']+"K"
+                            make_kit_level_wise(item_name=doc.item_name,item=doc.name,item_group=doc.item_group,level=ab,image=doc.image,project=doc.project)
+
 
 
 
@@ -29,14 +28,12 @@ def make_all_kit_for_item_old():
                 if doc.attributes:
                     attrb=[]
                     for i in doc.attributes:
-                        if i.attribute_value=="Digital":
-                            attrb.append("Digital")
-                        if i.attribute_value=="Block print":
-                            attrb.append("Block print")
-                        if i.attribute_value=="Handwork":
-                            attrb.append("Handwork")
-                    print(attrb,"attrb")
-                    make_kit_level_wise_old(item_name=doc.item_name,item=doc.name,item_group=doc.item_group,level=attrb,image=doc.image,project=doc.project)
+                        if i.attribute in ["Print","Handwork","Block Print"]:
+                            get_abr=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent='{}' and attribute_value='{}' """.format(i.attribute,i.attribute_value),as_dict=1)
+                            if len(get_abr)!=0:
+                                if get_abr[0]['abbr']!=0:
+                                    ab=get_abr[0]['abbr']+"K"
+                                    make_kit_level_wise(item_name=doc.item_name,item=doc.name,item_group=doc.item_group,level=ab,image=doc.image,project=doc.project)
 
 
 
@@ -48,35 +45,29 @@ def make_kit_level_wise(item_name=None,item=None,item_group=None,level=None,imag
     is_subcontract=0
     if not level:
         return
-    for i in level:
-        if "Digital" in level:
-            kit_abbr="-DP-k"
-        if "Handwork" in level:
-            kit_abbr="-HE-k"
-        if "Block print" in level:
-            kit_abbr="-BP-k"
 
-        new_kit_name=item+kit_abbr
-        print(new_kit_name,"56")
-        if frappe.db.exists("Item",new_kit_name):
-            return
 
-        d={"doctype":"Item","item_group":"M kit","stock_uom":"Nos","image":image}
-        if project:
-            d['project']=project
-        if item_name:
-            d['item_name']=item_name
-        d['item_code']=new_kit_name
-        if item_group=="Sample":
-            is_subcontract=0
-        if item_group=="Ready Stock":
-            is_subcontract=1
-        d['is_sub_contracted_item']=is_subcontract
-        kit_insert=frappe.get_doc(d)
-        try:
-            kit_insert.insert(ignore_permissions=True)
-        except:
-            pass
+    new_kit_name=item+"-"+level
+    print(new_kit_name,"56")
+    if frappe.db.exists("Item",new_kit_name):
+        return
+
+    d={"doctype":"Item","item_group":"M kit","stock_uom":"Nos","image":image}
+    if project:
+        d['project']=project
+    if item_name:
+        d['item_name']=item_name
+    d['item_code']=new_kit_name
+    if item_group=="Sample":
+        is_subcontract=0
+    if item_group=="Ready Stock":
+        is_subcontract=1
+    d['is_sub_contracted_item']=is_subcontract
+    kit_insert=frappe.get_doc(d)
+    try:
+        kit_insert.insert(ignore_permissions=True)
+    except:
+        pass
 
 
 @frappe.whitelist(allow_guest=True)
@@ -84,33 +75,26 @@ def make_kit_level_wise_old(item_name=None,item=None,item_group=None,level=None,
     is_subcontract=0
     if not level:
         return
-    for i in level:
-        if "Digital" in level:
-            kit_abbr="-DP-k"
-        if "Handwork" in level:
-            kit_abbr="-HE-k"
-        if "Block print" in level:
-            kit_abbr="-BP-k"
 
-        new_kit_name=item+kit_abbr
-        print(new_kit_name,"56")
-        if frappe.db.exists("Item",new_kit_name):
-            return
+    new_kit_name=item+"-"+level
+    print(new_kit_name,"56")
+    if frappe.db.exists("Item",new_kit_name):
+        return
 
-        d={"doctype":"Item","item_group":"M kit","stock_uom":"Nos","image":image}
-        if project:
-            d['project']=project
-        if item_name:
-            d['item_name']=item_name
-        d['item_code']=new_kit_name
-        if item_group=="Sample":
-            is_subcontract=0
-        if item_group=="Ready Stock":
-            is_subcontract=1
-        d['is_sub_contracted_item']=is_subcontract
-        kit_insert=frappe.get_doc(d)
-        try:
-            kit_insert.insert(ignore_permissions=True)
-            frappe.db.commit()
-        except:
-            pass
+    d={"doctype":"Item","item_group":"M kit","stock_uom":"Nos","image":image}
+    if project:
+        d['project']=project
+    if item_name:
+        d['item_name']=item_name
+    d['item_code']=new_kit_name
+    if item_group=="Sample":
+        is_subcontract=0
+    if item_group=="Ready Stock":
+        is_subcontract=1
+    d['is_sub_contracted_item']=is_subcontract
+    kit_insert=frappe.get_doc(d)
+    try:
+        kit_insert.insert(ignore_permissions=True)
+        frappe.db.commit()
+    except:
+        pass
