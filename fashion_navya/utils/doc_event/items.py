@@ -347,10 +347,14 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
         d['Size']=get_name_of_abr[0]['attribute_value']
         print()
         d['Item Group']="Ready To Wear"
-        d['Colour']=colour
-        d['Fabric']=fabric
-        d['Handwork']=handwork
-        d['Print']=prints
+        if colour:
+            d['Colour']=colour
+        if fabric:
+            d['Fabric']=fabric
+        if handwork:
+            d['Handwork']=handwork
+        if prints:
+            d['Print']=prints
         #color option give to varinat
         print("282",d)
         get_exists=get_variant(item_doc.variant_of, d)
