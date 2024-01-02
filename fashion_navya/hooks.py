@@ -278,6 +278,8 @@ doc_events = {
                         },
                 "Production Plan":{
                         "before_save":["fashion_navya.utils.doc_event.production.remove_disabled"],
+                        "after_insert":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
+                        "before_submit":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
                         #"before_insert":["fashion_navya.utils.doc_event.production.remove_without_bom"],
 
                         },
@@ -287,7 +289,7 @@ doc_events = {
 			},
                         "Maintenance Visit":{
                                 "after_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
-                                "before_submit":["fashion_navya.utils.doc_event.mv.make_se_entry_mv","fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
+                                "before_submit":["fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
 
 
                                 },

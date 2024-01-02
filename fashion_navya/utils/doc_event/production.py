@@ -42,3 +42,10 @@ def remove_without_bom(doc,method):
 		for i in doc.po_items:
 			if not i.bom_no:
 				doc.get('po_items').remove(i)
+
+
+@frappe.whitelist()
+def production_plan_set_fg_warehouse(doc,method):
+	if doc.po_items:
+		for i in doc.po_items:
+			i.set("warehouse","Navya Store Office - NAVYA")
