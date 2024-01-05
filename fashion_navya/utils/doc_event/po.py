@@ -6,19 +6,26 @@ def set_sell_item_po(doc,method):
 	if doc.is_subcontracted:
 		for i in doc.items:
 			if i.production_plan:
-				pp=frappe.get_doc("Production Plan",i.production_plan)
-				if pp.po_items and pp.docstatus==1:
-					for p in pp.po_items:
-						get_bom=frappe.db.sql("""select parent from `tabBOM Item` where docstatus=1 and item_code='{}' and parent='{}'  """.format(i.fg_item,p.bom_no),as_dict=1)
-						if len(get_bom)!=0:
-							item=frappe.get_doc("Item",p.item_code)
-							i.set("fg_parent",p.item_code)
-							i.set("fg_name_parent",item.item_name)
-							i.set("project",item.project)
-							get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and bom_no='{}'  """.format(p.bom_no),as_dict=1)
-							if get_wo:
-								i.set("work_order",get_wo[0]['name'])
+				get_bom=frappe.db.sql("""select * from `tabProduction Plan Sub Assembly Item` where docstatus=1 and production_item='{}' and parent='{}'  """.format(i.fg_item,i.production_plan),as_dict=1)
+				if len(get_bom)!=0:
+					for p in get_bom:
+						item=frappe.get_doc("Item",p['parent_item_code'])
+						i.set("fg_parent",item.name)
+						i.set("fg_name_parent",item.item_name)
+						i.set("project",item.project)
+						get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(item.name),as_dict=1)
+						if get_wo:
+							i.set("work_order",get_wo[0]['name'])
 							continue
+
+			else:
+				names=i.fg_item.split("-")[:-1]
+				join_name="-".format(names)
+				if frappe.db.exists("Item",join_name):
+					i.set("fg_parent",join_name)
+					check_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(join_name),as_dict=1)
+					if len(check_wo)!=0:
+						i.set("work_order",check_wo[0]['name'])
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_offline():

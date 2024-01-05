@@ -950,9 +950,10 @@ def get_material_request_items_custom(row, sales_order, company, ignore_existing
 			print()
 			pass
 
-
-
-			required_qty = required_qty / row["conversion_factor"]
+			if required_qty>0:
+				required_qty = required_qty / row["conversion_factor"]
+			else:
+				required_qty=1
 
 	if frappe.db.get_value("UOM", row["purchase_uom"], "must_be_whole_number"):
 		required_qty = ceil(required_qty)

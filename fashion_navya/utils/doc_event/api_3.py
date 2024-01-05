@@ -279,3 +279,17 @@ def get_pending_qty_mr(name=None):
 	if yes:
 		doc.save()
 		frappe.msgprint("Qty Updated")
+
+
+
+@frappe.whitelist()
+def set_conver_item(doc,method):
+	item=doc.item.split("-")
+	if item[-1]=="k":
+		qty=0
+		for i in doc.items:
+			qty +=i.qty
+
+		idoc=frappe.get_doc("Item",doc.item)
+		row=idoc.append("uoms",{})
+		row.db_set("conversion_factor",qty, update_modified=False)

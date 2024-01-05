@@ -6,14 +6,14 @@ frappe.ui.form.on("Purchase Order", {
 
                 // Don't add Update Items button if the PO is following the new subcontracting flow.
                // if (!(frm.doc.is_subcontracted && !frm.doc.is_old_subcontracting_flow)) {
-                    frm.add_custom_button(__('Update Items'), () => {
-                        erpnext.utils.update_child_items_po({
-                            frm:frm,
-                            child_docname: "items",
-                            child_doctype: "Purchase Order Detail",
-                            cannot_add_row: false,
-                        })
-                    });
+                    //frm.add_custom_button(__('Update Items'), () => {
+                      //  erpnext.utils.update_child_items_po({
+                        //    frm:frm,
+                          //  child_docname: "items",
+                            //child_doctype: "Purchase Order Detail",
+                            //cannot_add_row: false,
+                       // })
+                    //});
                 }
             //}
 
