@@ -178,6 +178,10 @@ def get_data(filters):
 		["qty",">","produced_qty"],
 		["status","!=","Stopped"]]
 
+	if filters.project:
+		record_filters.append(["project","=",filters.project])
+
+
 	get_alls=frappe.get_all(
         "Work Order", filters=record_filters, fields=["production_item","status","produced_qty","name","planned_start_date","qty"]
     )

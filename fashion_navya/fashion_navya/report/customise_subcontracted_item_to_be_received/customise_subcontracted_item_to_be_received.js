@@ -9,7 +9,14 @@ frappe.query_reports["Customise Subcontracted Item To Be Received"] = {
 			fieldname: "order_type",
 			fieldtype: "Select",
 			options: ["Subcontracting Order"],
-			default: "Subcontracting Order"
+			default: "Subcontracting Order",
+			hidden:1
+		},
+		{
+			fieldname: "project",
+			label: __("Project"),
+			fieldtype: "Link",
+			options: "Project"
 		},
 		{
 			fieldname: "supplier",
