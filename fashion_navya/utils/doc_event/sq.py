@@ -1,4 +1,7 @@
 import frappe
+from frappe import _
+from frappe.model.mapper import get_mapped_doc
+from frappe.utils import flt, getdate, nowdate
 
 
 @frappe.whitelist()
@@ -19,3 +22,31 @@ def fetch_job_card_po(doc,method):
 		doc.set("work_order",m.work_order)
 
 
+
+
+@frappe.whitelist()
+def make_se(source_name, target_doc=None):
+	doclist = get_mapped_doc(
+		"Supplier Quotation",
+		source_name,
+		{
+			"Supplier Quotation": {
+				"doctype": "Stock Entry",
+				"field_map": {
+					"name": "custom_supplier_quotation",
+				},
+			},
+			"Supplier Quotation Item": {
+				"doctype": "Stock Entry Detail",
+				"field_map": [
+					["custom_fg_item", "item_code"],
+					["custom_fg_qty","qty"]
+
+				],
+			},
+		},
+
+	target_doc,
+	)
+
+	return doclist

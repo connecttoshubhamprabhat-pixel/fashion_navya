@@ -293,3 +293,22 @@ def set_conver_item(doc,method):
 		idoc=frappe.get_doc("Item",doc.item)
 		row=idoc.append("uoms",{})
 		row.db_set("conversion_factor",qty, update_modified=False)
+
+
+
+
+frappe.whitelist()
+def fetch_items_sq(doc,method):
+	if doc.items:
+		if doc.items[0].supplier_quotation:
+			sq=frappe.get_doc("Supplier Quotation",doc.items[0].supplier_quotation)
+			if sq.custom_quotation_type=="Subcontracted":
+				for i in doc.items:
+					get_items=frappe.db.sql("""select * from `tabSupplier Quotation Item` where docstatus=1 and parent='{}' and idx='{}'   """.format(sq.name,i.idx),as_dict=1)
+					if get_items[0].custom_fg_item:
+						i.set("fg_item",get_items[0].custom_fg_item)
+					if get_items[0].custom_mitem:
+						i.set("fg_parent",get_items[0].custom_mitem)
+					if get_items[0].custom_fg_qty:
+						i.set("fg_item_qty",get_items[0].custom_fg_qty)
+				doc.set("is_subcontracted",1)

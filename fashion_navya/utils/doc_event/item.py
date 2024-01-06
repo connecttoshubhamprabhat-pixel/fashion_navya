@@ -576,3 +576,25 @@ def fetch_source_se(items=None):
 						item_dict.append(j)
 
 	return item_dict
+
+
+
+
+
+#fetch source warehouse se
+@frappe.whitelist()
+def fetch_source_se_without(items=None):
+	items=json.loads(items)
+	print(items,'items')
+	item_dict=[]
+	if items:
+		for i in items:
+			data=get_data(item_code=i['item_code'])
+			if data:
+				for j in data:
+					if j['actual_qty']>=i['qty']:
+						j['actual_qty']=i['qty']
+						item_dict.append(j)
+						continue
+	return item_dict
+
