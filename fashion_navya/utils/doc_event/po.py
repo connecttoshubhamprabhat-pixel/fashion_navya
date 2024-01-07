@@ -19,8 +19,11 @@ def set_sell_item_po(doc,method):
 							continue
 
 			else:
-				names=i.fg_item.split("-")[:-1]
-				join_name="-".format(names)
+				names=i.fg_item
+				ns=names.split("-")
+				names_1=ns[:-1]
+				join_name="-".join(names_1)
+				#frappe.msgprint("aa {}".format(i.fg_item))
 				if frappe.db.exists("Item",join_name):
 					i.set("fg_parent",join_name)
 					check_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(join_name),as_dict=1)
