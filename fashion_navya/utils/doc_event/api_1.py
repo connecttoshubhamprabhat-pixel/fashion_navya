@@ -419,10 +419,13 @@ def make_po_orders_project(items=None,values=None,project=None):
     if items:
         d={"doctype":"Purchase Order","supplier":supplier,"is_subcontracted":1}
         d['schedule_date']=rqdate
+        d['project']=project
         attributes_list=["DP","BP","HE","FBP"]
         #supplier_dict={"Samsudeen Aakil Khan":"BPK","PRINTTECH":"DPK",""}
         doc=frappe.get_doc(d)
+        yes_items=[]
         for i in items:
+            is_items=[]
             main_item=i
             attributes_kit=["k"]
             split_parent=i.split("-")
@@ -430,9 +433,9 @@ def make_po_orders_project(items=None,values=None,project=None):
                 if j in split_parent:
                     attributes_kit.append(j)
             for kit in attributes_kit:
+                fg_yes=[]
                 row=doc.append("items", {})
                 row.item_code=sitem
-                print(sitem,'sitem')
                 row.qty=sqty
                 row.fg_item_qty=fg_qty
                 row.fg_parent=i
@@ -441,6 +444,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                     if frappe.db.exists("Item",main_item+"-"+"k"):
                         k1=main_item+"-"+"k"
                         row.fg_item=k1
+                        fg_yes.append("987")
                         print(k1,'k1')
                     else:
                         frappe.msgprint("Main Kit Item is missing for {}".format(i))
@@ -449,6 +453,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                         k2=main_item+"-"+"DPK"
                         row.fg_item=k2
                         print(k2,"k2")
+                        fg_yes.append("2")
                     else:
                         frappe.msgprint("DPK Kit Item is missing for {}".format(i))
                 if kit=="BP":
@@ -456,6 +461,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                         k3=main_item+"-"+"BPK"
                         row.fg_item=k3
                         print(k3,"k3")
+                        fg_yes.append("9")
 
                     else:
                         frappe.msgprint("BPK Kit Item is missing for {}".format(i))
@@ -465,8 +471,14 @@ def make_po_orders_project(items=None,values=None,project=None):
                         k4=main_item+"-"+"HEK"
                         row.fg_item=main_item+"-"+"HEK"
                         print(k4,"k4")
+                        fg_yes.append("a")
                     else:
                         frappe.msgprint("Main Kit Item is missing for {}".format(i))
-        doc.insert()
-        print(doc.as_dict(),"dict")
-        frappe.msgprint("Created")
+                        
+                if fg_yes:
+                     yes_items.append("aa")
+                     row.item_code=sitem
+        if yes_items:
+             doc.insert()
+             print(doc.as_dict(),"dict")
+             frappe.msgprint("Created")
