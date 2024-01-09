@@ -500,12 +500,12 @@ def make_bom_kit_new(doc,method):
             if item_doc.variant_of:
                 #print("471")
                 item_doc_parent=item_doc.name.split("-")
-                if "RTW" in item_doc_parent:
-                    index=item_doc_parent.index("RTW")
-                    item_doc_parent[index]="SMPL"
+                # if "RTW" in item_doc_parent:
+                #     index=item_doc_parent.index("RTW")
+                #     item_doc_parent[index]="SMPL"
 
                 join_smpl="-".join(item_doc_parent)
-                get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(join_smpl),as_dict=1)
+                get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(item_doc.name),as_dict=1)
                 get_bom_kit=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.name),as_dict=1)
                 if not get_bom_kit and get_bom_smpl:
                     if doc.has_variants==0 and not doc.variant_of and doc.item_group=="M kit":
@@ -589,9 +589,9 @@ def make_bom_kit_new_manual(name=None):
                 if item_doc.parent_item:
                     #print("490")
                     item_doc_parent=item_doc.parent_item.split("-")
-                    if "RTW" in item_doc_parent:
-                        index=item_doc_parent.index("RTW")
-                        item_doc_parent[index]="SMPL"
+                    # if "RTW" in item_doc_parent:
+                    #     index=item_doc_parent.index("RTW")
+                    #     item_doc_parent[index]="SMPL"
 
                     join_smpl="-".join(item_doc_parent)
                     get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(join_smpl),as_dict=1)
@@ -658,3 +658,45 @@ def get_color_options(items=None,aname=None):
                             break
             print(colours,"aa")
             return colours or []
+
+
+#sales ordr-sales order
+@frappe.whitelist(allow_guest=True)
+def rtw_from_projects(items=None):
+    if not items:
+        return
+    
+
+    items_list=json.loads(items)
+    for m in items_list:
+        item_doc=frappe.get_doc("Item",m)
+        bom_smpl=[]
+        get_bom_name=frappe.db.sql("""select name from `tabBOM` where is_active=1 and is_default=1 and docstatus=1 and item='{}' """.format(m),as_dict=1)
+        if len(get_bom_name)!=0:
+            bom_smpl.append(get_bom_name[0]['name'])
+
+
+        d={}
+        for m in item_doc.attributes:
+            if m.attribute!="Item Group":
+                d[m.attribute]=m.attribute_value
+
+
+        d['Item Group']="Ready To Wear"
+        variants=create_variant_custom(item_doc.variant_of,d)
+        if item_doc.project:
+            variants.set("project",item_doc.project)
+            
+        if item_doc.image:
+            variants.set("image",item_doc.image)
+            
+        variants.set("item_group","Ready Stock")
+        try:
+            variants.save(ignore_permissions=True)
+            if variants:
+                make_ptt_so(old=item_doc.name,new=variants.name)
+                if bom_smpl:
+                    make_bom(new=variants.name,submit=1,variant=1,bom=bom_smpl[0])
+                frappe.msgprint("Item is created")
+        except:
+            continue

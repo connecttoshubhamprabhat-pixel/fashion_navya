@@ -55,9 +55,9 @@ def make_kit_level_wise(item_name=None,item=None,item_group=None,level=None,imag
     d={"doctype":"Item","item_group":"M kit","stock_uom":"Meter","image":image,"is_sub_contracted_item":1}
     if project:
         d['project']=project
+
     if item_name:
         d['item_name']=item_name
-    d['parent_item']=item
     d['item_code']=new_kit_name
     if item_group=="Sample":
         is_subcontract=0

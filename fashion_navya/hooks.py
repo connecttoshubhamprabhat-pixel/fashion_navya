@@ -190,8 +190,8 @@ doc_events = {
     "Item":{
            "on_update":["fashion_navya.utils.doc_event.item.custom_descrip"],
             "after_delete":["fashion_navya.utils.doc_event.item.delete_files"],
-            "before_save":["fashion_navya.utils.doc_event.kit.make_all_kit_for_item","fashion_navya.utils.doc_event.test.check_subconrcat","fashion_navya.utils.doc_event.item.make_kit_item_parent_save","fashion_navya.utils.doc_event.item.make_add_kt","fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
-            "after_insert":["fashion_navya.utils.doc_event.kit.make_all_kit_for_item","fashion_navya.utils.doc_event.items.make_bom_kit_new","fashion_navya.utils.doc_event.item.make_kit_item_parent","fashion_navya.utils.doc_event.item.set_item_project_reorder"],
+            "before_save":["fashion_navya.utils.doc_event.api_1.check_duplciate","fashion_navya.utils.doc_event.kit.make_all_kit_for_item","fashion_navya.utils.doc_event.test.check_subconrcat","fashion_navya.utils.doc_event.item.make_kit_item_parent_save","fashion_navya.utils.doc_event.item.make_add_kt","fashion_navya.utils.doc_event.item.fetched_warehouse_qty_w","fashion_navya.utils.doc_event.item.renamedoc"],
+            "after_insert":["fashion_navya.utils.doc_event.api_1.check_duplciate","fashion_navya.utils.doc_event.kit.make_all_kit_for_item","fashion_navya.utils.doc_event.items.make_bom_kit_new","fashion_navya.utils.doc_event.item.make_kit_item_parent","fashion_navya.utils.doc_event.item.set_item_project_reorder"],
             "on_delete":["fashion_navya.utils.doc_event.item.remove_item_rtw"],
 
         },
@@ -320,6 +320,10 @@ doc_events = {
                                     "on_update":["fashion_navya.utils.doc_event.address.check_is_shipping"],
 
                                     },
+                            "Job Card":{
+                                    "before_submit":["fashion_navya.utils.doc_event.job_card.qty_check_jc"],
+
+                                    },
 
 }
 
@@ -398,6 +402,7 @@ override_whitelisted_methods = {
 override_doctype_class = {
     "POS Invoice":"fashion_navya.utils.overides.posi.CustomPOSInvoice",
     "File":"fashion_navya.utils.overides.file.CustomFile",
+    "BOM Creator":"fashion_navya.utils.overides.bomc.CustomBOMCreator",
     "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
 
 }

@@ -482,3 +482,37 @@ def make_po_orders_project(items=None,values=None,project=None):
              doc.insert()
              print(doc.as_dict(),"dict")
              frappe.msgprint("Created")
+
+
+
+
+
+@frappe.whitelist()
+def check_duplciate(doc,method):
+	if doc.uoms:
+		check=[]
+		duplicated=[]
+		for i in doc.uoms:
+			if i.uom not in  check:
+				check.append(i.uom)
+			else:
+				duplicated.append("aa")
+
+		if duplicated and check:
+			for j in check:
+				row = doc.append("uoms", {})
+				row.uom=j
+	if doc.item_defaults:
+		check=[]
+		duplicated=[]
+		for i in doc.item_defaults:
+			if i.company not in  check:
+				check.append(i.company)
+			else:
+				duplicated.append("aa")
+
+		if duplicated and check:
+			for j in check:
+				row = doc.append("item_defaults", {})
+				row.uom=j
+
