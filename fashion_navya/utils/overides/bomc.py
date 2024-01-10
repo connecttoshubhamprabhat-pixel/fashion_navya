@@ -1,4 +1,5 @@
 import frappe
+from frappe.model.naming import make_autoname
 from erpnext.manufacturing.doctype.bom_creator.bom_creator import BOMCreator
 
 from collections import OrderedDict
@@ -32,6 +33,10 @@ BOM_ITEM_FIELDS = [
 
 
 class CustomBOMCreator(BOMCreator):
+	def autoname(self):
+		doc=frappe.get_doc("Item",self.item_code)
+		self.name=make_autoname(doc.item_name+"-.##")
+
 	def create_bom(self, row, production_item_wise_rm):
 		#frappe.throw("pardeep testing kar rha hai")
 		bom_creator_item = row.name if row.name != self.name else ""

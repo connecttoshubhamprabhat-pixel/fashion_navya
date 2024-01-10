@@ -668,6 +668,7 @@ def rtw_from_projects(items=None):
     
 
     items_list=json.loads(items)
+    items_list=list(set(items_list))
     for m in items_list:
         item_doc=frappe.get_doc("Item",m)
         bom_smpl=[]

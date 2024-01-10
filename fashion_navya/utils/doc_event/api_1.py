@@ -444,6 +444,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                     if frappe.db.exists("Item",main_item+"-"+"k"):
                         k1=main_item+"-"+"k"
                         row.fg_item=k1
+                        make_check_subcontract(name=k1)
                         fg_yes.append("987")
                         print(k1,'k1')
                     else:
@@ -452,6 +453,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                     if frappe.db.exists("Item",main_item+"-"+"DPK"):
                         k2=main_item+"-"+"DPK"
                         row.fg_item=k2
+                        make_check_subcontract(name=k2)
                         print(k2,"k2")
                         fg_yes.append("2")
                     else:
@@ -460,6 +462,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                     if frappe.db.exists("Item",main_item+"-"+"BPK"):
                         k3=main_item+"-"+"BPK"
                         row.fg_item=k3
+                        make_check_subcontract(name=k3)
                         print(k3,"k3")
                         fg_yes.append("9")
 
@@ -470,6 +473,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                     if frappe.db.exists("Item",main_item+"-"+"HEK"):
                         k4=main_item+"-"+"HEK"
                         row.fg_item=main_item+"-"+"HEK"
+                        make_check_subcontract(name=k4)
                         print(k4,"k4")
                         fg_yes.append("a")
                     else:
@@ -516,3 +520,12 @@ def check_duplciate(doc,method):
 				row = doc.append("item_defaults", {})
 				row.uom=j
 
+@frappe.whitelist()
+def make_check_subcontract(name=None):
+    if not name:
+         return
+         
+    doc=frappe.get_doc("Item",name)
+    if doc.is_sub_contracted_item==0:
+        doc.set("is_sub_contracted_item",1)
+        doc.save()

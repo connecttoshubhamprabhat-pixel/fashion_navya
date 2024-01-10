@@ -7,7 +7,7 @@ def set_warehouse_target_mr(doc,method):
 		doc.set("set_warehouse","Navya Store Office - NAVYA")
 
 	if doc.material_request_type=="Material Transfer":
-		doc.set("set_from_warehouse","Navya Store Office - NAVYA")
+		#doc.set("set_from_warehouse","Navya Store Office - NAVYA")
 		for i in doc.items:
 			if i.sales_order:
 				so=frappe.get_doc("Sales Order",i.sales_order)

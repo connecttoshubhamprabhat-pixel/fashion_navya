@@ -297,7 +297,7 @@ def set_conver_item(doc,method):
 
 
 
-frappe.whitelist()
+@frappe.whitelist()
 def fetch_items_sq(doc,method):
 	if doc.items:
 		if doc.items[0].supplier_quotation:
@@ -312,3 +312,6 @@ def fetch_items_sq(doc,method):
 					if get_items[0].custom_fg_qty:
 						i.set("fg_item_qty",get_items[0].custom_fg_qty)
 				doc.set("is_subcontracted",1)
+
+
+
