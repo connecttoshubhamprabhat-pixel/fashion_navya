@@ -126,7 +126,6 @@ class CustomProductionPlan(ProductionPlan):
 
 
 
-
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
 	warehouses_mr=["Sampling Unit - NAVYA"]
@@ -184,6 +183,38 @@ def automated_plan():
 	make_material_request_custom(doc)
 	make_work_order(doc)
 	frappe.db.commit()
+
+
+
+@frappe.whitelist()
+def make_work_order(self):
+	from erpnext.manufacturing.doctype.work_order.work_order import get_default_warehouse
+
+	wo_list, po_list = [], []
+	subcontracted_po = {}
+	default_warehouses = get_default_warehouse()
+
+	self.make_work_order_for_finished_goods(wo_list, default_warehouses)
+	self.make_work_order_for_subassembly_items(wo_list, subcontracted_po, default_warehouses)
+	print(type(subcontracted_po),'subcontracted_po')
+	print(po_list,'po_lists')
+	make_subcontracted_purchase_order_custom(self,subcontracted_po, po_list)
+	self.show_list_created_message("Work Order",wo_list)
+	self.show_list_created_message("Purchase Order",po_list)
+
+	if not wo_list:
+		frappe.msgprint(_("No Work Orders were created"))
+
+def make_work_order_for_finished_goods(self, wo_list, default_warehouses):
+	items_data = self.get_production_items()
+
+	for key, item in items_data.items():
+		if self.sub_assembly_items:
+			item["use_multi_level_bom"] = 0
+
+		set_default_warehouses(item, default_warehouses)
+		work_order = self.create_work_order(item)
+		frappe.db.commit()
 
 
 
@@ -251,33 +282,6 @@ def automated_plan_without_so():
 	make_work_order(doc)
 	frappe.db.commit()
 
-
-
-@frappe.whitelist()
-def make_work_order(self):
-    from erpnext.manufacturing.doctype.work_order.work_order import get_default_warehouse
-    wo_list, po_list = [], []
-    subcontracted_po = {}
-    default_warehouses = get_default_warehouse()
-
-    self.make_work_order_for_finished_goods(wo_list, default_warehouses)
-    self.make_work_order_for_subassembly_items(wo_list, subcontracted_po, default_warehouses)
-    self.make_subcontracted_purchase_order(subcontracted_po, po_list)
-    self.show_list_created_message("Work Order", wo_list)
-    self.show_list_created_message("Purchase Order", po_list)
-
-    if not wo_list:
-        frappe.msgprint(_("No Work Orders were created"))
-
-    def make_work_order_for_finished_goods(self, wo_list, default_warehouses):
-        items_data = self.get_production_items()
-        for key, item in items_data.items():
-            if self.sub_assembly_items:
-                item["use_multi_level_bom"] = 0
-
-            set_default_warehouses(item, default_warehouses)
-            work_order = self.create_work_order(item)
-            frappe.db.commit()
 
 
 
@@ -471,6 +475,7 @@ def get_sub_assembly_items_custom(bom_no, bom_data, to_produce_qty, company, war
 						"is_sub_contracted_item": d.is_sub_contracted_item,
 						"bom_level": indent,
 						"indent": indent,
+						"supplier":"Production Plan",
 						"stock_qty": stock_qty,
 					}
 				)
@@ -532,7 +537,7 @@ def create_work_order_custom(self, item):
         print('aprint')
         wo.insert()
         wo.submit()
-        frappe.db.commi()
+        frappe.db.commit()
         return wo.name
     except OverProductionError:
         pass
@@ -756,7 +761,7 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 		frappe.msgprint(message, title=_("Note"))
 
 
-	print(mr_items,"aaaaaaa")
+	#print(mr_items,"aaaaaaa")
 	return mr_items
 
 def myconverter(o):
@@ -997,3 +1002,73 @@ def get_material_request_items_custom(row, sales_order, company, ignore_existing
 			"description": row.get("description"),
 			"uom": row.get("purchase_uom") or row.get("stock_uom"),
 		}
+
+
+
+
+@frappe.whitelist()
+def get_subcontracting_boms_for_finished_goods_custom(fg_items: str | list) -> dict:
+	frappe.throw("aa")
+	if fg_items:
+		if type(fg_items)=="set":
+			fg_items=list(fg_items)
+		print(fg_items,"gf91hello")
+		filters = {"is_active": 1}
+
+		if isinstance(fg_items, list):
+			filters["finished_good"] = ["in", fg_items]
+		else:
+			filters["finished_good"] = fg_items
+
+		if subcontracting_boms := frappe.get_all("Subcontracting BOM", filters=filters, fields=["*"]):
+			if isinstance(fg_items, list):
+				return {d.finished_good: d for d in subcontracting_boms}
+			else:
+				return subcontracting_boms[0]
+
+	return {}
+
+
+@frappe.whitelist()
+def make_subcontracted_purchase_order_custom(self, subcontracted_po, purchase_orders):
+	print("hello1035")
+	if not subcontracted_po:
+		return
+
+	print(subcontracted_po,'subcontracted_po')
+	print(purchase_orders,'purchase_orders')
+	print(type(purchase_orders),"purchase_orders")
+	print(type(subcontracted_po),"subcontracted_po")
+
+	for supplier, po_list in subcontracted_po.items():
+		po = frappe.new_doc("Purchase Order")
+		po.company = self.company
+		po.supplier = supplier
+		po.schedule_date = getdate(po_list[0].schedule_date) if po_list[0].schedule_date else nowdate()
+		po.is_subcontracted = 1
+		for row in po_list:
+			po_data = {
+				"fg_item": row.production_item,
+				"warehouse": row.fg_warehouse,
+				"production_plan_sub_assembly_item": row.name,
+				"bom": row.bom_no,
+				"production_plan": self.name,
+				"fg_item_qty": row.qty,
+			}
+
+			for field in [
+				"schedule_date",
+				"qty",
+				"description",
+				"production_plan_item",
+			]:
+				po_data[field] = row.get(field)
+
+			po.append("items", po_data)
+
+		#po.set_service_items_for_finished_goods()
+		po.set_missing_values()
+		po.flags.ignore_mandatory = True
+		po.flags.ignore_validate = True
+		po.insert()
+		purchase_orders.append(po.name)
