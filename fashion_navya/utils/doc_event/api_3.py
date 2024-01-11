@@ -284,6 +284,7 @@ def get_pending_qty_mr(name=None):
 
 @frappe.whitelist()
 def set_conver_item(doc,method):
+	return
 	item=doc.item.split("-")
 	if item[-1]=="k":
 		qty=0
