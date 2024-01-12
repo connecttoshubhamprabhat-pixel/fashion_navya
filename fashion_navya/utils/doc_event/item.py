@@ -598,3 +598,13 @@ def fetch_source_se_without(items=None):
 						continue
 	return item_dict
 
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_subconracted(doc,method):
+	items_groups=["Prototype","PP Sample"]
+	if doc.item_group in items_groups:
+		doc.set("is_sub_contracted_item",0)
+	if doc.item_group not in items_groups:
+		doc.set("is_sub_contracted_item",1)
