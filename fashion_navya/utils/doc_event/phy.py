@@ -88,7 +88,7 @@ def get_items(date=None,warehouse=None):
 
 @frappe.whitelist()
 def get_items_core(
-	warehouse=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
+	warehouse=None,item_group=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
 ):
 
 	posting_date=str(utils.today())
@@ -108,6 +108,10 @@ def get_items_core(
 	itemwise_batch_data = get_itemwise_batch(warehouse, posting_date, company, item_code)
 
 	for d in items:
+		item_doc=frappe.get_doc("Item",d.item_code)
+		if item_group:
+			if item_doc.item_group!=item_group:
+				continue
 		if d.item_code in itemwise_batch_data:
 			valuation_rate = get_stock_balance(
 				d.item_code, d.warehouse, posting_date, posting_time, with_valuation_rate=True
@@ -264,15 +268,12 @@ def consolidated_entry(items=None):
 		d={"doctype":"Consolidated physical  Stock Count"}
 		aqty=[0]
 		sqty=[0]
-		d['aqty']=sum(aqty)
-		d['sqty']=sum(sqty)
-		diff=sum(sqty)-sum(aqty)
-		d['dqty']=diff
 		itemdoc=frappe.get_doc(d)
 		for  i in items:
 			doc=frappe.get_doc("Physical Stock Count",i)
 			sqty.append(doc.total_qty)
 			aqty.append(doc.atotal)
+			print(doc.total_qty,"aaaaaaaaaaaaaaaaa")
 			for j in doc.items:
 				item=frappe.get_doc("Item",j.item_code)
 				row = itemdoc.append("items", {})
@@ -285,6 +286,12 @@ def consolidated_entry(items=None):
 				row.price=j.price
 				row.image=j.image
 				row.remarks=j.remarks
-		
+
+
+		diff=sum(sqty)-sum(aqty)
+		d['dqty']=diff
+		itemdoc.set("aqty",sum(aqty))
+		itemdoc.set("sqty",sum(sqty))
+		itemdoc.set("dqty",diff)
 		itemdoc.insert(ignore_permissions=True)
 		frappe.msgprint("Created")
