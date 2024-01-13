@@ -254,3 +254,37 @@ def fetch_items_from_stock_entry(stock_entry_name, physical_stock_review):
 			})
 
 	physical_stock_review_doc.save()
+
+
+
+@frappe.whitelist()
+def consolidated_entry(items=None):
+	items=json.loads(items)
+	if items:
+		d={"doctype":"Consolidated physical  Stock Count"}
+		aqty=[0]
+		sqty=[0]
+		d['aqty']=sum(aqty)
+		d['sqty']=sum(sqty)
+		diff=sum(sqty)-sum(aqty)
+		d['dqty']=diff
+		itemdoc=frappe.get_doc(d)
+		for  i in items:
+			doc=frappe.get_doc("Physical Stock Count",i)
+			sqty.append(doc.total_qty)
+			aqty.append(doc.atotal)
+			for j in doc.items:
+				item=frappe.get_doc("Item",j.item_code)
+				row = itemdoc.append("items", {})
+				row.item_code=j.item_code
+				row.item_name=j.item_name
+				row.sqty=j.sqty
+				row.aqty=j.aqty
+				row.warehouse=j.warehouse
+				row.dqty=j.dqty
+				row.price=j.price
+				row.image=j.image
+				row.remarks=j.remarks
+		
+		itemdoc.insert(ignore_permissions=True)
+		frappe.msgprint("Created")

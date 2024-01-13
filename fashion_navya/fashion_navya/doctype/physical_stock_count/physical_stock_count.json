@@ -11,6 +11,7 @@
   "scan_barcode",
   "column_break_wyua",
   "skip_warehouse",
+  "item_group",
   "stock_entry",
   "warehouse",
   "naming_series",
@@ -44,7 +45,8 @@
    "default": "Today",
    "fieldname": "posting",
    "fieldtype": "Date",
-   "label": "Posting"
+   "label": "Posting",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -121,12 +123,18 @@
   {
    "fieldname": "column_break_wyua",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item group",
+   "options": "Item Group"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-29 11:22:01.965181",
+ "modified": "2024-01-13 12:04:15.364830",
  "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Physical Stock Count",
