@@ -606,5 +606,11 @@ def check_subconracted(doc,method):
 	items_groups=["Prototype","PP Sample"]
 	if doc.item_group in items_groups:
 		doc.set("is_sub_contracted_item",0)
+
 	if doc.item_group not in items_groups:
 		doc.set("is_sub_contracted_item",1)
+	if doc.name:
+		names=doc.name.split("-")
+		if "BPK" in names:
+			frappe.msgprint(names)
+			doc.set("is_sub_contracted_item",0)

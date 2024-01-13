@@ -1,0 +1,21 @@
+import frappe
+
+
+@frappe.whitelist()
+def qty_check_jc(doc,method):
+	total_completed=[0]
+	for i in doc.time_logs:
+		total_completed.append(i.completed_qty)
+
+	if doc.for_quantity!=sum(total_completed):
+		frappe.throw("Qty To Manufacture and Completed qty are not same")
+
+@frappe.whitelist()
+def check_work_order_status(doc,method):
+	if doc.work_order:
+		wo=frappe.get_doc("Work Order",doc.work_order)
+		if wo.status=="Not Started":
+			frappe.throw("Material Transfer for Manufacture नहीं हुआ  है ||")
+
+
+

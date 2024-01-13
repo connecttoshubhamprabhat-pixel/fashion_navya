@@ -1,5 +1,7 @@
 import frappe
-
+import datetime
+import json
+from frappe.utils import date_diff
 
 @frappe.whitelist()
 def qty_check_jc(doc,method):
@@ -12,10 +14,7 @@ def qty_check_jc(doc,method):
 
 @frappe.whitelist()
 def check_work_order_status(doc,method):
-	if doc.work_order:
-		wo=frappe.get_doc("Work Order",doc.work_order)
-		if wo.status=="Not Started":
-			frappe.throw("Material Transfer for Manufacture नहीं हुआ  है ||
+	pass
 
 
 
@@ -23,25 +22,25 @@ def check_work_order_status(doc,method):
 #job card time logs
 @frappe.whitelist()
 def make_timesheet_all(doc,method):
-    #frappe.throw("aaaaaaaaaaa")
-    if doc.time_logs:
-        for i in doc.time_logs:
-            dif=float(date_diff(str(i.to_time),str(i.from_time)))
-            from_time=str(i.from_time).split()
-            d={"doctype":"Timesheet","start_date":from_time[0]}
-            d['end_date']=from_time[0]
-            d['employee']=i.employee
-            d['source_type']="Job Card"
-            d['job_card']=i.parent
-            d['total_hours']=dif
-            ts=frappe.get_doc(d)
-            row = ts.append("time_logs", {})
-            row.from_time=i.from_time
-            row.to_time=i.to_time
-            row.completed=1
-            row.hours=dif
-            row.job_card=i.parent
-            row.activity_type="Execution"
+
+	if doc.time_logs:
+		for i in doc.time_logs:
+			dif=float(date_diff(str(i.to_time),str(i.from_time)))
+			from_time=str(i.from_time).split()
+			d={"doctype":"Timesheet","start_date":from_time[0]}
+			d['end_date']=from_time[0]
+			d['employee']=i.employee
+			d['source_type']="Job Card"
+			d['job_card']=i.parent
+			d['total_hours']=dif
+			ts=frappe.get_doc(d)
+			row = ts.append("time_logs", {})
+			row.from_time=i.from_time
+			row.to_time=i.to_time
+			row.completed=1
+			row.hours=dif
+			row.job_card=i.parent
+			row.activity_type="Execution"
 			try:
 				ts.save(ignore_permissions=True)
 				ts.submit()

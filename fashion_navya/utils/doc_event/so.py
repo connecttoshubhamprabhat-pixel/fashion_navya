@@ -203,7 +203,7 @@ def make_mr_so(doc,method):
 					row.sales_order_item=get_id_soi[0]['name']
 					row.custom_delivery_date=new_date_delivery
 
-				mrm.insert()
+				mrm.insert(ignore_permissions=True)
 				mrm.submit()
 				frappe.msgprint("MR created for Manufacture")
 

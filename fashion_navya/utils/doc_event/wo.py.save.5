@@ -11,7 +11,7 @@ def autoname_wo_custom(doc,method):
 	if doc.project:
 		get_project_no=re.findall(r'\d+',doc.project)
 		if get_project_no:
-			doc.name=make_autoname('WO-'+get_project_no[0]+"-"+today+"-"+".##")
+			doc.name=make_autoname('WO-'+get_project_no[0]+"-"+today+"-")
 
 
 @frappe.whitelist(allow_guest=True)
