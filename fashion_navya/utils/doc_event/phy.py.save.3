@@ -88,7 +88,7 @@ def get_items(date=None,warehouse=None):
 
 @frappe.whitelist()
 def get_items_core(
-	warehouse=None,item_group=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
+	warehouse=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
 ):
 
 	posting_date=str(utils.today())
@@ -108,10 +108,6 @@ def get_items_core(
 	itemwise_batch_data = get_itemwise_batch(warehouse, posting_date, company, item_code)
 
 	for d in items:
-		item_doc=frappe.get_doc("Item",d.item_code)
-		if item_group:
-			if item_doc.item_group!=item_group:
-				continue
 		if d.item_code in itemwise_batch_data:
 			valuation_rate = get_stock_balance(
 				d.item_code, d.warehouse, posting_date, posting_time, with_valuation_rate=True
@@ -265,94 +261,25 @@ def fetch_items_from_stock_entry(stock_entry_name, physical_stock_review):
 def consolidated_entry(items=None):
 	items=json.loads(items)
 	if items:
-		d={"doctype":"Consolidated physical  Stock Count"}
-		d_1={"doctype":"Physical Stock Count","consolidated":1}
+		d={"doctype":"Consolidated physical  Stock Count")
 		aqty=[0]
 		sqty=[0]
-		diff_mins=[0]
-		itemdoc=frappe.get_doc(d)
-		physical=frappe.get_doc(d_1)
 		for  i in items:
 			doc=frappe.get_doc("Physical Stock Count",i)
 			sqty.append(doc.total_qty)
 			aqty.append(doc.atotal)
-			print(doc.total_qty,"aaaaaaaaaaaaaaaaa")
 			for j in doc.items:
 				item=frappe.get_doc("Item",j.item_code)
-				row = itemdoc.append("items", {})
+				row = doc.append("items", {})
 				row.item_code=j.item_code
-				row.item_name=j.item_name
+				row.item_name=item.item_name
 				row.sqty=j.sqty
 				row.aqty=j.aqty
-				row.warehouse=j.warehouse
 				row.dqty=j.dqty
+				row.warehouse=j.warehouse
 				row.price=j.price
-				row.image=j.image
-				row.remarks=j.remarks
-				if j.dqty<0:
-					row_1 = itemdoc.append("items_d", {})
-					row_1.item_code=j.item_code
-					row_1.item_name=j.item_name
-					row_1.sqty=j.sqty
-					row_1.aqty=j.aqty
-					row_1.warehouse=j.warehouse
-					row_1.dqty=j.dqty
-					row_1.price=j.price
-					row_1.image=j.image
-					row_1.remarks=j.remarks
-					dabs=abs(j.dqty)
-					diff_mins.append(dabs)
-				
-				if j.dqty<0:
-					row_2 = itemdoc.append("items_c", {})
-					row_2.item_code=j.item_code
-					row_2.item_name=j.item_name
-					row_2.sqty=0
-					row_2.aqty=j.aqty
-					row_2.warehouse=j.warehouse
-					row_2.dqty=0
-					row_2.price=j.price
-					row_2.image=j.image
-					row_2.remarks=j.remarks
-				
-				if j.dqty<0:
-					row_3 = physical.append("items", {})
-					row_3.item_code=j.item_code
-					row_3.item_name=j.item_name
-					row_3.sqty=0
-					row_3.aqty=j.aqty
-					row_3.warehouse=j.warehouse
-					row_3.dqty=0
-					row_3.price=j.price
-					row_3.image=j.image
-					row_3.remarks=j.remarks
-				
-					
+				row.image=item.image
 
-
-
-		#physical.insert(ignore_permissions=True)
-		diff=sum(sqty)-sum(aqty)
-		d['dqty']=diff
-		itemdoc.set("aqty",sum(aqty))
-		itemdoc.set("sqty",sum(sqty))
-		itemdoc.set("dqty",sum(diff_mins))
-		itemdoc.set("diff_qty",sum(diff_mins))
-		itemdoc.insert(ignore_permissions=True)
-		print()
-		physical.set("consolidated_doc",itemdoc.name)
-		physical.insert(ignore_permissions=True)
-		frappe.msgprint("Created")
-
-
-
-
-
-
-@frappe.whitelist()
-def update_after_submits_all(doc,method):
-	frappe.msgprint(".")
-	for i in doc.items_c:
-		diff=i.sqty-i.aqty
-		i.set("dqty",0)
-		i.set("dqty",diff)
+				itemdoc=frappe.get_doc(d)
+				itemdoc.insert(ignore_permissions=True)
+				frappe.msgprint("Created")

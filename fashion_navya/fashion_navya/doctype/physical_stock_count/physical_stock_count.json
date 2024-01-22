@@ -9,6 +9,8 @@
   "section_break_pzws",
   "posting",
   "scan_barcode",
+  "consolidated",
+  "consolidated_doc",
   "column_break_wyua",
   "skip_warehouse",
   "item_group",
@@ -83,6 +85,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
@@ -129,12 +132,27 @@
    "fieldtype": "Link",
    "label": "Item group",
    "options": "Item Group"
+  },
+  {
+   "default": "0",
+   "fieldname": "consolidated",
+   "fieldtype": "Check",
+   "ignore_user_permissions": 1,
+   "label": " Consolidated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consolidated_doc",
+   "fieldtype": "Link",
+   "label": " Consolidated Doc",
+   "options": "Consolidated physical  Stock Count",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-13 12:04:15.364830",
+ "modified": "2024-01-15 19:20:03.126798",
  "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Physical Stock Count",
@@ -157,5 +175,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
 }

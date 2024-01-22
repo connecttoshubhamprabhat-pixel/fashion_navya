@@ -529,3 +529,19 @@ def make_check_subcontract(name=None):
     if doc.is_sub_contracted_item==0:
         doc.set("is_sub_contracted_item",1)
         doc.save()
+
+
+
+@frappe.whitelist()
+def make_print_tag(items=None):
+    items=json.loads(items)
+    if items:
+        d={"doctype":"Print Item"}
+        doc=frappe.get_doc(d)
+        for i in items:
+            row = doc.append("items", {})
+            row.item_code=i
+            
+        doc.insert()
+        frappe.msgprint("created")
+         

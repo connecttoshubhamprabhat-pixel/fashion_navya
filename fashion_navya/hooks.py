@@ -324,6 +324,10 @@ doc_events = {
                                     "before_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all","fashion_navya.utils.doc_event.job_card.qty_check_jc"],
 
                                     },
+                            "Consolidated physical Stock Count":{
+                                    "on_update_after_submit":["fashion_navya.utils.doc_event.phy.update_after_submits_all"],
+
+                                    },
 
 }
 
