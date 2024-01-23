@@ -536,12 +536,30 @@ def make_check_subcontract(name=None):
 def make_print_tag(items=None):
     items=json.loads(items)
     if items:
-        d={"doctype":"Print Item"}
+        d={"doctype":"Item Discount Print Tag"}
         doc=frappe.get_doc(d)
         for i in items:
             row = doc.append("items", {})
-            row.item_code=i
+            row.item_code=i.get("name")
             
-        doc.insert()
+        doc.save()
         frappe.msgprint("created")
-         
+
+
+
+@frappe.whitelist()
+def make_print_cata(items=None):
+    items=json.loads(items)
+    if items:
+        d={"doctype":"Catalogue"}
+        doc=frappe.get_doc(d)
+        images=[]
+        for i in items:
+            itemdoc=frappe.get_doc("Item",i.get("name"))
+            if itemdoc.image not in images:
+                row = doc.append("items", {})
+                row.item_code=i.get("name")
+                images.append(itemdoc.image)
+                
+        doc.save()
+        frappe.msgprint("created")
