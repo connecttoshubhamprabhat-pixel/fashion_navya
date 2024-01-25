@@ -614,3 +614,49 @@ def check_subconracted(doc,method):
 		if "BPK" in names:
 			frappe.msgprint(names)
 			doc.set("is_sub_contracted_item",0)
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_bom_cr(items=None):
+	items=json.loads(items)
+	if items:
+		for i in items:
+			parent=i.split("-")
+			if parent[-1]=="RTW":
+				parent[-1]="SMPL"
+			smpl="-".join(parent)
+			get_bomc=frappe.db.sql("""select DISTINCT name from `tabBOM Creator` where docstatus=1 and item_code='{}' and status not in ("Failed","Submitted")  limit 1 """.format(smpl),as_dict=1)
+			if len(get_bomc)!=0:
+				get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus<2 and bom_creator='{}' """.format(get_bomc[0]['name']),as_dict=1)
+				if len(get_bom)!=0:
+					for b in get_bom:
+						old=frappe.get_doc("BOM",b['name'])
+						old_item=old.item
+						#copy bom here
+						old_item_doc=frappe.get_doc("Item",old_item)
+						new_bom=frappe.copy_doc(old)
+						new_bom.set("bom_creator",None)
+						new_bom.set("pattern_not_required",1)
+						#replce SMPL
+						pmain_item=old_item.split("-")
+						for p in range(len(pmain_item)):
+							if pmain_item[p]=="SMPL":
+								pmain_item[p]="RTW"
+						pmain_item_join="-".join(pmain_item)
+						if frappe.db.exists("Item",pmain_item_join):
+							new_bom.set("item",pmain_item_join)
+
+						if new_bom.items:
+							for y in new_bom.items:
+								child_item=y.item.split("-")
+								for h in range(len(child_item)):
+									if child_item[h]=="SMPL":
+										child_item[h]="RTW"
+
+								child_item_join="-".join(child_item)
+								if frappe.db.exists("Item",child_item_join):
+									y.set("item",child_item_join)
+
+						new_bom.insert()
