@@ -328,6 +328,9 @@ doc_events = {
                                     "on_update_after_submit":["fashion_navya.utils.doc_event.phy.update_after_submits_all"],
 
                                     },
+                            "Catalogue":{
+                                        "before_save":["fashion_navya.utils.doc_event.api_1.fetch_net_stock"],
+                                },
 
 }
 

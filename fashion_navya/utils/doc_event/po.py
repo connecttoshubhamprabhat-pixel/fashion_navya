@@ -13,7 +13,7 @@ def set_sell_item_po(doc,method):
 						i.set("fg_parent",item.name)
 						i.set("fg_name_parent",item.item_name)
 						i.set("project",item.project)
-						get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(item.name),as_dict=1)
+						get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}' and status in ('In Process','Not Started') """.format(item.name),as_dict=1)
 						if get_wo:
 							i.set("work_order",get_wo[0]['name'])
 							continue
@@ -96,7 +96,7 @@ def get_wo_set_po(doc,method):
 	if doc.is_subcontracted and doc.docstatus==0 and doc.custom_skip_work_order==0:
 		for i in doc.items:
 			if i.fg_parent:
-				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'   """.format(i.fg_parent),as_dict=1)
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started')  """.format(i.fg_parent),as_dict=1)
 				if get_wo:
 					i.set('work_order',get_wo[0]['name'])
 				else:

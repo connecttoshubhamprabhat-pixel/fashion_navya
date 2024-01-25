@@ -516,7 +516,7 @@ def make_bom_kit_new(doc,method):
                         d.set("workflow_state","Draft")
                         try:
                             d.insert(ignore_permissions=True)
-                            d.submit()
+                            #d.submit()
                         except:
                             pass
             else:
@@ -541,7 +541,7 @@ def make_bom_kit_new(doc,method):
                             d.set("workflow_state","Draft")
                             try:
                                 d.insert(ignore_permissions=True)
-                                d.submit()
+                                #d.submit()
                             except:
                                 pass
 
@@ -697,7 +697,7 @@ def rtw_from_projects(items=None):
             if variants:
                 make_ptt_so(old=item_doc.name,new=variants.name)
                 if bom_smpl:
-                    make_bom(new=variants.name,submit=1,variant=1,bom=bom_smpl[0])
+                    make_bom(new=variants.name,submit=0,variant=1,bom=bom_smpl[0])
                 frappe.msgprint("Item is created")
         except:
             continue

@@ -133,8 +133,8 @@ def make_mr_so(doc,method):
 			if sum(santushti)==0 and sum(qty)==0:
 				m_req.append(i.item_code)
 				t_req.append(i.item_code)
-			if sum(santushti)==0:
-				t_req.append(i.item_code)
+				
+			t_req.append(i.item_code)
 
 			if sum(santushti)==0 and sum(qty)!=0:
 				t_req.append(i.item_code)
