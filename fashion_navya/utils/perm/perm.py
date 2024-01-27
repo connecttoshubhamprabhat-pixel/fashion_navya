@@ -5,7 +5,7 @@ import frappe
 @frappe.whitelist()
 def check_stock_warehouse_source(doc,method):
     skip_user=['Administrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
-    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry:
+    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry and not doc.pick_list:
         user=frappe.session.user
         source_warehouse=[]
         if doc.stock_entry_type=="Material Transfer" and user not in skip_user:

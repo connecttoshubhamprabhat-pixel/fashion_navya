@@ -5,7 +5,7 @@ frappe.ui.form.on("Purchase Order", {
             if (frm.doc.status !== 'Closed' && flt(frm.doc.per_received) < 100 && flt(frm.doc.per_billed) < 100) {
 
                 // Don't add Update Items button if the PO is following the new subcontracting flow.
-               if (!(frm.doc.is_subcontracted && !frm.doc.is_old_subcontracting_flow)) {
+               //if (!(frm.doc.is_subcontracted && !frm.doc.is_old_subcontracting_flow)) {
                     frm.add_custom_button(__('Update Items'), () => {
                         erpnext.utils.update_child_items_po({
                             frm:frm,
@@ -19,7 +19,7 @@ frappe.ui.form.on("Purchase Order", {
 
 
 
-        }
+       // }
 
 
     }

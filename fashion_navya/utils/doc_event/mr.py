@@ -130,7 +130,7 @@ def uncheck_is_bom_mr(doc,method):
 
 @frappe.whitelist()
 def automated_mr_se(doc,method):
-	if doc.items and doc.stock_entry_type=="Material Transfer":
+	if doc.items and doc.stock_entry_type=="Material Transfer" and doc.custom_skip_mr==0:
 		mr_exists=doc.items[0].material_request
 		if mr_exists:
 			doc.set("add_to_transit",1)

@@ -88,7 +88,7 @@ def throw_error_se(doc,method):
 					con_item.append('aa')
 		if not con_item:
 			return
-		if user not in ["prashant@example.com","design@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
+		if user not in ["faeemm@navyacustom.com","sujeets@navyacustom.com","prashant@example.com","design@navyacustom.com","Administrator","pawasthy11@gmail.com","amita@navya.biz","erpsupport@uttamenergy.com"]:
 			if doc.owner!="amita@navya.biz":
 				frappe.throw("Sorry you can't receive")
 @frappe.whitelist()

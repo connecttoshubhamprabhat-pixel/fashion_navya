@@ -488,6 +488,7 @@ def bom_fetched(parent=None,size=None):
 #kit bom copy
 @frappe.whitelist(allow_guest=True)
 def make_bom_kit_new(doc,method):
+    return
     if not doc.variant_of and doc.item_group=="M kit":
         #frappe.throw("aaaaaa")
         split_parent=doc.name.split("-")
@@ -539,11 +540,7 @@ def make_bom_kit_new(doc,method):
                             d.set("item",doc.name)
                             d.set('pattern_not_required',1)
                             d.set("workflow_state","Draft")
-                            try:
-                                d.insert(ignore_permissions=True)
-                                #d.submit()
-                            except:
-                                pass
+                            
 
 
 
@@ -696,8 +693,8 @@ def rtw_from_projects(items=None):
             variants.save(ignore_permissions=True)
             if variants:
                 make_ptt_so(old=item_doc.name,new=variants.name)
-                if bom_smpl:
-                    make_bom(new=variants.name,submit=0,variant=1,bom=bom_smpl[0])
-                frappe.msgprint("Item is created")
+                # if bom_smpl:
+                #     make_bom(new=variants.name,submit=0,variant=1,bom=bom_smpl[0])
+                # frappe.msgprint("Item is created")
         except:
             continue

@@ -1,35 +1,19 @@
 import frappe
+import json
+from frappe import utils
 
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_item_po(doc,method):
 	if doc.is_subcontracted:
 		for i in doc.items:
-			if i.production_plan:
-				get_bom=frappe.db.sql("""select * from `tabProduction Plan Sub Assembly Item` where docstatus=1 and production_item='{}' and parent='{}'  """.format(i.fg_item,i.production_plan),as_dict=1)
-				if len(get_bom)!=0:
-					for p in get_bom:
-						item=frappe.get_doc("Item",p['parent_item_code'])
-						i.set("fg_parent",item.name)
-						i.set("fg_name_parent",item.item_name)
-						i.set("project",item.project)
-						get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}' and status in ('In Process','Not Started') """.format(item.name),as_dict=1)
-						if get_wo:
-							i.set("work_order",get_wo[0]['name'])
-							continue
-
-			else:
-				if i.fg_item:
-					names=i.fg_item
-					ns=names.split("-")
-					names_1=ns[:-1]
-					join_name="-".join(names_1)
-					#frappe.msgprint("aa {}".format(i.fg_item))
-					if frappe.db.exists("Item",join_name):
-						i.set("fg_parent",join_name)
-						check_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  """.format(join_name),as_dict=1)
-						if len(check_wo)!=0:
-							i.set("work_order",check_wo[0]['name'])
+			if i.fg_item:
+				names=i.fg_item
+				ns=names.split("-")
+				names_1=ns[:-1]
+				join_name="-".join(names_1)
+				if frappe.db.exists("Item",join_name):
+					i.set("fg_parent",join_name)
 #only subcontracting
 @frappe.whitelist(allow_guest=True)
 def set_sell_offline():
@@ -95,9 +79,174 @@ frappe.whitelist(allow_guest=True)
 def get_wo_set_po(doc,method):
 	if doc.is_subcontracted and doc.docstatus==0 and doc.custom_skip_work_order==0:
 		for i in doc.items:
-			if i.fg_parent:
+			if i.fg_parent and not  i.production_plan:
 				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started')  """.format(i.fg_parent),as_dict=1)
 				if get_wo:
 					i.set('work_order',get_wo[0]['name'])
 				else:
 					frappe.throw("Work order is missing for row :- {}".format(i.idx))
+					
+			
+			if i.fg_parent and i.production_plan:
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started') and production_plan='{}' """.format(i.fg_parent,i.production_plan),as_dict=1)
+				if get_wo:
+					i.set('work_order',get_wo[0]['name'])
+				else:
+					frappe.throw("Work order is missing for row :- {}".format(i.idx))
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def level_wise_po(items=None,name=None):
+	#frappe.throw("hello")
+	date=str(utils.today())
+	items=json.loads(items)
+	po=frappe.get_doc("Purchase Order",name)
+	level_zero=[]
+	level_one=[]
+	level_two=[]
+	level_three=[]
+	if items:
+		for i in items:
+			if i.get("production_plan"):
+				pp=frappe.get_doc("Production Plan",i.get("production_plan"))
+				get_level=frappe.db.sql(""" select  bom_level from `tabProduction Plan Sub Assembly Item` where docstatus=1 and production_item='{}' and parent='{}'  """.format(i.get("fg_item"),pp.name),as_dict=1)
+				if get_level:
+					if get_level[0]['bom_level']==0:
+						level_zero.append(i.get("fg_item"))
+						
+					if get_level[0]['bom_level']==1:
+						level_one.append(i.get("fg_item"))
+						
+					if get_level[0]['bom_level']==2:
+						level_two.append(i.get("fg_item"))
+					if get_level[0]['bom_level']==3:
+						level_three.append(i.get("fg_item"))
+
+	
+	if level_zero:
+		d={"doctype":"Purchase Order","supplier":"Production Plan"}
+		d['schedule_date']=date
+		d['is_subcontracted']=1
+		d['custom_bom_level']=0
+		d['custom_automated']=1
+		doc=frappe.get_doc(d)
+		for i in level_zero:
+			get_items_details=frappe.db.sql(""" select * from `tabPurchase Order Item` where fg_item='{}' and parent='{}' """.format(i,name),as_dict=1)
+			row = doc.append("items", {})
+			row.fg_item=i
+			row.schedule_date=date
+			row.item_code="Digital printing"
+			row.qty=1
+			if len(get_items_details)!=0:
+				row.fg_item_qty=get_items_details[0]['fg_item_qty']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.bom=get_items_details[0]['bom']
+				row.description=get_items_details[0]['description']
+				
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint("Level 0 created")
+	
+
+	if level_one:
+		d={"doctype":"Purchase Order","supplier":"Production Plan"}
+		d['schedule_date']=date
+		d['is_subcontracted']=1
+		d['custom_bom_level']=1
+		d['custom_automated']=1
+		doc=frappe.get_doc(d)
+		for i in level_one:
+			get_items_details=frappe.db.sql(""" select * from `tabPurchase Order Item` where fg_item='{}' and parent='{}' """.format(i,name),as_dict=1)
+			row = doc.append("items", {})
+			row.schedule_date=date
+			row.fg_item=i
+			row.item_code="Digital printing"
+			row.qty=1
+			if len(get_items_details)!=0:
+				row.fg_item_qty=get_items_details[0]['fg_item_qty']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.bom=get_items_details[0]['bom']
+				row.description=get_items_details[0]['description']
+				
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint("Level 1 created")
+	
+
+	if level_two:
+		d={"doctype":"Purchase Order","supplier":"Production Plan"}
+		d['schedule_date']=date
+		d['is_subcontracted']=1
+		d['custom_bom_level']=2
+		d['custom_automated']=1
+		doc=frappe.get_doc(d)
+		for i in level_two:
+			get_items_details=frappe.db.sql(""" select * from `tabPurchase Order Item` where fg_item='{}' and parent='{}' """.format(i,name),as_dict=1)
+			row = doc.append("items", {})
+			row.schedule_date=date
+			row.fg_item=i
+			row.item_code="Digital printing"
+			row.qty=1
+			if len(get_items_details)!=0:
+				row.fg_item_qty=get_items_details[0]['fg_item_qty']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.bom=get_items_details[0]['bom']
+				row.description=get_items_details[0]['description']
+				
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint("Level 2 created")
+	
+
+
+	if level_three:
+		d={"doctype":"Purchase Order","supplier":"Production Plan"}
+		d['schedule_date']=date
+		d['is_subcontracted']=1
+		d['custom_bom_level']=3
+		doc=frappe.get_doc(d)
+		for i in level_three:
+			get_items_details=frappe.db.sql(""" select * from `tabPurchase Order Item` where fg_item='{}' and parent='{}' """.format(i,name),as_dict=1)
+			row = doc.append("items", {})
+			row.fg_item=i
+			row.schedule_date=date
+			row.item_code="Digital printing"
+			row.qty=1
+			if len(get_items_details)!=0:
+				row.fg_item_qty=get_items_details[0]['fg_item_qty']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.production_plan=get_items_details[0]['production_plan']
+				row.bom=get_items_details[0]['bom']
+				row.description=get_items_details[0]['description']
+				
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint("Level 3 created")
+
+
+
+
+			
+@frappe.whitelist(allow_guest=True)
+def check_automated_po(doc,method):
+	plan=[]
+	if doc.items:
+		for i in doc.items:
+			if i.idx==0 and i.production_plan:
+				plan.append(i.production_plan)
+				
+				
+	if plan and doc.custom_automated==0:
+		pl=frappe.get_doc("Production Plan",plan[0])
+		if pl.custom_automated==1:
+			doc.set("custom_automated",1)
+				
+
+
+@frappe.whitelist(allow_guest=True)
+def subcontacted_check(doc,method):
+	if doc.is_subcontracted:
+		get_so=frappe.db.sql(""" select name from `tabSubcontracting Receipt` where purchase_order='{}' and docstatus=1 """.format(doc.name),as_dict=1)
+		if len(get_so)==0:
+			frappe.throw("Subcontracting Receipt is not submitted")
