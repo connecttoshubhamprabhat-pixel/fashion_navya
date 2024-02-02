@@ -7,7 +7,6 @@ import json
 from datetime import datetime # from python std library
 from frappe.utils import add_to_date
 from erpnext.stock.utils import get_latest_stock_qty
-from navya.api_folder.py.item import reserve_qty
 
 #Bank slip deposite
 @frappe.whitelist()
@@ -528,7 +527,8 @@ def make_check_subcontract(name=None):
          return
          
     doc=frappe.get_doc("Item",name)
-    if doc.is_sub_contracted_item==0:
+    split=doc.name.split("-")
+    if doc.is_sub_contracted_item==0 and "BPK" not in split:
         doc.set("is_sub_contracted_item",1)
         doc.save()
 
@@ -551,20 +551,20 @@ def make_print_tag(items=None):
 
 @frappe.whitelist()
 def make_print_cata(items=None):
-	items=json.loads(items)
-	if items:
-		d={"doctype":"Catalogue","subject":"w"}
-		doc=frappe.get_doc(d)
-		images=[]
-		for i in items:
-			itemdoc=frappe.get_doc("Item",i.get("name"))
-			if itemdoc.image not in images:
-				row = doc.append("items", {})
-				row.item_code=i.get("name")
-				images.append(itemdoc.image)
-
-		doc.save()
-		frappe.msgprint("created")
+    items=json.loads(items)
+    if items:
+        d={"doctype":"Catalogue"}
+        doc=frappe.get_doc(d)
+        images=[]
+        for i in items:
+            itemdoc=frappe.get_doc("Item",i.get("name"))
+            if itemdoc.image not in images:
+                row = doc.append("items", {})
+                row.item_code=i.get("name")
+                images.append(itemdoc.image)
+                
+        doc.save()
+        frappe.msgprint("created")
 
 
 @frappe.whitelist()
@@ -572,18 +572,16 @@ def fetch_net_stock(doc,method):
 	if doc.warehouse:
 		w=frappe.get_doc("Warehouse",doc.warehouse)
 		warehouse_list=[]
-		if doc.sw:
-			for u in doc.sw:
-				warehouse_list.append(u.warehouse)
 
-		if not doc.sw:
-			if w.is_group:
-				get_n=frappe.db.sql(""" select name from `tabWarehouse`   where parent_warehouse='{}' and   disabled=0 """.format(doc.warehouse),as_dict=1)
-				if len(get_n)!=0:
-					for w in get_n:
-						warehouse_list.append(w['name'])
-			else:
-				warehouse_list.append(w.name)
+
+		if w.is_group:
+			get_n=frappe.db.sql(""" select name from `tabWarehouse`   where parent_warehouse='{}'  disabled=0 """.format(doc.warehouse),as_dict=1)
+			if len(get_n)!=0:
+				for w in get_n:
+					warehouse_list.append(w['name'])
+
+		else:
+			warehouse_list.append(w.name)
 
 
 		if doc.items:
@@ -597,55 +595,21 @@ def fetch_net_stock(doc,method):
 				if len(get_items)!=0:
 					for j in get_items:
 						item=frappe.get_doc("Item",j['name'])
+						for a in item.attributes:
+							if a.attribute=="Size":
+								get_abr=frappe.db.sql("""select abbr from `tabItem Attribute Value` where attribute_value='{}'  """.format(a.attribute_value),as_dict=1)
+								if get_abr:
+									if get_abr[0]['abbr'] in sdic:
+										sdic[get_abr[0]['abbr']]+=1
+									else:
+										sdic[get_abr[0]['abbr']]=1
 
 						for w in warehouse_list:
 							qty=get_latest_stock_qty(item_code=j['name'],warehouse=w)
-							if qty!=None:
-								rsv=check_reserves(item_code=j['name'])
-								enet=qty-rsv
-								for a in item.attributes:
-									if a.attribute=="Size":
-										get_abr=frappe.db.sql("""select abbr from `tabItem Attribute Value` where attribute_value='{}'  """.format(a.attribute_value),as_dict=1)
-										if get_abr:
-											if get_abr[0]['abbr'] in sdic:
-												sdic[get_abr[0]['abbr']]+=int(enet)
-											else:
-												if int(enet)!=0:
-													sdic[get_abr[0]['abbr']+"-"]=int(enet)
-
-
-								net_stock.append(int(enet))
+                                   
+							net_stock.append(qty)
 				for key,val in sdic.items():
 					sizes +="{}{},".format(key,val)
 
 				i.set("available_in",sizes)
 				i.set("net_stock",sum(net_stock))
-
-
-
-
-
-
-@frappe.whitelist()
-def check_reserves(item_code=None):
-	so_qty=[0]
-	wo_qty=[0]
-	get_so=frappe.db.sql("""select parent,qty from `tabSales Order Item` where docstatus=1 and item_code='{}' and  parent in (select name from `tabSales Order` where docstatus=1 and per_delivered<90 )   """.format(item_code),as_dict=1)
-	if len(get_so)!=0:
-		for i in get_so:
-			wo=frappe.db.sql(""" select sum(qty) as qty from `tabWork Order` where docstatus=1 and sales_order='{}' and produced_qty=qty   """.format(i['parent']),as_dict=1)
-			if len(wo)!=0:
-				if wo[0]['qty']!=None:
-					wo_qty.append(wo[0]['qty'])
-			if i['qty']!=None:
-				so_qty.append(i['qty'])
-
-
-	if sum(wo_qty):
-		s=sum(so_qty)-sum(wo_qty)
-		if s<0:
-			return 0
-		else:
-			return s
-	else:
-		return 0

@@ -52,7 +52,7 @@ def make_kit_level_wise(item_name=None,item=None,item_group=None,level=None,imag
     if frappe.db.exists("Item",new_kit_name):
         return
 
-    d={"doctype":"Item","item_group":"M kit","stock_uom":"Meter","image":image,"is_sub_contracted_item":1}
+    d={"doctype":"Item","item_group":"M kit","stock_uom":"Meter","image":image,"is_sub_contracted_item":0}
     if project:
         d['project']=project
     if item_name:

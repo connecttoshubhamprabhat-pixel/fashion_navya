@@ -246,7 +246,14 @@ def check_automated_po(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def subcontacted_check(doc,method):
-	if doc.is_subcontracted:
-		get_so=frappe.db.sql(""" select name from `tabSubcontracting Receipt` where purchase_order='{}' and docstatus=1 """.format(doc.name),as_dict=1)
-		if len(get_so)==0:
-			frappe.throw("Subcontracting Receipt is not submitted")
+	po=[]
+	for j in doc.items:
+		if j.idx==0 and j.purchase_order:
+			po.append(j.purchase_order)
+			
+	if po:
+		pdoc=frappe.get_doc("Purchase Order",po[0])
+		if pdoc.is_subcontracted:
+			get_so=frappe.db.sql(""" select name from `tabSubcontracting Receipt` where purchase_order='{}' and docstatus=1 """.format(po[0]),as_dict=1)
+			if len(get_so)==0:
+				frappe.throw("Subcontracting Receipt is not submitted")

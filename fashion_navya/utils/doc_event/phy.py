@@ -92,6 +92,7 @@ def get_items_core(
 ):
 
 	posting_date=str(utils.today())
+	print(warehouse,"wwwwwwwwww")
 	ps=str(utils.now())
 	psit=ps.split(" ")
 	psinx=psit[-1][:5]
@@ -103,11 +104,13 @@ def get_items_core(
 
 	if not item_code:
 		items = get_items_for_stock_reco(warehouse, company)
+		print(items,"itemsssss")
 
 	res = []
 	itemwise_batch_data = get_itemwise_batch(warehouse, posting_date, company, item_code)
 
 	for d in items:
+		print(d,"aaaaaaaaaa")
 		item_doc=frappe.get_doc("Item",d.item_code)
 		if item_group:
 			if item_doc.item_group!=item_group:
@@ -145,6 +148,7 @@ def get_items_core(
 
 			res.append(args)
 
+	print(res,"res")
 	return res
 
 

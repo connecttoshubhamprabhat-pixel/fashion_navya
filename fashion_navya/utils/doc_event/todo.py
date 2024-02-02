@@ -180,3 +180,22 @@ def create_todo_project(items=None,values=None):
 				td=frappe.get_doc(d)
 				td.insert()
 				frappe.msgprint("Created")
+
+
+
+@frappe.whitelist()
+def create_todo_urgent(emp=None,task=None,doctype=None):
+	user_list=[]
+	get_id=frappe.db.sql("""select user_id from `tabEmployee` where name='{}' """.format(emp),as_dict=1)
+	if get_id:
+		user_list.append(get_id[0]['user_id'])
+		
+	for i in user_list:
+		d={'doctype':"ToDo","priority":"High","reference_type":doctype}
+		d['description']="यह कार्य आज अत्यावश्यक है(This task is essential today)"
+		d['reference_name']=task
+		d['assigned_by']="amita@navya.biz"
+		d['allocated_to']=i
+		td=frappe.get_doc(d)
+		td.insert()
+		frappe.msgprint("TODO is created")

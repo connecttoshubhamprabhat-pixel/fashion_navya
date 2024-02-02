@@ -1,0 +1,138 @@
+import frappe
+from frappe.utils import time_diff_in_hours
+from frappe.utils import today
+from frappe.utils import now
+from frappe.utils import date_diff
+
+@frappe.whitelist()
+def check_lunch_time(doc,method):
+
+	if doc.without_source:
+		return
+	get_shift=frappe.db.sql(""" select name,start_time,end_time from `tabShift Type` where name="Lunch"   """,as_dict=1)
+	if len(get_shift)==0:
+		frappe.msgprint("Shift Type missing")
+		return
+
+	start_time=str(get_shift[0]['start_time'])
+	end_time=str(get_shift[0]['end_time'])
+	start_min=start_time.split(":")
+	end_time_min=end_time.split(":")
+	for i in doc.time_logs:
+		if i.from_time and not i.to_time:
+			split_f=str(i.from_time).split(" ")
+			get_min=split_f[-1]
+			split_min=get_min.split(":")
+			if int(start_min[0])==int(split_min[0]):
+				if 39>=int(split_min[1]) >=5:
+					frappe.throw("Sorry Lunch Time")
+
+			if int(end_time_min[0])==int(split_min[0]):
+				if 39>=int(split_min[1]) >=5:
+					frappe.throw("Sorry Lunch Time")
+
+		if i.from_time and  i.to_time:
+			split_f=str(i.to_time).split(" ")
+			get_min=split_f[-1]
+			split_min=get_min.split(":")
+			if int(start_min[0])==int(split_min[0]):
+				if 39>=int(split_min[1]) >=5:
+					frappe.throw("Sorry Lunch Time")
+			if int(end_time_min[0])==int(split_min[0]):
+				if 39>=int(split_min[1]) >=5:
+					frappe.throw("Sorry Lunch Time")
+
+
+@frappe.whitelist()
+def office_time_start_end(doc,method):
+	if doc.without_source==1:
+		return
+
+	for i in doc.time_logs:
+		if i.from_time and not i.to_time:
+			split_f=str(i.from_time).split(" ")
+			get_min=split_f[-1]
+			split_min=get_min.split(":")
+			if int(split_min[0])==9:
+				if int(split_min[1])<30:
+					frappe.throw("Sorry,You cannot start before 9:30")
+
+
+
+
+
+@frappe.whitelist()
+def job_card(doc,method):
+	jc=[]
+	if doc.job_card:
+		jcdoc=frappe.get_doc("Job Card",doc.job_card)
+		if jcdoc.status=="Completed":
+			frappe.throw("Sorry Job card is completed")
+
+
+
+
+
+@frappe.whitelist()
+def check_hours_diff(doc,method):
+
+	nval=[]
+	hval=[]
+	for i in doc.time_logs:
+		if i.to_time and i.from_time:
+			day_time=date_diff(str(i.to_time),str(i.from_time))
+			if int(day_time)>0:
+				hval.append("yes")
+			if day_time <0:
+				nval.append("no")
+
+
+	if hval:
+		frappe.throw("Time logs is not correct")
+	if nval:
+		frape.throw("Time logs is not correct")
+
+
+
+
+
+
+
+@frappe.whitelist()
+def add_diff_miss(doc,method):
+	if doc.from_time and doc.to_time:
+		nval=[]
+		hval=[]
+		day_time=date_diff(str(doc.to_time),str(doc.from_time))
+		if int(day_time)>0:
+			hval.append("yes")
+		if day_time <0:
+			nval.append("no")
+
+		if hval:
+			frappe.throw(" Date अलग है ")
+		if nval:
+			frape.throw(" Date अलग है ")
+
+
+@frappe.whitelist()
+def nine_hours_validations(doc,method):
+	if doc.from_time and doc.to_time:
+		hours=time_diff_in_hours(doc.to_time,doc.from_time)
+		if int(hours)>9:
+			frappe.throw(" 9 घंटे से जायदा हो रहे है ")
+		if hours<0:
+			frappe.throw("Date सही करो ")
+
+
+
+
+@frappe.whitelist()
+def update_task(doc,method):
+	if doc.is_urgent:
+		gettk=frappe.db.sql("""select name   from `tabTask` where is_urgent=0 and project='{}'  """.format(doc.name),as_dict=1)
+		if len(gettk)!=0:
+		for i in gettk:
+				tk=frappe.get_doc("Task",i['name'])
+				tk.set("is_urgent",1)
+				tk.save()

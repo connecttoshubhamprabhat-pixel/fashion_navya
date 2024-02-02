@@ -405,7 +405,7 @@ def make_kit_item(name=None):
 		new_item=doc.name+"-k"
 		d={'doctype':"Item","kit_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
-		if "RTW" in split_doc:
+		if "RTW" in split_doc and "BPK"  not in split_doc:
 			d['is_sub_contracted_item']=1
 		d['item_name']=doc.item_name
 		ndoc=frappe.get_doc(d)
@@ -504,7 +504,7 @@ def make_new_item_sub(doc,method):
 		d={'doctype':"Item","kit_item":1,"item_group":"M kit","stock_uom":"Nos","item_code":item,"image":doc.image}
 		d['item_name']=old.item_name
 		d['project']=old.project
-		if "RTW" in split:
+		if "RTW" in split and "BPK" not in split:
 			d['is_sub_contracted_item']=1
 		new=frappe.get_doc(d)
 		new.insert(ignore_permissions=True)
@@ -537,7 +537,7 @@ def make_kit_item_parent(doc,method):
 		d['project']=doc.project
 		d['item_name']=doc.item_name
 		d['parent_item']=doc.name
-		if "RTW" in  split:
+		if "RTW" in  split and "BPK" not in split:
 			d['is_sub_contracted_item']=1
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
@@ -606,14 +606,16 @@ def check_subconracted(doc,method):
 	items_groups=["Prototype","PP Sample"]
 	if doc.item_group in items_groups:
 		doc.set("is_sub_contracted_item",0)
-
-	if doc.item_group not in items_groups:
-		doc.set("is_sub_contracted_item",1)
+		
 	if doc.name:
 		names=doc.name.split("-")
 		if "BPK" in names:
 			frappe.msgprint(names)
 			doc.set("is_sub_contracted_item",0)
+			
+		if "BPK" not in names:
+			if doc.item_group not in items_groups:
+				doc.set("is_sub_contracted_item",1)
 
 
 
@@ -733,17 +735,247 @@ def rebuild_refrences_submit(name=None,old=None):
 
 @frappe.whitelist(allow_guest=True)
 def submit_bom_rtw_bomc(doc,method):
-	if doc.bom_creator:
-		bomc=frappe.get_doc("BOM Creator",doc.bom_creator)
-		if bomc.custom_old_bomc:
-			boms=frappe.db.sql("""select name from `tabBOM` where docstatus=0 and bom_creator='{}' ORDER BY creation ASC """.format(doc.bom_creator),as_dict=1)
-			if len(boms):
-				for i in boms:
-					b=frappe.get_doc("BOM",i['name'])
-					b.set("pattern_not_required",1)
-					b.submit()
-					frappe.msgprint("submitted")
+	return
+	# frappe.logger().debug("***ssssswwwwwwww")
+	# if doc.bom_creator:
+	# 	bomc=frappe.get_doc("BOM Creator",doc.bom_creator)
+		
+	# 	if bomc.custom_old_bomc:
+	# 		boms=frappe.db.sql("""select name from `tabBOM` where docstatus=0 and bom_creator='{}' ORDER BY creation ASC """.format(doc.bom_creator),as_dict=1)
+	# 		if len(boms)!=0:
+	# 			for i in boms:
+	# 				b=frappe.get_doc("BOM",i['name'])
+	# 				bc=frappe.get_doc("BOM Creator",b.bom_creator)
+	# 				if not bc.custom_bomc:
+	# 					continue
+	# 				name=doc.bom_creator
+	# 				old=bc.custom_bomc
+	# 				b.set("pattern_not_required",1)
+	# 				pmain_item=b.item.split("-")
+	# 				box=[]
+	# 				if "SMPL" in pmain_item:
+	# 					bom.append(3)
+	# 					indx=pmain_item.index("SMPL")
+	# 					pmain_item[indx]="RTW"
+						
+					
+	# 				if "RTW" in pmain_item and not box:
+	# 					indx=pmain_item.index("RTW")
+	# 					pmain_item[indx]="SMPL"
+				
+			
+			
+				
+	# 				join_name="-".join(pmain_item)
+	# 				frappe.msgprint(join_name,"itemname")
+	# 				get_bom_name=frappe.db.sql(""" select routing,name from `tabBOM` where docstatus<2 and item='{}' and  with_operations=1 and bom_creator='{}'  """.format(join_name,old),as_dict=1)
+	# 				#frappe.throw(get_bom_name,"get_bom_name")
+	# 				if len(get_bom_name)!=0:
+	# 					bom_doc=frappe.get_doc("BOM",get_bom_name[0]['name'])
+	# 					b.set("routing",bom_doc.routing)
+	# 					frappe.msgprint(bom_doc.routing,"rount")
+	# 					b.set("with_operations",1)
+	# 					b.operations=[]
+	# 					print(bom_doc.name,"nameeeeeeee")
+	# 					for k in bom_doc.operations:
+	# 						row = b.append("operations", {})
+	# 						row.operation=k.operation
+	# 						row.operating_cost=k.operating_cost
+	# 						row.hour_rate=k.hour_rate
+	# 						row.cost_per_unit=k.cost_per_unit
+	# 						row.description=k.description
+	# 						row.time_in_mins=k.time_in_mins
+	# 						row.workstation=k.workstation
+	# 						row.cost_per_unit=k.cost_per_unit
+	# 						row.sequence_id=k.sequence_id
+							
+			
+	# 					#b.save()
+	# 					b.submit()
+	# 					#frappe.msgprint("Saved")
+
+
+					
 
 
 
+
+@frappe.whitelist(allow_guest=True)
+def size_changes_bomc(name=None,values=None):
+	new=frappe.get_doc("BOM Creator",name)
+	values=json.loads(values)
+	size=values.get("size")
+	name_split=new.item_code.split("-")
+	sizes=["XS","S","M","L","XL","XXL","XXXL"]
+	for m in name_split:
+		if m in sizes:
+			idx=name_split.index(m)
+			name_split[idx]=size
+	
+	join_name="-".join(name_split)
+	new.set("item_code",join_name)
+	
+	for i in new.items:
+		a_1=i.item_code.split("-")
+		a_2=i.fg_item.split("-")
+		sizes=["XS","S","M","L","XL","XXL","XXXL"]
+		for m in a_1:
+			if m in sizes:
+				idx=a_1.index(m)
+				a_1[idx]=size
+		
+		for k in a_2:
+			if k in sizes:
+				idx=a_2.index(k)
+				a_2[idx]=size
+				
+		a_1_join="-".join(a_1)
+		a_2_join="-".join(a_2)
+		i.set("item_code",a_1_join)
+		i.set("fg_item",a_2_join)
+	
+	new.save()
+	frappe.msgprint("Changed")
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_duplicate_smpl(name=None):
+	old=frappe.get_doc("BOM Creator",name)
+	new_bom=frappe.copy_doc(old)
+	new_bom.set("custom_old_bomc",old.name)
+	new_bom.set("status","Draft")
+	new_bom.insert()
+	frappe.msgprint("created")
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def color_changes(name=None,values=None):
+	new=frappe.get_doc("BOM Creator",name)
+	values=json.loads(values)
+	size=values.get("size")
+	name_split=new.item_code.split("-")
+	sizes=[]
+	get_colors=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent="Colour" """,as_dict=1)
+	if get_colors:
+		for c in get_colors:
+			sizes.append(c['abbr'])
+	for m in name_split:
+		if m in sizes:
+			idx=name_split.index(m)
+			name_split[idx]=size
+	
+	join_name="-".join(name_split)
+	new.set("item_code",join_name)
+	
+	for i in new.items:
+		a_1=i.item_code.split("-")
+		a_2=i.fg_item.split("-")
+		for m in a_1:
+			if m in sizes:
+				idx=a_1.index(m)
+				a_1[idx]=size
+		
+		for k in a_2:
+			if k in sizes:
+				idx=a_2.index(k)
+				a_2[idx]=size
+				
+		a_1_join="-".join(a_1)
+		a_2_join="-".join(a_2)
+		i.set("item_code",a_1_join)
+		i.set("fg_item",a_2_join)
+	
+	new.save()
+	frappe.msgprint("Changed")
+
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_bom_rtw_bomc_manul(name=None,old=None):
+	boms=frappe.db.sql("""select name from `tabBOM` where docstatus=0 and bom_creator='{}' ORDER BY creation ASC """.format(name),as_dict=1)
+	if len(boms)!=0:
+		for i in boms:
+			new=frappe.get_doc("BOM",i['name'])
+			old_bomc=frappe.get_doc("BOM Creator",old)
+			item_doc=frappe.get_doc("Item",new.item)
+			split_name=item_doc.name.split("-")
+			if item_doc.variant_of:
+				get_bom_name=frappe.db.sql("""select name from `tabBOM` where item='{}' and docstatus=1 and bom_creator='{}' """.format(old_bomc.item_code,old),as_dict=1)
+				if len(get_bom_name)!=0:
+					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
+				else:
+					print()
+					frappe.throw("BOM is not Submit yet")
+			else:
+				if "BPK" in split_name:
+					get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%BPK%' """.format(old),as_dict=1)
+					
+				if len(get_bom_name)!=0:
+					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
+				else:
+					frappe.throw("BOM is not Submit yet")
+				
+				if "DPK" in split_name:
+					get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%DPK%' """.format(old),as_dict=1)
+					
+				if len(get_bom_name)!=0:
+					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
+				else:
+					frappe.throw("BOM is not Submit yet")
+				
+
+				if "HEK" in split_name:
+					get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%HEK%' """.format(old),as_dict=1)
+					
+				if len(get_bom_name)!=0:
+					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
+				else:
+					frappe.throw("BOM is not Submit yet")
+					
+				if "k" in split_name:
+					get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%k%' """.format(old),as_dict=1)
+					
+				if len(get_bom_name)!=0:
+					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
+				else:
+					frappe.throw("BOM is not Submit yet")
+
+
+
+
+
+
+
+
+			
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_bom_op(new=None,old=None):
+	new=frappe.get_doc("BOM",new)
+	old=frappe.get_doc("BOM",old)
+	new.set("pattern_not_required",1)
+	new.set("routing",old.routing)
+	new.set("with_operations",1)
+	for k in old.operations:
+		row = new.append("operations", {})
+		row.operation=k.operation
+		row.operating_cost=k.operating_cost
+		row.hour_rate=k.hour_rate
+		row.cost_per_unit=k.cost_per_unit
+		row.description=k.description
+		row.time_in_mins=k.time_in_mins
+		row.workstation=k.workstation
+		row.cost_per_unit=k.cost_per_unit
+		row.sequence_id=k.sequence_id
+	
+	new.save()
+	new.submit()
+	frappe.msgprint("operations added and submit")
 
