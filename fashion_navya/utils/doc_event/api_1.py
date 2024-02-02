@@ -479,7 +479,7 @@ def make_po_orders_project(items=None,values=None,project=None):
                         fg_yes.append("a")
                     else:
                         frappe.msgprint("Main Kit Item is missing for {}".format(i))
-                        
+
                 if fg_yes:
                      yes_items.append("aa")
                      row.item_code=sitem
@@ -525,7 +525,7 @@ def check_duplciate(doc,method):
 def make_check_subcontract(name=None):
     if not name:
          return
-         
+
     doc=frappe.get_doc("Item",name)
     split=doc.name.split("-")
     if doc.is_sub_contracted_item==0 and "BPK" not in split:
@@ -543,7 +543,7 @@ def make_print_tag(items=None):
         for i in items:
             row = doc.append("items", {})
             row.item_code=i.get("name")
-            
+
         doc.save()
         frappe.msgprint("created")
 
@@ -562,7 +562,7 @@ def make_print_cata(items=None):
                 row = doc.append("items", {})
                 row.item_code=i.get("name")
                 images.append(itemdoc.image)
-                
+
         doc.save()
         frappe.msgprint("created")
 
@@ -606,10 +606,26 @@ def fetch_net_stock(doc,method):
 
 						for w in warehouse_list:
 							qty=get_latest_stock_qty(item_code=j['name'],warehouse=w)
-                                   
+
 							net_stock.append(qty)
 				for key,val in sdic.items():
 					sizes +="{}{},".format(key,val)
 
 				i.set("available_in",sizes)
 				i.set("net_stock",sum(net_stock))
+
+
+
+
+@frappe.whitelist()
+def update_putway_rule(doc,method):
+    if doc.outgoing_stock_entry and doc.custom_ignore_putway==0:
+        se=frappe.get_doc("Stock Entry",doc.outgoing_stock_entry)
+        if se.custom_destination:
+            doc.set("apply_putaway_rule",1)
+
+
+@frappe.whitelist()
+def set_read_flilter(doc,method):
+    if doc.read:
+        doc.set("custom_log_check","Read")
