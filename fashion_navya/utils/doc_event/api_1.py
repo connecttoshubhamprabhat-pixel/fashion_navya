@@ -575,13 +575,16 @@ def fetch_net_stock(doc,method):
 
 
 		if w.is_group:
-			get_n=frappe.db.sql(""" select name from `tabWarehouse`   where parent_warehouse='{}'  disabled=0 """.format(doc.warehouse),as_dict=1)
+			get_n=frappe.db.sql(""" select name from `tabWarehouse`   where parent_warehouse='{}' and   disabled=0 """.format(doc.warehouse),as_dict=1)
 			if len(get_n)!=0:
 				for w in get_n:
 					warehouse_list.append(w['name'])
 
+
+
 		else:
 			warehouse_list.append(w.name)
+
 
 
 		if doc.items:
@@ -606,8 +609,9 @@ def fetch_net_stock(doc,method):
 
 						for w in warehouse_list:
 							qty=get_latest_stock_qty(item_code=j['name'],warehouse=w)
+							if qty!=None:
+								net_stock.append(qty)
 
-							net_stock.append(qty)
 				for key,val in sdic.items():
 					sizes +="{}{},".format(key,val)
 
@@ -626,6 +630,6 @@ def update_putway_rule(doc,method):
 
 
 @frappe.whitelist()
-def set_read_flilter(doc,method):
-    if doc.read:
-        doc.set("custom_log_check","Read")
+def set_read_flilter_logs(doc,method):
+	if doc.read:
+		doc.set("custom_log_check","Read")

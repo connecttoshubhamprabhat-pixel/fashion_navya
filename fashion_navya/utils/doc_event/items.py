@@ -54,6 +54,7 @@ def make_ptt_so(old=None,new=None):
             dp=frappe.copy_doc(docpt)
             dp.set("item_code",new)
             dp.set("workflow_state","Draft")
+            dp.set("custom_automated",1)
             try:
                 dp.insert(ignore_permissions=True)
                 dp.submit()
@@ -167,7 +168,7 @@ def make_customer_items(items=None,so=None,size=None,customer=None):
         n.db_set("description",des, update_modified=False)
         make_kit_item(name=n.name)
         make_price_doc(item=n.name,rate=rate)
-        make_bom(new=n.name,submit=submit,variant=0,bom=bom)
+        #make_bom(new=n.name,submit=submit,variant=0,bom=bom)
         all_item.append(n.name)
 
     if all_item:
@@ -384,7 +385,7 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
         variants.save(ignore_permissions=True)
         if variants:
             make_ptt_so(old=item_doc.name,new=variants.name)
-            make_bom(new=variants.name,submit=submit,variant=1,bom=get_bom_name)
+            #make_bom(new=variants.name,submit=submit,variant=1,bom=get_bom_name)
             return variants.name
 
 

@@ -87,3 +87,54 @@ def update_del_date_so():
 				frappe.db.commit()
 				frappe.db.sql("""update `tabWork Order` set expected_delivery_date='{}' where sales_order='{}' and production_item='{}'  """.format(doc.delivery_date,doc.name,i.item_code))
 				frappe.db.commit()
+
+
+@frappe.whitelist()
+def delete_temp():
+	get_all=frappe.db.sql("""select name from `tabProject Template`  """,as_dict=1)
+	for i in get_all:
+		if frappe.db.exists("Project Template",i['name']):
+			doc=frappe.get_doc("Project Template",i['name'])
+			project=frappe.db.sql("""select name from `tabProject` where project_template='{}' """.format(doc.name),as_dict=1)
+			if len(project)==0:
+				try:
+					doc.delete()
+					frappe.db.commit()
+					print(doc.name)
+				except:
+					continue
+			
+	new_update=['TASK-2024-00190',"TASK-2024-00189",'TASK-2024-00188','TASK-2024-00187','TASK-2024-00186','TASK-2024-00185']
+	for i in get_all:
+		if frappe.db.exists("Project Template",i['name']):
+			docs=frappe.get_doc("Project Template",i["name"])
+			for j in new_update:
+				row = docs.append("tasks", {})
+				row.task=j
+			docs.save()
+			frappe.db.commit()
+
+
+
+@frappe.whitelist()
+def add_sizes():
+	l=["Extra Small","Small","Medium","Large","Extra Large","Double XL","Triple XL"]
+	get_sil=frappe.db.sql("""select name from `tabSilhouette`   """,as_dict=1)
+	if get_sil:
+		for i in get_sil:
+			doc=frappe.get_doc("Silhouette",i['name'])
+			m=[]
+			if not doc.ready:
+				for j in l:
+					row=doc.append("ready", {})
+					row.sizes=j
+					m.append("3")
+			if not doc.capacity__silhouette:
+				for k in l:
+					row1=doc.append("capacity__silhouette", {})
+					row1.sizes=k
+					m.append("9")
+					print(k)
+					
+			doc.save()
+			frappe.db.commit()

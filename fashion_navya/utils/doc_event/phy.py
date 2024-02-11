@@ -88,7 +88,7 @@ def get_items(date=None,warehouse=None):
 
 @frappe.whitelist()
 def get_items_core(
-	warehouse=None,item_group=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
+	warehouse=None,item_group=None,project=None, posting_date=None, posting_time=None, company=None, item_code=None, ignore_empty_stock=False
 ):
 
 	posting_date=str(utils.today())
@@ -114,6 +114,9 @@ def get_items_core(
 		item_doc=frappe.get_doc("Item",d.item_code)
 		if item_group:
 			if item_doc.item_group!=item_group:
+				continue
+		if project:
+			if item_doc.project!=project:
 				continue
 		if d.item_code in itemwise_batch_data:
 			valuation_rate = get_stock_balance(

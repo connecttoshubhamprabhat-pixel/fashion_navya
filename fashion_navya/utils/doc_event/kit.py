@@ -99,3 +99,50 @@ def make_kit_level_wise_old(item_name=None,item=None,item_group=None,level=None,
         frappe.db.commit()
     except:
         pass
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_project_kit(doc,method):
+    if doc.parent_item and not doc.project:
+        if frappe.db.exists("Item",doc.parent_item):
+            parent=frappe.get_doc("Item",doc.parent_item)
+            if parent.project:
+                doc.db_set("project",parent.project, update_modified=False)
+
+
+@frappe.whitelist(allow_guest=True)
+def set_project_by(doc,method):
+    if doc.name:
+        name=doc.name
+        split=name.split("-")
+        project="PROJ-"+str(split[0])
+        if frappe.db.exists("Project",project):
+            doc.db_set("project",project, update_modified=False)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_project_bys():
+    #get_items=frappe.db.sql("""select name from `tabItem` where name like '%-BPK' """,as_dict=1)
+    #get_items=frappe.db.sql("""select name from `tabItem` where name like '%-HEK' """,as_dict=1)
+    get_items=frappe.db.sql("""select name from `tabItem` where name like '%-DPK' """,as_dict=1)
+    if get_items:
+        for i in get_items:
+            if frappe.db.exists("Item",i['name']):
+                print(i['name'],"hi")
+                doc=frappe.get_doc("Item",i['name'])
+                name=doc.name
+                split=name.split("-")
+                project="PROJ-"+str(split[0])
+                if frappe.db.exists("Project",project):
+                    doc.db_set("project",project, update_modified=False)
+                
+                try:
+                    doc.save()
+                    frappe.db.commit()
+                except:
+                    pass
+
+    

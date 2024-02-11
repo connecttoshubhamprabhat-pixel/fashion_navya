@@ -94,6 +94,8 @@ def get_data(filters):
 
 	for i in records:
 		d={}
+		if not frappe.db.exists("Item",i.item):
+			continue
 		if  not filters.get("item_type"):
 			d['item']=i.item
 			d['hours']=i.total_hours
