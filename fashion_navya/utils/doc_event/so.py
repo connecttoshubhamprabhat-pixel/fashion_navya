@@ -1,4 +1,5 @@
 import frappe
+import random
 from datetime import datetime # from python std library
 from frappe.utils import add_to_date
 from erpnext.accounts.utils import get_balance_on
@@ -273,3 +274,11 @@ def delete_mr_so(doc,method):
 			super_role=list(admin_roles_dict.intersection(logged_user_dict))
 			if not super_role:
 				frappe.throw("Sorry,You cannot cancel.")
+
+
+#update field after submit
+@frappe.whitelist()
+def udpate_val_for_send_notify(doc,method):
+	num=str(random.random())
+	if doc.advance_paid>0:
+		doc.set("custom_update_val",num[:4])

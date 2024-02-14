@@ -142,7 +142,7 @@ doc_events = {
             "before_submit":["fashion_navya.utils.doc_event.item.update_item"],
         },
     "Sales Order":{
-        "before_update_after_submit":["fashion_navya.utils.doc_event.api_1.update_del_date_so","fashion_navya.utils.doc_event.so.check_sample_items"],
+        "before_update_after_submit":["fashion_navya.utils.doc_event.so.udpate_val_for_send_notify","fashion_navya.utils.doc_event.api_1.update_del_date_so","fashion_navya.utils.doc_event.so.check_sample_items"],
         "before_submit":["fashion_navya.utils.doc_event.so.check_sample_items"],
         "on_cancel":["fashion_navya.utils.doc_event.so.delete_item_so"],
 	"on_trash":["fashion_navya.utils.doc_event.so.delete_item_so"],
@@ -289,10 +289,6 @@ doc_events = {
                         #"before_insert":["fashion_navya.utils.doc_event.production.remove_without_bom"],
 
                         },
-			"Job Card":{
-				"validate":["fashion_navya.utils.doc_event.jc.se_check_all_jc"],
-
-			},
                         "Maintenance Visit":{
                                 "after_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
                                 "before_submit":["fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
@@ -326,7 +322,9 @@ doc_events = {
 
                                     },
                             "Job Card":{
-                                    "before_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all","fashion_navya.utils.doc_event.job_card.qty_check_jc"],
+                                    "before_submit":["fashion_navya.utils.doc_event.job_card.qty_check_jc"],
+                                    "validate":["fashion_navya.utils.doc_event.jc.se_check_all_jc"],
+                                    "on_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all"],
 
                                     },
                             "Consolidated physical Stock Count":{

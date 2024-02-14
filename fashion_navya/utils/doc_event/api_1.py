@@ -317,7 +317,7 @@ def make_stock_reconcil(items=None):
 
 @frappe.whitelist()
 def update_stock_cron():
-    get_items=frappe.db.sql("""select name from `tabItem` where item_group in ("Sample","Ready Stock","Customise") and variant_of is not null  """,as_dict=1)
+    get_items=frappe.db.sql("""select name from `tabItem` where item_group in ("Sample","Ready Stock","Customise") and variant_of is not null and project in ('PROJ-1564','PROJ-1587','Proj-1521','PROJ-1565','PROJ-1660','PROJ-1621','PROJ-1619','PROJ-1659','PROJ-1657','PROJ-1616')  """,as_dict=1)
     if get_items:
         for i in get_items:
             print(i['name'],"name")

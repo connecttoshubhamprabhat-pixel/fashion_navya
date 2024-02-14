@@ -861,6 +861,7 @@ def color_changes(name=None,values=None):
 	values=json.loads(values)
 	size=values.get("size")
 	name_split=new.item_code.split("-")
+	print(name_split,'name_split')
 	sizes=[]
 	get_colors=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent="Colour" """,as_dict=1)
 	if get_colors:
@@ -873,6 +874,7 @@ def color_changes(name=None,values=None):
 	
 	join_name="-".join(name_split)
 	new.set("item_code",join_name)
+	##print(join_name,'join_name')
 	
 	for i in new.items:
 		a_1=i.item_code.split("-")
@@ -886,9 +888,12 @@ def color_changes(name=None,values=None):
 			if k in sizes:
 				idx=a_2.index(k)
 				a_2[idx]=size
-				
+		
+
 		a_1_join="-".join(a_1)
 		a_2_join="-".join(a_2)
+		#print(a_1_join,'a_1_join')
+		#print(a_2_join,'a_2_join')
 		i.set("item_code",a_1_join)
 		i.set("fg_item",a_2_join)
 	
@@ -964,22 +969,23 @@ def submit_bom_op(new=None,old=None):
 	new=frappe.get_doc("BOM",new)
 	old=frappe.get_doc("BOM",old)
 	new.db_set("pattern_not_required",1, update_modified=False)
-	new.db_set("routing",old.routing)
+	split_name=new.item.split("-")
+	if "k" in split_name and "RTW" in split_name:
+		new.set("routing","Main KIT RTW")
+		
+	elif "k" in split_name and "SMPL" in split_name:
+		new.set("routing","Main KIT SMPL")
+		
+	elif "HEK" in split_name and "RTW" in split_name:
+		new.set("routing","HEK RTW")
+		
+	elif "HEK" in split_name and "SMPL" in split_name:
+		new.set("routing","HEK SMPL")
+		
+	else:
+		new.db_set("routing",old.routing)
 	
 	new.set("with_operations",1)
-	# for k in old.operations:
-	# 	row = new.append("operations", {})
-	# 	row.operation=k.operation
-	# 	row.operating_cost=k.operating_cost
-	# 	row.hour_rate=k.hour_rate
-	# 	row.cost_per_unit=k.cost_per_unit
-	# 	row.description=k.description
-	# 	row.time_in_mins=k.time_in_mins
-	# 	row.workstation=k.workstation
-	# 	row.cost_per_unit=k.cost_per_unit
-	# 	row.sequence_id=k.sequence_id
-	
-	
 	new.submit()
 	frappe.msgprint("operations added and submit")
 
@@ -1102,13 +1108,119 @@ def submit_bom_project(doc,method):
 		if "BPK" in split and  not "HE" in split:
 			doc.set("routing","BPK without Dyeing")
 			
-		if split[-1]=="k":
-			doc.set("routing","Main KIT")
+			
+		if "k" in split and "RTW" in split:
+			doc.set("routing","Main KIT RTW")
+			
+			
+		if "k" in split and "SMPL" in split:
+			doc.set("routing","Main KIT SMPL")
+			
 			
 		item=frappe.get_doc("Item",doc.item)
 		if item.variant_of:
 			doc.set("routing","Final BOM")
 			
-		if "HEK" in split:
-			doc.set("routing","HEK")
+			
+		if "HEK" in split and "RTW" in split:
+			doc.set("routing","HEK RTW")
+			
+		if "HEK" in split and "SMPL" in split:
+			doc.set("routing","HEK SMPL")
+			
 		doc.submit()
+
+
+
+
+
+frappe.whitelist(allow_guest=True)
+def set_reorder_new(doc,method):
+	if doc.variant_of and doc.item_group=="Ready Stock":
+		doc.reorder_levels=[]
+		size=[]
+		split_parent=doc.variant_of.split("-")[-1]
+		for i in doc.attributes:
+			if i.attribute=="Size":
+				size.append(i.attribute_value)
+				break
+			
+		get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
+		if get_val:
+			capacity=get_val[0]['capacity']
+			get_shops=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Shops - NAVYA'   """,as_dict=1)
+			shops=[]
+			if get_shops:
+				for s in get_shops:
+					shops.append(s['name'])
+			
+			shops=list(set(shops))
+			manufactures_qty=capacity*len(shops)
+			#set re order for level manufacture
+			row = doc.append("reorder_levels", {})
+			row.warehouse_group="Sainik Farm - NAVYA"
+			row.material_request_type="Manufacture"
+			row.warehouse_reorder_level=capacity
+			row.warehouse_reorder_qty=capacity
+			row.warehouse="Navya Store Office - NAVYA"
+			
+			for i in shops:
+				if i=="Pune - NAVYA":
+					row1 = doc.append("reorder_levels", {})
+					row1.warehouse_group="Pune - NAVYA"
+					row1.material_request_type="Transfer"
+					row1.warehouse_reorder_level=capacity
+					row1.warehouse_reorder_qty=capacity
+					row1.warehouse="PStore - NAVYA"
+					
+				if i=="Santushti - NAVYA":
+					row2 = doc.append("reorder_levels", {})
+					row2.warehouse_group="Santushti - NAVYA"
+					row2.material_request_type="Transfer"
+					row2.warehouse_reorder_level=capacity
+					row2.warehouse_reorder_qty=capacity
+					row2.warehouse="SStore - NAVYA"
+
+
+frappe.whitelist(allow_guest=True)
+def set_reorder_new_smpl(doc,method):
+	if doc.variant_of and doc.item_group=="Sample":
+		doc.reorder_levels=[]
+		get_shops=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Shops - NAVYA'   """,as_dict=1)
+		shops=[]
+		if get_shops:
+			for s in get_shops:
+				shops.append(s['name'])
+				
+		shops=list(set(shops))
+		#set re order for level manufacture
+		row = doc.append("reorder_levels", {})
+		row.warehouse_group="Sainik Farm - NAVYA"
+		row.material_request_type="Manufacture"
+		row.warehouse_reorder_level=1
+		row.warehouse_reorder_qty=1
+		row.warehouse="Navya Store Office - NAVYA"
+		
+		for i in shops:
+			if i=="Pune - NAVYA":
+				row1 = doc.append("reorder_levels", {})
+				row1.warehouse_group="Pune - NAVYA"
+				row1.material_request_type="Transfer"
+				row1.warehouse_reorder_level=1
+				row1.warehouse_reorder_qty=1
+				row1.warehouse="PStore - NAVYA"
+				
+			if i=="Santushti - NAVYA":
+				row2 = doc.append("reorder_levels", {})
+				row2.warehouse_group="Santushti - NAVYA"
+				row2.material_request_type="Transfer"
+				row2.warehouse_reorder_level=1
+				row2.warehouse_reorder_qty=1
+				row2.warehouse="SStore - NAVYA"
+
+		
+
+	
+		
+
+
