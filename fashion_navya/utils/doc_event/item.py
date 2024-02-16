@@ -328,6 +328,8 @@ def update_images_item(name=None,image=None):
 
 @frappe.whitelist()
 def update_item_si(doc,method):
+	if not doc.taxes_and_charges or len(doc.taxes)==0:
+		frappe.throw("Please add GST")
 	if doc.update_stock:
 		for i in doc.items:
 			item=frappe.get_doc("Item",i.item_code)
@@ -603,6 +605,8 @@ def fetch_source_se_without(items=None):
 
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
+	if doc.variant_of:
+		doc.set("is_sales_item",1)
 	items_groups=["Prototype","PP Sample"]
 	if doc.item_group in items_groups:
 		doc.set("is_sub_contracted_item",0)
@@ -613,10 +617,28 @@ def check_subconracted(doc,method):
 			frappe.msgprint(names)
 			doc.set("is_sub_contracted_item",0)
 			
-		if "BPK" not in names:
-			if doc.item_group not in items_groups:
-				doc.set("is_sub_contracted_item",1)
+		if "HEK"  in names and "SMPL" in names:
+			doc.set("is_sub_contracted_item",0)
+		
+		if "k"  in names and "SMPL" in names:
+			doc.set("is_sub_contracted_item",0)
+			
+		if "PRSMPL" in names or "PPSMPL" in names:
+			doc.set("is_sub_contracted_item",0)
+			
+		if "k" in names and "RTW" in names or "HEK" in names and "RTW" in names:
+			doc.set("is_sub_contracted_item",1)
+			
+		if "DPK" in names and "RTW" in names:
+			doc.set("is_sub_contracted_item",1)
 
+
+		
+
+
+
+			
+		
 
 
 
@@ -1218,9 +1240,163 @@ def set_reorder_new_smpl(doc,method):
 				row2.warehouse_reorder_qty=1
 				row2.warehouse="SStore - NAVYA"
 
+
+
+#fetch source warehouse se
+@frappe.whitelist()
+def fetch_source_me(name=None):
+	if not name:
+		return
 		
+	doc=frappe.get_doc("Material Request",name)
+	items=doc.items
+	if not doc.set_from_warehouse:
+		frappe.throw("Please set first Source Warehouse")
+	w=[]
+	wdoc=frappe.get_doc("Warehouse",doc.set_from_warehouse)
+	if wdoc.is_group==0:
+		w.append(wdoc.name)
+	else:
+		get_w=frappe.db.sql("""select  DISTINCT name from `tabWarehouse`  where parent_warehouse='{}' and disabled=0 """.format(wdoc.name),as_dict=1)
+		if get_w:
+			for k in get_w:
+				w.append(k['name'])
+	yes_save=[]
+	if items:
+		doc.items=[]
+		for i in items:
+
+			for j in w:
+				get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and warehouse='{}' """.format(i.item_code,j),as_dict=1)
+				if len(get_bin)!=0:
+					if get_bin[0]['qty']!=None:
+						if get_bin[0]['qty']>0:
+							yes_save.append("ys")
+							row = doc.append("items", {})
+							row.item_code=i.item_code
+							row.qty=get_bin[0]['qty']
+							row.from_warehouse=j
+	if yes_save:
+		doc.save(ignore_permissions=True)
+		frappe.msgprint("Updated")
 
 	
+
+@frappe.whitelist(allow_guest=True)
+def set_reorder_project_wise(name=None):
+	doc=frappe.get_doc("Project",name)
+	if not doc.custom_wop:
+		frappe.throw("Work orders Item table is empty")
 		
+	for i in doc.custom_wop:
+		item=frappe.get_doc("Item",i.item)
+		if item.variant_of:
+			if item.item_group=="Ready Stock":
+				set_reorder_rtw(name=item.name)
+				frappe.msgprint("Updated for Ready Stock")
+
+			if item.item_group=="Sample":
+				set_reorder_new_smpl_project(name=item.name)
+				frappe.msgprint("Updated for Sample")
+			
+
+	
+
+@frappe.whitelist(allow_guest=True)
+def set_reorder_rtw(name=None):
+	doc=frappe.get_doc("Item",name)
+	if doc.variant_of and doc.item_group=="Ready Stock":
+		doc.reorder_levels=[]
+		size=[]
+		split_parent=doc.variant_of.split("-")[-1]
+		for i in doc.attributes:
+			if i.attribute=="Size":
+				size.append(i.attribute_value)
+				break
+			
+		get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
+		if get_val:
+			capacity=get_val[0]['capacity']
+			get_shops=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Shops - NAVYA'   """,as_dict=1)
+			shops=[]
+			if get_shops:
+				for s in get_shops:
+					shops.append(s['name'])
+					
+					
+					
+			shops=list(set(shops))
+			manufactures_qty=capacity*len(shops)
+			capacity_shops=capacity/2
+			#set re order for level manufacture
+			row = doc.append("reorder_levels", {})
+			row.warehouse_group="Sainik Farm - NAVYA"
+			row.material_request_type="Manufacture"
+			row.warehouse_reorder_level=capacity_shops
+			row.warehouse_reorder_qty=capacity_shops
+			row.warehouse="Navya Store Office - NAVYA"
+			
+			for i in shops:
+				if i=="Pune - NAVYA":
+					row1 = doc.append("reorder_levels", {})
+					row1.warehouse_group="Pune - NAVYA"
+					row1.material_request_type="Transfer"
+					row1.warehouse_reorder_level=capacity_shops
+					row1.warehouse_reorder_qty=capacity_shops
+					row1.warehouse="PStore - NAVYA"
+					
+				if i=="Santushti - NAVYA":
+					row2 = doc.append("reorder_levels", {})
+					row2.warehouse_group="Santushti - NAVYA"
+					row2.material_request_type="Transfer"
+					row2.warehouse_reorder_level=capacity_shops
+					row2.warehouse_reorder_qty=capacity_shops
+					row2.warehouse="SStore - NAVYA"
+					
+	if doc.reorder_levels:
+		doc.save()
+		#frappe.msgprint("Updated")
 
 
+
+
+
+frappe.whitelist(allow_guest=True)
+def set_reorder_new_smpl_project(name=None):
+	doc=frappe.get_doc("Item",name)
+	if doc.variant_of and doc.item_group=="Sample":
+		doc.reorder_levels=[]
+		get_shops=frappe.db.sql("""select name from `tabWarehouse` where parent_warehouse='Shops - NAVYA'   """,as_dict=1)
+		shops=[]
+		if get_shops:
+			for s in get_shops:
+				shops.append(s['name'])
+				
+		shops=list(set(shops))
+		#set re order for level manufacture
+		row = doc.append("reorder_levels", {})
+		row.warehouse_group="Sainik Farm - NAVYA"
+		row.material_request_type="Manufacture"
+		row.warehouse_reorder_level=1
+		row.warehouse_reorder_qty=1
+		row.warehouse="Navya Store Office - NAVYA"
+		
+		for i in shops:
+			if i=="Pune - NAVYA":
+				row1 = doc.append("reorder_levels", {})
+				row1.warehouse_group="Pune - NAVYA"
+				row1.material_request_type="Transfer"
+				row1.warehouse_reorder_level=1
+				row1.warehouse_reorder_qty=1
+				row1.warehouse="PStore - NAVYA"
+				
+			if i=="Santushti - NAVYA":
+				row2 = doc.append("reorder_levels", {})
+				row2.warehouse_group="Santushti - NAVYA"
+				row2.material_request_type="Transfer"
+				row2.warehouse_reorder_level=1
+				row2.warehouse_reorder_qty=1
+				row2.warehouse="SStore - NAVYA"
+
+	if doc.reorder_levels:
+		doc.save()

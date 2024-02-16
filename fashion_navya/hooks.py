@@ -138,7 +138,7 @@ doc_events = {
                "on_submit":["fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
-            "after_insert":["fashion_navya.utils.doc_event.pos.check_discount","fashion_navya.utils.doc_event.reserv.reserve_stock_pos","fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
+            "after_insert":["fashion_navya.utils.doc_event.pos.check_for_sample","fashion_navya.utils.doc_event.pos.check_discount","fashion_navya.utils.doc_event.reserv.reserve_stock_pos","fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
             "before_submit":["fashion_navya.utils.doc_event.item.update_item"],
         },
     "Sales Order":{

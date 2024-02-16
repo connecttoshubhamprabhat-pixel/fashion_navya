@@ -49,6 +49,10 @@ def pattern_not_dup(doc,method):
 
 @frappe.whitelist()
 def check_sheet_apprved(doc,method):
+	if doc.item_code:
+		split=doc.item_code.split("-")
+		if "MTM" in split:
+			doc.set("mtm",1)
 	sheet_no=[1,2,3,4,5]
 	sheet=doc.sheet_no-1
 	get_range=sheet_no[:sheet]

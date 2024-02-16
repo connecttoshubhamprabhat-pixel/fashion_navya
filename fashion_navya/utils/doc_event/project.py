@@ -153,14 +153,13 @@ def pending_qty_kit(doc,method):
                     pqty.append(j['produced_qty'])
                     
             diff=sum(qty)-sum(pqty)
-            if diff:
-                row = doc.append("custom_wop", {})
-                row.item=item
-                row.wqty=sum(qty)
-                row.mn_qtyw=sum(pqty)
-                row.mnqty=diff
-                row.net_stock=sum(net)
-                if size:
-                    row.size=size[0]['attribute_value']
-                if len(se)!=0:
-                    row.manufactured=1
+            row = doc.append("custom_wop", {})
+            row.item=item
+            row.wqty=sum(qty)
+            row.mn_qtyw=sum(pqty)
+            row.mnqty=diff
+            row.net_stock=sum(net)
+            if size:
+                row.size=size[0]['attribute_value']
+            if len(se)!=0:
+                row.manufactured=1

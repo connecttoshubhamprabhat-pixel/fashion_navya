@@ -71,7 +71,7 @@ def make_mr_so(doc,method):
 	so=[]
 	today_date=utils.today()
 	if doc.custom_skip_mr:
-		return
+		frappe.msgprint("You have Skipped MR")
 	if doc.references:
 		if doc.references[0].reference_doctype=="Sales Order":
 			so.append(doc.references[0].reference_name)
@@ -79,18 +79,15 @@ def make_mr_so(doc,method):
 		sodoc=frappe.get_doc("Sales Order",so[0])
 		get_mr=frappe.db.sql("""select name from `tabMaterial Request Item` where docstatus<2 and sales_order='{}'  """.format(sodoc.name),as_dict=1)
 		if len(get_mr)!=0:
-			#frappe.msgprint("MR Already ")
+			frappe.msgprint("MR Already exists ")
 			return
-		get_percent=40/100*sodoc.grand_total
+		get_percent=sodoc.grand_total*40/100
 		amt_adv=doc.paid_amount
-		#if doc.party_type=="Customer":
-		#bal=get_balance_on(party_type="Customer",party=doc.party)
-		#if bal>amt_adv:
-		#return
 		ddate_so=str(sodoc.delivery_date)
 		new_date_delivery = add_to_date(ddate_so, days=-3, as_string=True)
 		print(new_date_delivery,today_date)
 		if str(today_date)>new_date_delivery:
+			frappe.msgprint("the delivery date is earlier than today's date, an MR (Material Requisition) will not be created")
 			return
 			#frappe.msgprint("a")
 			#new_date_delivery=str(today_date)
