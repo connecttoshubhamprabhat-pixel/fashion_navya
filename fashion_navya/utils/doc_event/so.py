@@ -87,7 +87,7 @@ def make_mr_so(doc,method):
 		new_date_delivery = add_to_date(ddate_so, days=-3, as_string=True)
 		print(new_date_delivery,today_date)
 		if str(today_date)>new_date_delivery:
-			frappe.msgprint("the delivery date is earlier than today's date, an MR (Material Requisition) will not be created")
+			frappe.msgprint("the delivery date is earlier than today's date, an MR (Material Request) will not be created")
 			return
 			#frappe.msgprint("a")
 			#new_date_delivery=str(today_date)

@@ -1099,14 +1099,40 @@ def fabric_fetch_pattt(doc,method):
 		if not get_apptern_pattern:
 			frappe.msgprint("Pattern missing")
 			
-			
+		fabric_non_exists=[]
+		row_remove=[]
+		fab_exists=[]
+		get_last_row_details=doc.items[-1]
 		if get_apptern_pattern:
 			pattern_name=get_apptern_pattern[0]['name']
 			for i in doc.items:
 				if i.item_code in fabrics:
+					fab_exists.append(i.item_code)
 					get_fabric_qty=frappe.db.sql("""select qty from `tabFabric Pattern` where item_code='{}' and parent='{}'  """.format(i.item_code,pattern_name),as_dict=1)
 					if get_fabric_qty:
 						i.db_set("qty",get_fabric_qty[0]['qty'], update_modified=False)
+					else:
+						doc.items.remove(i)
+		
+		if len(get_apptern_pattern)!=0:
+			ptt_doc=frappe.get_doc("Pattern",get_apptern_pattern[0]['name'])
+			new_items=[]
+			for w in doc.items:
+				if w.fg_item==item_last_row:
+					new_items.append(w.item_code)
+
+			if ptt_doc.fabrices:
+				for pf in ptt_doc.fabrices:
+					if pf.item_code not in fab_exists and pf.item_code not in new_items:
+
+						row=doc.append("items", {})
+						row.item_code=pf.item_code
+						row.qty=pf.qty
+						row.fg_item=item_last_row
+						row.fg_reference_id=get_last_row_details.fg_reference_id
+						row.item_group=get_last_row_details.item_group
+
+				
 
 
 
