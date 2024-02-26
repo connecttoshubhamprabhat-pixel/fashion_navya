@@ -197,8 +197,8 @@ doc_events = {
 
         },
 	"Timesheet":{
-		"after_insert":["fashion_navya.utils.doc_event.jc.se_check_all","fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
-                "before_submit":["fashion_navya.utils.doc_event.ts.check_date_hr_diff_ts","fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end","fashion_navya.utils.doc_event.timesheet.check_lunch_time"],
+		"after_insert":["fashion_navya.utils.doc_event.jc.se_check_all","fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
+                "before_submit":["fashion_navya.utils.doc_event.ts.check_date_hr_diff_ts","fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
 
 },
         "Payment Imprest":{
@@ -208,7 +208,7 @@ doc_events = {
         "Pattern":{
                 "after_insert":["fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.fetch_silvit"],
                 "on_update":["fashion_navya.utils.doc_event.pattern.pattern_validation"],
-                "before_save":["fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.pattern_not_dup"],
+                "before_save":["fashion_navya.utils.doc_event.pattern.set_location_pttrn","fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.pattern_not_dup"],
 
                 },
         "File":{
@@ -243,10 +243,10 @@ doc_events = {
             },
             "BOM":{
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
-               "before_save":["fashion_navya.utils.doc_event.bom.fetch_fabrice_ptt"],
+               "before_save":["fashion_navya.utils.doc_event.pattern.set_type_bom","fashion_navya.utils.doc_event.bom.fetch_fabrice_ptt"],
                "before_submit":["fashion_navya.utils.doc_event.api_3.set_conver_item","fashion_navya.utils.doc_event.api_1.make_default_bom","fashion_navya.utils.doc_event.api_1.make_mr_first_bom","fashion_navya.utils.doc_event.bom.before_submit_check_kit","fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
                "after_insert":["fashion_navya.utils.doc_event.item.submit_bom_project","fashion_navya.utils.doc_event.wo.replace_items_bom","fashion_navya.utils.doc_event.bom.remove_disabled_items"],
-               "on_cancel":["fashion_navya.utils.doc_event.mr.uncheck_is_bom_mr"],
+               "on_cancel":["fashion_navya.utils.doc_event.pattern.check_cancel_bom","fashion_navya.utils.doc_event.mr.uncheck_is_bom_mr"],
 
                 },
             "Delivery Note":{
@@ -381,8 +381,11 @@ scheduler_events = {
                 ],
             "50 23 * * *":[
 
-                    "fashion_navya.utils.overides.mr.automated_plan_without_so",
+                    #"fashion_navya.utils.overides.mr.automated_plan_without_so",
 
+                ],
+            "40 22 * * *":[
+                    "fashion_navya.utils.doc_event.project.get_not_started_pro_bulk_auto",
                 ],
 
             "20 04 * * *":[

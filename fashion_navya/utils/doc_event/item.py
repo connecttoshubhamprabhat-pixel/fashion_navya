@@ -540,7 +540,7 @@ def make_kit_item_parent(doc,method):
 		d['item_name']=doc.item_name
 		d['parent_item']=doc.name
 		if "RTW" in  split and "BPK" not in split:
-			d['is_sub_contracted_item']=1
+			d['is_sub_contracted_item']=0
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
 
@@ -605,6 +605,7 @@ def fetch_source_se_without(items=None):
 
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
+	doc.set("is_sub_contracted_item",0)
 	if doc.variant_of:
 		doc.set("is_sales_item",1)
 	items_groups=["Prototype","PP Sample"]
@@ -614,7 +615,7 @@ def check_subconracted(doc,method):
 	if doc.name:
 		names=doc.name.split("-")
 		if "BPK" in names:
-			frappe.msgprint(names)
+			#frappe.msgprint(names)
 			doc.set("is_sub_contracted_item",0)
 			
 		if "HEK"  in names and "SMPL" in names:
@@ -1083,7 +1084,7 @@ def color_sizes_changes(name=None,values=None):
 #fetch pattern fabric
 @frappe.whitelist(allow_guest=True)
 def fabric_fetch_pattt(doc,method):
-	if not doc.get("__islocal"):
+	if not doc.get("__islocal") and doc.custom_nof==0:
 		name=doc.name
 		docs=frappe.get_doc("BOM Creator",doc.name)
 		item_last_row=doc.items[-1].fg_item
@@ -1112,7 +1113,10 @@ def fabric_fetch_pattt(doc,method):
 					if get_fabric_qty:
 						i.db_set("qty",get_fabric_qty[0]['qty'], update_modified=False)
 					else:
-						doc.items.remove(i)
+						if len(get_apptern_pattern)!=0:
+							ptt_doc_n=frappe.get_doc("Pattern",get_apptern_pattern[0]['name'])
+							if ptt_doc_n.fabrices:
+								doc.items.remove(i)
 		
 		if len(get_apptern_pattern)!=0:
 			ptt_doc=frappe.get_doc("Pattern",get_apptern_pattern[0]['name'])
@@ -1315,16 +1319,17 @@ def set_reorder_project_wise(name=None):
 		frappe.throw("Work orders Item table is empty")
 		
 	for i in doc.custom_wop:
-		item=frappe.get_doc("Item",i.item)
-		if item.variant_of:
-			if item.item_group=="Ready Stock":
-				set_reorder_rtw(name=item.name)
-				frappe.msgprint("Updated for Ready Stock")
+		if i.manufactured==1:
+			item=frappe.get_doc("Item",i.item)
+			if item.variant_of:
+				if item.item_group=="Ready Stock":
+					set_reorder_rtw(name=item.name)
+					frappe.msgprint("Updated for Ready Stock")
 
-			if item.item_group=="Sample":
-				set_reorder_new_smpl_project(name=item.name)
-				frappe.msgprint("Updated for Sample")
-			
+				if item.item_group=="Sample":
+					set_reorder_new_smpl_project(name=item.name)
+					frappe.msgprint("Updated for Sample")
+				
 
 	
 

@@ -210,3 +210,30 @@ def get_events_mr(start, end, filters=None):
 	)
 
 	return data
+
+
+@frappe.whitelist()
+def project_wise_divide(name=None):
+	doc=frappe.get_doc("Material Request",name)
+	projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request Item`  where docstatus<2 and parent='{}'   """.format(name),as_dict=1)
+	if projects:
+		for pro in projects:
+			project=pro['project']
+			if_items=[]
+			d={"doctype":"Material Request","material_request_type":doc.material_request_type,"project":project}
+			items=frappe.db.sql("""select * from `tabMaterial Request Item`  where docstatus<2 and parent='{}' and project='{}'   """.format(name,project),as_dict=1)
+			if items:
+				mr=frappe.get_doc(d)
+				if_items.append("a")
+				for i in items:
+					row = mr.append("items", {})
+					row.item_code=i['item_code']
+					row.description=i['description']
+					row.uom="Nos"
+					row.qty=1
+					
+				mr.insert()
+				frappe.msgprint("Created")
+			
+
+	

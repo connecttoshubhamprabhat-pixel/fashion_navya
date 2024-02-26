@@ -27,17 +27,15 @@ def calculate_stock_phy(doc,method):
 	dt=[0]
 	items=[]
 	for i in doc.items:
-		if i.item_code not in items:
-			diff=i.sqty-i.aqty
-			item=i.item_code
-			p=frappe.db.sql("""select price_list_rate,name from `tabItem Price` where item_code='{}' ORDER BY modified  """.format(item),as_dict=1)
-			if len(p)!=0:
-				i.set('price',p[0]['price_list_rate'])
-
-			i.set('dqty',diff)
-			a.append(i.aqty)
-			s.append(i.sqty)
-			items.append(i.item_code)
+		diff=i.sqty-i.aqty
+		item=i.item_code
+		p=frappe.db.sql("""select price_list_rate,name from `tabItem Price` where item_code='{}' ORDER BY modified  """.format(item),as_dict=1)
+		if len(p)!=0:
+			i.set('price',p[0]['price_list_rate'])
+			
+		i.set('dqty',diff)
+		a.append(i.aqty)
+		s.append(i.sqty)
 
 
 
@@ -82,6 +80,71 @@ def get_items(date=None,warehouse=None):
 		return item_lists
 	else:
 		return []
+
+
+@frappe.whitelist()
+def get_items_new(warehouse=None,item_group=None,project=None):
+	if not warehouse:
+		return
+	w=frappe.get_doc("Warehouse",warehouse)
+	w_list=[]
+	if w.is_group==1:
+		get_child=frappe.db.sql(""" select name from `tabWarehouse` where parent_warehouse='{}' and disabled=0 """.format(w.name),as_dict=1)
+		if get_child:
+			for i in get_child:
+				w_list.append(i['name'])
+	else:
+		w_list.append(warehouse)
+		
+	w_list=list(set(w_list))
+	items=[]
+	for w in w_list:
+		get_bin=frappe.db.sql("""select * from `tabBin` where warehouse='{}' and actual_qty>0  """.format(w),as_dict=1)
+		if len(get_bin)!=0:
+			for m in get_bin:
+				item=m['item_code']
+				if frappe.db.exists("Item",item):
+					doc=frappe.get_doc("Item",item)
+					if item_group or project:
+						if item_group and not project:
+							if item_group==doc.item_group:
+								items.append(m['item_code'])
+						
+						if not item_group and project:
+							if project==doc.project:
+								items.append(m['item_code'])
+						if item_group and project:
+							if item_group==doc.item_group and project==doc.project:
+								items.append(m['item_code'])
+					else:
+						items.append(m['item_code'])
+						
+	items=list(set(items))
+	items_details=[]
+	for i in items:
+		d={}
+		qty=[0]
+		d['item_code']=i
+		for w in w_list:
+			get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and actual_qty>0 and warehouse='{}' """.format(i,w),as_dict=1)
+			if get_bin:
+				if get_bin[0]['qty']!=None:
+					qty.append(get_bin[0]['qty'])
+					
+		d['qty']=sum(qty)
+		items_details.append(d)
+		
+	if items_details:
+		print(items_details)
+		return items_details
+	else:
+		return []
+
+		
+
+
+
+
 
 
 
@@ -345,6 +408,7 @@ def consolidated_entry(items=None):
 		itemdoc.set("sqty",sum(sqty))
 		itemdoc.set("dqty",sum(diff_mins))
 		itemdoc.set("diff_qty",sum(diff_mins))
+		physical.set("old",doc.name)
 		itemdoc.insert(ignore_permissions=True)
 		print()
 		physical.set("consolidated_doc",itemdoc.name)

@@ -101,9 +101,12 @@ def count_qty_noc(doc,method):
 			idoc=frappe.get_doc("Item",i.item_code)
 			val=idoc.noc*i.qty
 			i.db_set("noc",val, update_modified=False)
-			qty_total.append(i.qty)
-			noc.append(i.noc)
-			ip.append(i.items_price)
+			if i.qty!=None:
+				qty_total.append(i.qty)
+			if i.noc!=None:
+				noc.append(i.noc)
+			if i.items_price!=None:
+				ip.append(i.items_price)
 
 	doc.set("tnoc",0)
 	doc.set("tip",0)

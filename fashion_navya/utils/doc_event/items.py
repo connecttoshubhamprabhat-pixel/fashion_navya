@@ -371,6 +371,7 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
 
         if item_doc.image:
             variants.set("image",item_doc.image)
+        variants.set("is_sub_contracted_item",0)
 
         print("291")
         variants.set("item_group","Ready Stock")

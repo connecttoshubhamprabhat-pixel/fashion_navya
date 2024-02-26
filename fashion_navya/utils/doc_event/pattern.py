@@ -65,3 +65,32 @@ def check_sheet_apprved(doc,method):
 
 
 
+@frappe.whitelist()
+def set_location_pttrn(doc,method):
+	if doc.sheet_no==2:
+		if frappe.db.exists("Item",doc.item_code):
+			item=frappe.get_doc("Item",doc.item_code)
+			if item.variant_of:
+				split=item.name.split("-")
+				if "PRSMPL" in split or "SMPL" in split:
+					doc.set("location","Faeem Master Table Drawer")
+					doc.set("custodian","HR-EMP-00013")
+					
+				if "PPSMPL" in split or "RTW" in split:
+					doc.set("location","JP A Store")
+					doc.set("custodian","HR-WRK-00010")
+
+
+@frappe.whitelist()
+def set_type_bom(doc,method):
+	if doc.item:
+		split=doc.item.split("-")
+		if "MTM" in split:
+			doc.set("custom_item_type","MTM")
+
+
+@frappe.whitelist()
+def check_cancel_bom(doc,methdod):
+	get_bom=frappe.db.sql("""select name from `tabWork Order`  where   bom_no='{}' and docstatus<2  """.format(doc.name),as_dict=1)
+	if len(get_bom)!=0:
+		frappe.throw("Delete First WOrk Order")

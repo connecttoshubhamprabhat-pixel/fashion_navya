@@ -117,7 +117,7 @@ class CustomProductionPlan(ProductionPlan):
 				if pp.custom_automated==1:
 					wo.set("status","Not Started")
 					wo.submit()
-				return wo.name
+				#return wo.name
 		except Exception as e:
 			custom_logs(py_method="create_work_order",error_name=e)
 			pass
