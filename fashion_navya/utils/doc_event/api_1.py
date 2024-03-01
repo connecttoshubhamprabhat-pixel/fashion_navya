@@ -633,3 +633,16 @@ def update_putway_rule(doc,method):
 def set_read_flilter_logs(doc,method):
 	if doc.read:
 		doc.set("custom_log_check","Read")
+
+
+
+@frappe.whitelist()
+def set_warehouse_wo(doc,method):
+    doc.set("wip_warehouse","Sampling Unit - NAVYA")
+    if doc.fg_warehouse=="Libberheri  - NAVYA":
+        doc.set("wip_warehouse","Libberheri  - NAVYA")
+        if doc.operations:
+            for i in doc.operations:
+                i.set("workstation","Libberheri Unit")
+    if doc.fg_warehouse=="Navya Store Office - NAVYA":
+        doc.set("wip_warehouse","Sampling Unit - NAVYA")

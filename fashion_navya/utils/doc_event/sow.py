@@ -3,8 +3,8 @@ import frappe
 
 @frappe.whitelist()
 def set_warehouse_target_mr(doc,method):
-	if doc.material_request_type=="Manufacture":
-		doc.set("set_warehouse","Navya Store Office - NAVYA")
+	# if doc.material_request_type=="Manufacture":
+	# 	doc.set("set_warehouse","Navya Store Office - NAVYA")
 
 	if doc.material_request_type=="Material Transfer":
 		#doc.set("set_from_warehouse","Navya Store Office - NAVYA")

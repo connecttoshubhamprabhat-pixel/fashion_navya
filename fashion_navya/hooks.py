@@ -158,8 +158,8 @@ doc_events = {
         "validate":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_submit":["fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "on_update":["fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "before_save":["fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
-        "after_insert":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
+        "before_save":["fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
+        "after_insert":["fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
     },
     "Document Record":{
         "after_insert":["fashion_navya.utils.doc_event.docrecord.fetch_po_items_doc"],
@@ -284,8 +284,8 @@ doc_events = {
                         },
                 "Production Plan":{
                         "before_save":["fashion_navya.utils.doc_event.production.remove_disabled"],
-                        "after_insert":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
-                        "before_submit":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
+                        #"after_insert":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
+                        #"before_submit":["fashion_navya.utils.doc_event.production.production_plan_set_fg_warehouse"],
                         #"before_insert":["fashion_navya.utils.doc_event.production.remove_without_bom"],
 
                         },
