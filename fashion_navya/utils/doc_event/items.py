@@ -380,7 +380,7 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
             if frappe.db.exists("Item",check_item[0]['name']):
                 get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus <2 and item='{}'  """.format(check_item[0]['name']),as_dict=1)
                 if len(get_bom)==0:
-                    make_bom(new=check_item[0]['name'],submit=submit,variant=1,bom=get_bom_name)
+                    #make_bom(new=check_item[0]['name'],submit=submit,variant=1,bom=get_bom_name)
                 return check_item[0]['name']
 
         variants.save(ignore_permissions=True)
@@ -683,6 +683,54 @@ def rtw_from_projects(items=None):
 
 
         d['Item Group']="Ready To Wear"
+        variants=create_variant_custom(item_doc.variant_of,d)
+        if item_doc.project:
+            variants.set("project",item_doc.project)
+            
+        if item_doc.image:
+            variants.set("image",item_doc.image)
+            
+        variants.set("item_group","Ready Stock")
+        try:
+            variants.save(ignore_permissions=True)
+            if variants:
+                make_ptt_so(old=item_doc.name,new=variants.name)
+                # if bom_smpl:
+                #     make_bom(new=variants.name,submit=0,variant=1,bom=bom_smpl[0])
+                # frappe.msgprint("Item is created")
+        except:
+            continue
+
+
+
+
+
+
+
+#protoype smpl to smpl
+@frappe.whitelist(allow_guest=True)
+def make_smpl_from_psmpl(items=None):
+    if not items:
+        return
+    
+
+    items_list=json.loads(items)
+    items_list=list(set(items_list))
+    for m in items_list:
+        item_doc=frappe.get_doc("Item",m)
+        bom_smpl=[]
+        get_bom_name=frappe.db.sql("""select name from `tabBOM` where is_active=1 and is_default=1 and docstatus=1 and item='{}' """.format(m),as_dict=1)
+        if len(get_bom_name)!=0:
+            bom_smpl.append(get_bom_name[0]['name'])
+
+
+        d={}
+        for m in item_doc.attributes:
+            if m.attribute!="Item Group":
+                d[m.attribute]=m.attribute_value
+
+
+        d['Item Group']="Sample"
         variants=create_variant_custom(item_doc.variant_of,d)
         if item_doc.project:
             variants.set("project",item_doc.project)

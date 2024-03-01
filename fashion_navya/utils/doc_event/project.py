@@ -173,6 +173,7 @@ def pending_qty_kit(doc,method):
 
     if vitem:
         doc.custom_wop=[]
+        doc.custom_not_started=[]
         for v in vitem:
             item=v['name']
             qty=[0]
@@ -185,14 +186,14 @@ def pending_qty_kit(doc,method):
                 if net_stock[0]['qty']!=None:
                     net.append(net_stock[0]['qty'])
 
-            get_wo=frappe.db.sql(""" select qty,produced_qty from `tabWork Order` where docstatus=1 and  production_item='{}'  """.format(item),as_dict=1)
+            get_wo=frappe.db.sql(""" select qty,produced_qty,status from `tabWork Order` where docstatus=1 and  production_item='{}'  """.format(item),as_dict=1)
             if get_wo:
                 for j in get_wo:
                     qty.append(j['qty'])
                     pqty.append(j['produced_qty'])
                     
             diff=sum(qty)-sum(pqty)
-            if len(se)!=0 and len(get_wo)!=0:
+            if len(get_wo)!=0:
                 row = doc.append("custom_wop", {})
                 row.item=item
                 row.wqty=sum(qty)
@@ -203,6 +204,15 @@ def pending_qty_kit(doc,method):
                     row.size=size[0]['attribute_value']
                 if len(se)!=0:
                     row.manufactured=1
+
+                for qw in get_wo:
+                    if qw['status']=="Not Started":
+                        row1 = doc.append("custom_not_started", {})
+                        row1.item=item
+                        row1.wqty=sum(qty)
+                        row1.net_stock=sum(net)
+               
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -337,7 +347,7 @@ def get_not_started_pro_bulk(items=None):
 #automated this project
 @frappe.whitelist(allow_guest=True)
 def get_not_started_pro_bulk_auto():
-    projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request` where docstatus=1 and material_request_type='Manufacture'  """,as_dict=1)
+    projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request` where docstatus=1 and material_request_type='Manufacture' and  custom_is_so=0  """,as_dict=1)
     items=[]
     for a in projects:
         items.append(a['project'])
@@ -413,6 +423,59 @@ def get_not_started_pro_bulk_auto():
                 continue
 
 
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_pick_list_project(items=None,values=None):
+    items=json.loads(items)
+    values=json.loads(values)
+    warehouses=[]
+    ws=values.get("warehouse")
+    wdoc=frappe.get_doc("Warehouse",ws)
+    if wdoc.is_group:
+        g=frappe.db.sql(""" select name from `tabWarehouse`  where parent_warehouse='{}' and disabled=0 """.format(wdoc.name),as_dict=1)
+        if g:
+            for w in g:
+                warehouses.append(w['name'])
+    else:
+        warehouses.append(ws)
+    
+    wlist=list(set(warehouses))
+    print(items,'9')
+    print(wlist,'w')
+    
+    if items:
+        for p in items:
+            project=p
+            dd={"doctype":"Pick List","parent_warehouse":ws,"purpose":"Material Transfer"}
+            dd['custom_project']=p
+            pick=frappe.get_doc(dd)
+            created=[]
+            get_items=frappe.db.sql("""select DISTINCT name from  `tabItem` where project='{}' and variant_of is not null  """.format(project),as_dict=1)
+            if len(get_items)!=0:
+                print("itemss")
+                for item in get_items:
+                    item_d=item['name']
+                    for j in wlist:
+                        get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and warehouse='{}' and actual_qty>0  """.format(item_d,j),as_dict=1)
+                        if len(get_bin)!=0:
+                            if get_bin[0]['qty']!=None:
+                                qty=int(get_bin[0]['qty'])
+                                if qty>0:
+                                    created.append('2')
+                                    print(qty,"qtyyyyyyyyyyyyyyy")
+                                    row = pick.append("locations", {})
+                                    row.item_code=item_d
+                                    row.warehouse=j
+                                    row.qty=qty
+                                    row.stock_qty=qty
+                                    
+            
+            if created:
+                pick.insert()
+                frappe.msgprint("created")
 
 
 

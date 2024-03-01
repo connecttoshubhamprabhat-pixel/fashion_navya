@@ -235,5 +235,61 @@ def project_wise_divide(name=None):
 				mr.insert()
 				frappe.msgprint("Created")
 			
+@frappe.whitelist()
+def project_wise_divide_auto():
+	get_mr_list=frappe.db.sql("""select name  from `tabMaterial Request`  where docstatus=1 and material_request_type='Manufacture' and status='Pending' and project is null  and custom_is_so=0   """,as_dict=1)
+	if len(get_mr_list)!=0:
+		for m in get_mr_list:
+			doc=frappe.get_doc("Material Request",m['name'])
+			if doc.project:
+				print()
+				continue
+			name=m['name']
+			print(name)
+			cancel_list=[]
+			projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request Item`  where docstatus<2 and parent='{}'   """.format(name),as_dict=1)
+			if len(projects)>1:
+				for pro in projects:
+					project=pro['project']
+					if_items=[]
+					d={"doctype":"Material Request","material_request_type":doc.material_request_type,"project":project,"custom_original_mr":name}
+					items=frappe.db.sql("""select * from `tabMaterial Request Item`  where docstatus<2 and parent='{}' and project='{}'   """.format(name,project),as_dict=1)
+					if items:
+						mr=frappe.get_doc(d)
+						if_items.append("a")
+						for i in items:
+							row = mr.append("items", {})
+							row.item_code=i['item_code']
+							row.description=i['description']
+							row.uom="Nos"
+							row.qty=1
+						
+						try:
+							mr.insert()
+							mr.submit()
+							cancel_list.append(name)
+							frappe.db.commit()
+						except:
+							continue
+			#cancel mr
+			if name in cancel_list:
+				try:		
+					doc.cancel()
+					frappe.db.commit()
+				except:
+					continue
+
 
 	
+@frappe.whitelist()
+def project_update_mr():
+	get_mr_list=frappe.db.sql("""select name  from `tabMaterial Request`  where docstatus=1 and material_request_type='Manufacture' and status='Pending' and project is null """,as_dict=1)
+	if len(get_mr_list)!=0:
+		for m in get_mr_list:
+			doc=frappe.get_doc("Material Request",m['name'])
+			for i in doc.items:
+				print(i.item_code)
+				item=frappe.get_doc("Item",i.item_code)
+				frappe.db.sql(""" update `tabMaterial Request Item` set project='{}'   where parent='{}' and idx='{}' """.format(item.project,doc.name,i.idx))
+				frappe.db.commit()
+

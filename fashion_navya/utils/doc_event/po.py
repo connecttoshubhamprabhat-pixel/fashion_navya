@@ -137,7 +137,7 @@ def level_wise_po(items=None,name=None):
 			row = doc.append("items", {})
 			row.fg_item=i
 			row.schedule_date=date
-			row.item_code="Digital printing"
+			row.item_code="DP-2024"
 			row.qty=1
 			if len(get_items_details)!=0:
 				row.fg_item_qty=get_items_details[0]['fg_item_qty']
@@ -162,7 +162,7 @@ def level_wise_po(items=None,name=None):
 			row = doc.append("items", {})
 			row.schedule_date=date
 			row.fg_item=i
-			row.item_code="Digital printing"
+			row.item_code="DP-2024"
 			row.qty=1
 			if len(get_items_details)!=0:
 				row.fg_item_qty=get_items_details[0]['fg_item_qty']
@@ -187,7 +187,7 @@ def level_wise_po(items=None,name=None):
 			row = doc.append("items", {})
 			row.schedule_date=date
 			row.fg_item=i
-			row.item_code="Digital printing"
+			row.item_code="DP-2024"
 			row.qty=1
 			if len(get_items_details)!=0:
 				row.fg_item_qty=get_items_details[0]['fg_item_qty']
@@ -212,7 +212,7 @@ def level_wise_po(items=None,name=None):
 			row = doc.append("items", {})
 			row.fg_item=i
 			row.schedule_date=date
-			row.item_code="Digital printing"
+			row.item_code="DP-2024"
 			row.qty=1
 			if len(get_items_details)!=0:
 				row.fg_item_qty=get_items_details[0]['fg_item_qty']
@@ -241,6 +241,10 @@ def check_automated_po(doc,method):
 		pl=frappe.get_doc("Production Plan",plan[0])
 		if pl.custom_automated==1:
 			doc.set("custom_automated",1)
+	
+	if doc.is_subcontracted and doc.items:
+		for i in doc.items:
+			i.set("qty",i.fg_item_qty)
 				
 
 

@@ -625,7 +625,11 @@ def check_subconracted(doc,method):
 			doc.set("is_sub_contracted_item",0)
 			
 		if "PRSMPL" in names or "PPSMPL" in names:
-			doc.set("is_sub_contracted_item",0)
+			if "DPK" in names:
+				doc.set("is_sub_contracted_item",1)
+			else:
+				doc.set("is_sub_contracted_item",0)
+
 			
 		if "k" in names and "RTW" in names or "HEK" in names and "RTW" in names:
 			doc.set("is_sub_contracted_item",1)
@@ -1361,11 +1365,11 @@ def set_reorder_rtw(name=None):
 			capacity_shops=capacity/2
 			#set re order for level manufacture
 			row = doc.append("reorder_levels", {})
-			row.warehouse_group="Sainik Farm - NAVYA"
+			row.warehouse_group="Libberheri Unit - NAVYA"
 			row.material_request_type="Manufacture"
 			row.warehouse_reorder_level=capacity_shops
 			row.warehouse_reorder_qty=capacity_shops
-			row.warehouse="Navya Store Office - NAVYA"
+			row.warehouse="Libberheri  - NAVYA"
 			
 			for i in shops:
 				if i=="Pune - NAVYA":

@@ -131,7 +131,7 @@ doctype_calendar_js ={
 
 doc_events = {
 	"Stock Entry": {
-		        "before_save":["fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
+		        "before_save":["fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
                #"before_insert":["fashion_navya.utils.doc_event.api_1.update_putway_rule"],
@@ -198,7 +198,7 @@ doc_events = {
         },
 	"Timesheet":{
 		"after_insert":["fashion_navya.utils.doc_event.jc.se_check_all","fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
-                "before_submit":["fashion_navya.utils.doc_event.ts.check_date_hr_diff_ts","fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
+                "before_submit":["fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
 
 },
         "Payment Imprest":{
@@ -386,6 +386,13 @@ scheduler_events = {
                 ],
             "40 22 * * *":[
                     "fashion_navya.utils.doc_event.project.get_not_started_pro_bulk_auto",
+                ],
+            "30 04 * * *":[
+                    "fashion_navya.utils.doc_event.mr.project_wise_divide_auto",
+                ],
+            "20 21 * * *":[
+                    "fashion_navya.utils.doc_event.mr.project_wise_divide_auto",
+
                 ],
 
             "20 04 * * *":[

@@ -153,6 +153,11 @@ def set_so_mr(doc,method):
 @frappe.whitelist()
 def status_updated(doc,method):
 	doc.db_set("custom_status",doc.status, update_modified=False)
+	if doc.items:
+		for i in doc.items:
+			item=frappe.get_doc("Item",i.item_code)
+			if item.project:
+				i.set("project",item.project)
 
 
 

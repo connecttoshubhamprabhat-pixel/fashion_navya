@@ -5,6 +5,10 @@ import frappe
 @frappe.whitelist()
 def check_stock_warehouse_source(doc,method):
     skip_user=['Administrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
+    if doc.rfse=="Dry clean":
+        roles=frappe.get_roles(frappe.session.user)
+        if "Sales Executive" in roles:
+            return
     if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry and not doc.pick_list:
         user=frappe.session.user
         source_warehouse=[]
@@ -25,6 +29,10 @@ def check_stock_warehouse_source(doc,method):
 
 @frappe.whitelist()
 def check_stock_warehouse_target(doc,method):
+    if doc.rfse=="Dry clean":
+        roles=frappe.get_roles(frappe.session.user)
+        if "Sales Manager" in roles and doc.custom_destination=="Navya Store Office - NAVYA":
+            return
     skip_user=['Administrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
     if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry:
         user=frappe.session.user
