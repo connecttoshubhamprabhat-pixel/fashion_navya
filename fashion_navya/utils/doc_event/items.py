@@ -380,6 +380,7 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
             if frappe.db.exists("Item",check_item[0]['name']):
                 get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus <2 and item='{}'  """.format(check_item[0]['name']),as_dict=1)
                 if len(get_bom)==0:
+                    print()
                     #make_bom(new=check_item[0]['name'],submit=submit,variant=1,bom=get_bom_name)
                 return check_item[0]['name']
 

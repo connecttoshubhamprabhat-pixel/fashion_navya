@@ -50,3 +50,8 @@ def check_stock_warehouse_target(doc,method):
                 if i.t_warehouse not in target_warehouse:
                     msg="Sorry target Warehouse is wrong ,Row {}".format(i.idx)
                     frappe.throw(msg)
+
+
+
+
+

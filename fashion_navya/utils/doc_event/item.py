@@ -1435,3 +1435,15 @@ def set_reorder_new_smpl_project(name=None):
 
 	if doc.reorder_levels:
 		doc.save()
+
+
+
+
+
+
+@frappe.whitelist()
+def set_validation_bomc(doc,method):
+    if doc.custom_old_bomc:
+        bomc=frappe.get_doc("BOM Creator",doc.custom_old_bomc)
+        if bomc.status in ["Failed","Submitted"]:
+            frappe.throw("  The status of the Old BOM Creator should neither be `failed` nor `submitted.` ")
