@@ -348,6 +348,27 @@ def make_mr_first_bom(doc,method):
     check_mr_exists=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item` where  item_code='{}' and  parent in (select name from `tabMaterial Request`  where docstatus=1 and custom_by_bom=1)  """.format(doc.item),as_dict=1)
     if len(check_mr_exists)!=0:
         return
+    
+    item_doc=frappe.get_doc("Item",doc.item)
+    split=doc.item.split("-")
+    qtys=[0]
+    split_parent=item_doc.variant_of.split("-")[-1]
+    if "RTW" in split:
+        size=[]
+        for i in item_doc.attributes:
+             if i.attribute=="Size":
+                size.append(i.attribute_value)
+                break
+            
+        get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
+        if get_val:
+            capacity=get_val[0]['capacity']
+            if capacity>0:
+                 qtys.append(capacity)
+        
+        else:
+             qtys.append(1)
+         
 
     #make mr code
     today = datetime.now().strftime('%Y-%m-%d')
@@ -359,7 +380,7 @@ def make_mr_first_bom(doc,method):
     mr=frappe.get_doc(m)
     row = mr.append("items", {})
     row.item_code=doc.item
-    row.qty=1
+    row.qty=sum(qtys) or 1
     row.warehouse="Navya Store Office - NAVYA"
     row.uom="Nos"
     row.schedule_date=after_3_days
@@ -640,7 +661,7 @@ def set_read_flilter_logs(doc,method):
 def set_warehouse_wo(doc,method):
     doc.set("wip_warehouse","Sampling Unit - NAVYA")
     if doc.fg_warehouse=="Libberheri  - NAVYA":
-        doc.set("wip_warehouse","Libberheri  - NAVYA")
+        doc.set("wip_warehouse","Libberheri Work In Progress - NAVYA")
         if doc.operations:
             for i in doc.operations:
                 i.set("workstation","Libberheri Unit")

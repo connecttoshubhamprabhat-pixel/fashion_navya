@@ -480,3 +480,16 @@ def make_pick_list_project(items=None,values=None):
 
 
 
+@frappe.whitelist(allow_guest=True)
+def make_mr_silvit_wise(name=None):
+    get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where project='{}' and variant_of is not null and item_group in ("Sample","Ready Stock"))   """.format(name),as_dict=1)
+    d={"doctype":"Material Request","material_request_type":"Manufacture","project":name}
+    mr=frappe.get_doc(d)
+    for i in get_items:
+        item=i['name']
+        get_qty=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code """.format(item),as_dict=1)
+
+
+
+
+
