@@ -9,6 +9,8 @@ import datetime
 
 import frappe
 from frappe import _, msgprint
+from frappe import _, msgprint
+from frappe.model.mapper import get_mapped_doc
 from frappe.model.document import Document
 from frappe.query_builder.functions import IfNull, Sum
 from frappe.utils import (
@@ -1072,3 +1074,30 @@ def make_subcontracted_purchase_order_custom(self, subcontracted_po, purchase_or
 		po.flags.ignore_validate = True
 		po.insert()
 		purchase_orders.append(po.name)
+
+
+
+
+@frappe.whitelist()
+def make_stock_entry(source_name, target_doc=None):
+	doc = get_mapped_doc(
+		"Pick List",
+		source_name,
+		{
+			"Pick List": {
+				"doctype": "Stock Entry",
+				"field_map": {"stock_entry_type":"Material Transfer","pick_list":"name","rfse":"Stock Transfer"},
+				"validation": {"docstatus": ["=", 1]},
+			},
+			"Pick List Item": {
+				"doctype": "Stock Entry Detail",
+				"field_map": {"item_code": "item_code", "picked_qty:": "qty","warehouse":"s_warehouse",
+				"stock_uom":"stock_uom","stock_uom":"uom"},
+			},
+		},
+		target_doc,
+	)
+
+	
+
+	return doc
