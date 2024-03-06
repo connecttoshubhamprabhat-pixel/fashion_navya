@@ -1,5 +1,6 @@
 import frappe
 import json
+import re
 from fashion_navya.utils.overides.mr import *
 
 @frappe.whitelist(allow_guest=True)
@@ -23,7 +24,7 @@ def calculated_qty_project(doc,method):
             no_started_smpl.append(nssmpl)
 
 
-            
+
     if doc.custom_rtw_pending:
         for i in doc.custom_rtw_pending:
             rtw.append(i.mnqty)
@@ -31,45 +32,45 @@ def calculated_qty_project(doc,method):
             rtw_mn_qty_total.append(i.mn_qtyw)
             nsrtw=get_not_started_wo_1(i.item)
             no_started_rtw.append(nsrtw)
-    
+
 
     doc.set("custom_pqtynsmpl",0)
     doc.set("custom_rtwnwo",0)
     doc.set("custom_pqtynsmpl",sum(no_started_smpl))
     doc.set("custom_rtwnwo",sum(no_started_rtw))
-    
-    
 
-    
+
+
+
     doc.set("custom_wo_qty_smpl",0)
     doc.set("custom_mnqty_smpl",0)
     doc.set("custom_wo_qty_smpl",sum(smpl_wo_qty_total))
     doc.set("custom_mnqty_smpl",sum(smpl_mn_qty_total))
-    
+
     doc.set("custom_rtw_wo_qty",0)
     doc.set("custom_rtw_manufactured",0)
     doc.set("custom_rtw_wo_qty",sum(rtw_wo_qty_total))
     doc.set("custom_rtw_manufactured",sum(rtw_mn_qty_total))
-    
+
     doc.set("custom_smpl_qty",0)
     doc.set("custom_rtw_qty",0)
     doc.set("custom_smpl_qty",sum(smpl))
     doc.set("custom_rtw_qty",sum(rtw))
     net_smpl=[0]
     net_rtw=[0]
-    
+
     if doc.project_attribute:
         for i in doc.project_attribute:
             if i.net_stock_value:
                 stock_n=i.net_stock_value
                 net_smpl.append(int(stock_n))
-                
+
     if doc.item_ready:
         for i in doc.item_ready:
             if i.net_stock_value:
                 stock_n1=i.net_stock_value
                 net_rtw.append(int(stock_n1))
-                
+
     doc.set("custom_smpl_net_qty",0)
     doc.set("custom_rtw_net_qty",0)
     doc.set("custom_smpl_net_qty",sum(net_smpl))
@@ -80,9 +81,9 @@ def calculated_qty_project(doc,method):
     total_p_wo_qty=int(doc.custom_smpl_qty)+int(doc.custom_rtw_qty)
     string_name="SMPL NS:{},RTW NS:{},SMPL P {},RTW P {}".format(doc.custom_smpl_net_qty,doc.custom_rtw_net_qty,int(doc.custom_smpl_qty),int(doc.custom_rtw_qty))
     doc.set("custom_titles",string_name)
-    
-    
-    
+
+
+
 @frappe.whitelist(allow_guest=True)
 def pending_qty_kit(doc,method):
     vitem=frappe.db.sql("""select name from `tabItem` where project='{}' and variant_of is not null     """.format(doc.name),as_dict=1)
@@ -111,7 +112,7 @@ def pending_qty_kit(doc,method):
 
 
 
-    
+
     if get_hek:
         doc.custom_hek_pending=[]
         for i in get_hek:
@@ -131,7 +132,7 @@ def pending_qty_kit(doc,method):
                 row.mn_qtyw=sum(pqty)
                 row.mnqty=diff
 
-    
+
     if get_dpk:
         doc.custom_dpk_pending=[]
         for i in get_dpk:
@@ -150,7 +151,7 @@ def pending_qty_kit(doc,method):
                 row.wqty=sum(qty)
                 row.mn_qtyw=sum(pqty)
                 row.mnqty=diff
-    
+
 
     if get_kit:
         doc.custom_mkit=[]
@@ -191,7 +192,7 @@ def pending_qty_kit(doc,method):
                 for j in get_wo:
                     qty.append(j['qty'])
                     pqty.append(j['produced_qty'])
-                    
+
             diff=sum(qty)-sum(pqty)
             if len(get_wo)!=0:
                 row = doc.append("custom_wop", {})
@@ -211,7 +212,7 @@ def pending_qty_kit(doc,method):
                         row1.item=item
                         row1.wqty=sum(qty)
                         row1.net_stock=sum(net)
-               
+
 
 
 
@@ -253,7 +254,7 @@ def get_not_started_pro(project=None):
     if len(get_mr)!=0:
         for i in get_mr:
             lists_mr.append(i['name'])
-    
+
     if lists_mr:
         d={"doctype":"Production Plan","get_items_from":"Material Request"}
         d['project']=project
@@ -261,13 +262,13 @@ def get_not_started_pro(project=None):
         for j in lists_mr:
             row = doc.append("material_requests", {})
             row.material_request=j
-            
+
         get_mr_items_custom(doc)
         doc.insert()
         frappe.msgprint("Created")
     else:
         frappe.msgprint("Make MR fisrt")
-    
+
 
 
 
@@ -282,7 +283,7 @@ def get_not_started_pro_bulk(items=None):
             if len(get_mr)!=0:
                 for i in get_mr:
                     lists_mr.append(i['name'])
-            
+
             if lists_mr:
                 d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
                 d['project']=project
@@ -290,7 +291,7 @@ def get_not_started_pro_bulk(items=None):
                 for j in lists_mr:
                     row = doc.append("material_requests", {})
                     row.material_request=j
-                    
+
                 get_mr_items_custom(doc)
                 get_sub_assembly_items(doc, manufacturing_type=None)
                 doc.insert()
@@ -308,7 +309,7 @@ def get_not_started_pro_bulk(items=None):
                             item_doc=frappe.get_doc("Item",d.get("item_code"))
                             if item_doc.disabled==1:
                                 continue
-                            
+
                             doc.append(
                                         "mr_items",
                                         {
@@ -330,14 +331,14 @@ def get_not_started_pro_bulk(items=None):
 
                                             },
                                         )
-                            
-                            
+
+
                 doc.submit()
                 make_material_request_custom(doc)
                 make_work_order(doc)
                 frappe.db.commit()
                 frappe.msgprint("Created")
-                
+
             else:
                 continue
 
@@ -351,7 +352,7 @@ def get_not_started_pro_bulk_auto():
     items=[]
     for a in projects:
         items.append(a['project'])
-        
+
     items=list(set(items))
     if items:
         for p in items:
@@ -361,7 +362,7 @@ def get_not_started_pro_bulk_auto():
             if len(get_mr)!=0:
                 for i in get_mr:
                     lists_mr.append(i['name'])
-            
+
             if lists_mr:
                 d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
                 d['project']=project
@@ -369,7 +370,7 @@ def get_not_started_pro_bulk_auto():
                 for j in lists_mr:
                     row = doc.append("material_requests", {})
                     row.material_request=j
-                    
+
                 get_mr_items_custom(doc)
                 get_sub_assembly_items(doc, manufacturing_type=None)
                 if len(doc.po_items)==0:
@@ -389,7 +390,7 @@ def get_not_started_pro_bulk_auto():
                             item_doc=frappe.get_doc("Item",d.get("item_code"))
                             if item_doc.disabled==1:
                                 continue
-                            
+
                             doc.append(
                                         "mr_items",
                                         {
@@ -411,14 +412,14 @@ def get_not_started_pro_bulk_auto():
 
                                             },
                                         )
-                            
-                            
+
+
                 doc.submit()
                 make_material_request_custom(doc)
                 make_work_order(doc)
                 frappe.db.commit()
                 #frappe.msgprint("Created")
-                
+
             else:
                 continue
 
@@ -441,11 +442,11 @@ def make_pick_list_project(items=None,values=None):
                 warehouses.append(w['name'])
     else:
         warehouses.append(ws)
-    
+
     wlist=list(set(warehouses))
     print(items,'9')
     print(wlist,'w')
-    
+
     if items:
         for p in items:
             project=p
@@ -471,8 +472,8 @@ def make_pick_list_project(items=None,values=None):
                                     row.warehouse=j
                                     row.qty=qty
                                     row.stock_qty=qty
-                                    
-            
+
+
             if created:
                 pick.insert()
                 frappe.msgprint("created")
@@ -493,3 +494,55 @@ def make_mr_silvit_wise(name=None):
 
 
 
+@frappe.whitelist(allow_guest=True)
+def make_duplicate_project(old_project=None,values=None):
+    pattern = r'[0-9]'
+    #old_doc=frappe.get_doc("Project",old_project)
+    original_project_name=old_project
+    values=json.loads(values)
+    new_project_name=values.get('new_project')
+    new_string = re.sub(pattern, '',new_project_name)
+    # Duplicate Project
+    original_project = frappe.get_doc('Project',original_project_name)
+    new_project = frappe.copy_doc(original_project)
+    new_project.project_name =new_project_name
+    new_project.save(ignore_permissions=True)
+
+    # Update Items
+    items = frappe.get_all('Item', filters={'project': original_project_name}, fields=['name'])
+    for item in items:
+        original_item = frappe.get_doc('Item', item.name)
+        new_item = frappe.copy_doc(original_item)
+        new_item.item_code = new_item.item_code.replace(original_project_name, new_project_name)  # Example replacement, adjust as needed
+        new_item.project = new_project_name
+        new_item.item_name=new_string
+        new_item.save(ignore_permissions=True)
+
+    # Update related documents
+    # Repeat for each DocType (BOM, Material Request, etc.)
+    # Example for BOM:
+    boms = frappe.get_all('BOM', filters={'project': original_project_name}, fields=['name'])
+    for bom in boms:
+        original_bom = frappe.get_doc('BOM', bom.name)
+        new_bom = frappe.copy_doc(original_bom)
+        new_bom.project = new_project_name
+        new_bom.docstatus = 0  # Set to 'Draft'
+        new_bom.save(ignore_permissions=True)
+
+    patterns = frappe.get_all('Pattern', filters={'project': original_project_name}, fields=['name'])
+    for pattern in patterns:
+        original_patt = frappe.get_doc('Pattern', pattern.name)
+        new_pattern = frappe.copy_doc(original_patt)
+        new_pattern.project = new_project_namewa
+        new_pattern.docstatus = 0  # Set to 'Draft'
+        try:
+            new_pattern.save(ignore_permissions=True)
+            print(new_pattern.name,"aaa")
+        except:
+            continue
+
+
+
+
+    frappe.db.commit()
+    return 'New project and related documents have been duplicated and set to draft.'
