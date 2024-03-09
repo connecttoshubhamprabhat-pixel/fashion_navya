@@ -1,0 +1,14 @@
+import frappe
+
+
+
+@frappe.whitelist()
+def make_notification_logs(doc,method):
+	notification = frappe.new_doc("Notification Log")
+	notification.update(doc.doc)
+	notification.for_user = doc.allocated_to
+	try:
+		notification.insert(ignore_permissions=True)
+	except:
+		pass
+
