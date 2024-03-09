@@ -490,30 +490,44 @@ def get_sub_assembly_items_custom(bom_no, bom_data, to_produce_qty, company, war
 
 @frappe.whitelist(allow_guest=True)
 def send_nofify_wo(doc,method):
-    item=doc.production_item.split("-")
-    if "MTM" in item:
-        user_list=['sujeets@navyacustom.com']
-        for i in user_list:
-            d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
-            d['description']="MTM WOrd Order"
-            d['reference_name']=doc.name
-            d['assigned_by']="amita@navya.biz"
-            d['allocated_to']=i
-            td=frappe.get_doc(d)
-            td.insert()
-            frappe.db.commit()
+	item=doc.production_item.split("-")
+	if "MTM" in item:
+		user_list=['sujeets@navyacustom.com']
+		for i in user_list:
+			d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
+			d['description']="MTM WOrd Order"
+			d['reference_name']=doc.name
+			d['assigned_by']="amita@navya.biz"
+			d['allocated_to']=i
+			td=frappe.get_doc(d)
+			td.insert()
+			frappe.db.commit()
 
-    if "RTW" in item:
-        user_list=['veer@example.com']
-        for i in user_list:
-            d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
-            d['description']="RTW WOrd Order"
-            d['reference_name']=doc.name
-            d['assigned_by']="amita@navya.biz"
-            d['allocated_to']=i
-            td=frappe.get_doc(d)
-            td.insert()
-            frappe.db.commit()
+
+	if "RTW" in item and "DP" in item and doc.fg_warehouse=="Navya Store Office - NAVYA":
+		user_list=['veer@example.com']
+		for i in user_list:
+			d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
+			d['description']="RTW WOrd Order"
+			d['reference_name']=doc.name
+			d['assigned_by']="amita@navya.biz"
+			d['allocated_to']=i
+			td=frappe.get_doc(d)
+			td.insert()
+			frappe.db.commit()
+
+	if "RTW" in item and "BP" in item and doc.fg_warehouse=="Libberheri  - NAVYA":
+		user_list=['anchala@example.com','akansha@example.com']
+		for i in user_list:
+			d={'doctype':"ToDo","priority":"High","reference_type":doc.doctype}
+			d['description']="RTW WOrd Order for Libberheri"
+			d['reference_name']=doc.name
+			d['assigned_by']="amita@navya.biz"
+			d['allocated_to']=i
+			td=frappe.get_doc(d)
+			td.insert()
+			frappe.db.commit()
+
 
 
 

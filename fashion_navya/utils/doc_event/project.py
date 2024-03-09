@@ -533,11 +533,11 @@ def make_duplicate_project(old_project=None,values=None):
     for pattern in patterns:
         original_patt = frappe.get_doc('Pattern', pattern.name)
         new_pattern = frappe.copy_doc(original_patt)
-        new_pattern.project = new_project_namewa
+        new_pattern.project = new_project_name
         new_pattern.docstatus = 0  # Set to 'Draft'
         try:
             new_pattern.save(ignore_permissions=True)
-            print(new_pattern.name,"aaa")
+            #print(new_pattern.name,"aaa")
         except:
             continue
 

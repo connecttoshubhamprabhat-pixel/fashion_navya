@@ -618,6 +618,11 @@ def check_subconracted(doc,method):
 			#frappe.msgprint(names)
 			doc.set("is_sub_contracted_item",0)
 			
+		if "DPK" in names:
+			#frappe.msgprint(names)
+			doc.set("is_sub_contracted_item",1)
+		
+			
 		if "HEK"  in names and "SMPL" in names:
 			doc.set("is_sub_contracted_item",0)
 		
