@@ -1370,18 +1370,13 @@ def set_reorder_rtw(name=None):
 			capacity_shops=capacity/2
 			#set re order for level manufacture
 			split=name.split("-")
-			if "DP" not in split:
-				row = doc.append("reorder_levels", {})
-				row.material_request_type="Manufacture"
-				row.warehouse_reorder_level=0
-				row.warehouse_reorder_qty=len(shops)*capacity_shops
-				row.warehouse="Libberheri  - NAVYA"
-			else:
-				row = doc.append("reorder_levels", {})
-				row.material_request_type="Manufacture"
-				row.warehouse_reorder_level=0
-				row.warehouse_reorder_qty=len(shops)*capacity_shops
-				row.warehouse="Navya Store Office - NAVYA"
+			row = doc.append("reorder_levels", {})
+			row.warehouse_group="All Warehouses - NAVYA"
+			row.material_request_type="Manufacture"
+			row.warehouse_reorder_level=3
+			row.warehouse_reorder_qty=3
+			row.warehouse="Navya Store Office - NAVYA"
+			
 			
 			
 			for i in shops:
@@ -1389,24 +1384,24 @@ def set_reorder_rtw(name=None):
 					row1 = doc.append("reorder_levels", {})
 					row1.warehouse_group="Pune - NAVYA"
 					row1.material_request_type="Transfer"
-					row1.warehouse_reorder_level=capacity_shops
-					row1.warehouse_reorder_qty=capacity_shops
+					row1.warehouse_reorder_level=1
+					row1.warehouse_reorder_qty=1
 					row1.warehouse="PStore - NAVYA"
 					
 				if i=="Santushti - NAVYA":
 					row2 = doc.append("reorder_levels", {})
 					row2.warehouse_group="Santushti - NAVYA"
 					row2.material_request_type="Transfer"
-					row2.warehouse_reorder_level=capacity_shops
-					row2.warehouse_reorder_qty=capacity_shops
+					row2.warehouse_reorder_level=1
+					row2.warehouse_reorder_qty=1
 					row2.warehouse="SStore - NAVYA"
 					
 				if i=="Sainik Farm - NAVYA":
 					row2 = doc.append("reorder_levels", {})
 					row2.warehouse_group="Sainik Farm - NAVYA"
 					row2.material_request_type="Transfer"
-					row2.warehouse_reorder_level=capacity_shops
-					row2.warehouse_reorder_qty=capacity_shops
+					row2.warehouse_reorder_level=1
+					row2.warehouse_reorder_qty=1
 					row2.warehouse="Main Storage - NAVYA"
 				
 					
@@ -1432,8 +1427,9 @@ def set_reorder_new_smpl_project(name=None):
 		shops=list(set(shops))
 		#set re order for level manufacture
 		row = doc.append("reorder_levels", {})
+		row.warehouse_group="All Warehouses - NAVYA"
 		row.material_request_type="Manufacture"
-		row.warehouse_reorder_level=0
+		row.warehouse_reorder_level=2
 		row.warehouse_reorder_qty=1
 		row.warehouse="Navya Store Office - NAVYA"
 		
@@ -1442,7 +1438,7 @@ def set_reorder_new_smpl_project(name=None):
 				row1 = doc.append("reorder_levels", {})
 				row1.warehouse_group="Pune - NAVYA"
 				row1.material_request_type="Transfer"
-				row1.warehouse_reorder_level=1
+				row1.warehouse_reorder_level=0
 				row1.warehouse_reorder_qty=1
 				row1.warehouse="PStore - NAVYA"
 				
@@ -1450,7 +1446,7 @@ def set_reorder_new_smpl_project(name=None):
 				row2 = doc.append("reorder_levels", {})
 				row2.warehouse_group="Santushti - NAVYA"
 				row2.material_request_type="Transfer"
-				row2.warehouse_reorder_level=1
+				row2.warehouse_reorder_level=0
 				row2.warehouse_reorder_qty=1
 				row2.warehouse="SStore - NAVYA"
 				
@@ -1458,7 +1454,7 @@ def set_reorder_new_smpl_project(name=None):
 				row2 = doc.append("reorder_levels", {})
 				row2.warehouse_group="Sainik Farm - NAVYA"
 				row2.material_request_type="Transfer"
-				row2.warehouse_reorder_level=1
+				row2.warehouse_reorder_level=0
 				row2.warehouse_reorder_qty=1
 				row2.warehouse="Main Storage - NAVYA"
 				
