@@ -2,7 +2,6 @@
  "add_total_row": 1,
  "columns": [],
  "creation": "2023-07-25 14:38:57.671205",
- "disable_prepared_report": 0,
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
@@ -10,7 +9,8 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
- "modified": "2023-07-25 14:39:01.983595",
+ "letterhead": null,
+ "modified": "2024-03-11 12:39:11.539260",
  "modified_by": "pawasthy11@gmail.com",
  "module": "Fashion Navya",
  "name": "Timesheet Item Details",
@@ -57,7 +57,7 @@
    "role": "Employee Self Service"
   },
   {
-   "role": "working_perm"
+   "role": "Stage 1 User"
   }
  ]
 }
