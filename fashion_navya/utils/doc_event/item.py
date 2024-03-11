@@ -1494,3 +1494,92 @@ def set_validation_bomc(doc,method):
         bomc=frappe.get_doc("BOM Creator",doc.custom_old_bomc)
         if bomc.status in ["Failed","Submitted"]:
             frappe.throw("  The status of the Old BOM Creator should neither be `failed` nor `submitted.` ")
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_bom_cr_prsmpl(items=None):
+	items=json.loads(items)
+	if items:
+		for i in items:
+			pmain_item=i.split("-")
+			for p in range(len(pmain_item)):
+				if pmain_item[p]=="SMPL":
+					pmain_item[p]="PRSMPL"
+					
+			pmain_item_join="-".join(pmain_item)
+			get_bom_creator=frappe.db.sql("""select name from `tabBOM Creator` where item_code='{}' and docstatus=1 and status in ("In Progress","Completed")   ORDER BY  modified limit 1 """.format(pmain_item_join),as_dict=1)
+			if len(get_bom_creator)!=0:
+				make_duplicate_prsmpl(name=get_bom_creator[0]['name'])
+				#frappe.db.commit()
+			else:
+				frappe.msgprint("BOMC Is not found")
+			
+			get_bom_creator_new=frappe.db.sql("""select name,custom_old_bomc from `tabBOM Creator` where item_code='{}' and docstatus=0  """.format(i),as_dict=1)
+			if len(get_bom_creator_new)!=0:
+				rebuild_refrences_insert(name=get_bom_creator_new[0]['name'],old=get_bom_creator_new[0]['custom_old_bomc'])
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_duplicate_prsmpl(name=None):
+	old=frappe.get_doc("BOM Creator",name)
+	new_bom=frappe.copy_doc(old)
+	new_bom.set("custom_old_bomc",old.name)
+	new_bom.set("status","Draft")
+	pmain_item=old.item_code.split("-")
+	for p in range(len(pmain_item)):
+		if pmain_item[p]=="PRSMPL":
+			pmain_item[p]="SMPL"
+			
+	pmain_item_join="-".join(pmain_item)
+	if frappe.db.exists("Item",pmain_item_join):
+		new_bom.set("item_code",pmain_item_join)
+		
+	if new_bom.items:
+		for y in new_bom.items:
+			child_item=y.item_code.split("-")
+			for h in range(len(child_item)):
+				if child_item[h]=="PRSMPL":
+					child_item[h]="SMPL"
+			child_item_join="-".join(child_item)
+			if frappe.db.exists("Item",child_item_join):
+				y.set("item_code",child_item_join)
+			
+
+			child_items=y.fg_item.split("-")
+			for q in range(len(child_items)):
+				if child_items[q]=="PRSMPL":
+					child_items[q]="SMPL"
+			child_item_joins="-".join(child_items)
+			if frappe.db.exists("Item",child_item_joins):
+				y.set("fg_item",child_item_joins)
+				
+				
+	new_bom.insert()
+	frappe.msgprint("created")
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def rebuild_refrences_insert(name=None,old=None):
+	new=frappe.get_doc("BOM Creator",name)
+	if new.custom_bomc==1:
+		new.set("custom_bomc",0)
+	else:
+		new.set("custom_bomc",1)
+	for i in new.items:
+		get_row=frappe.db.sql(""" select idx from `tabBOM Creator Item` where name='{}' and docstatus=1 and parent='{}' """.format(i.fg_reference_id,old),as_dict=1)
+		if len(get_row)!=0:
+			#idx=int(get_row[0]['parent_row_no'])
+			idx=get_row[0]['idx']
+			get_row_new=frappe.db.sql(""" select name from `tabBOM Creator Item` where parent='{}' and idx='{}' """.format(name,idx),as_dict=1)
+			if len(get_row_new)!=0:
+				i.set("fg_reference_id",get_row_new[0]['name'])
+
+				
+	new.save()
+	new.db_set("custom_by_project",1, update_modified=False)
+	#new.submit()
+	frappe.msgprint("rebuild")
