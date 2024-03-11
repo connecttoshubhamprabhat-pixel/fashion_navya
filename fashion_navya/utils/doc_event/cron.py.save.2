@@ -58,15 +58,3 @@ def update_many_projects(projects=None):
 		print(i,"project22222")
 		fetch_all_item_project_enq(s_doc=i)
 		frappe.db.commit()
-
-
-
-@frappe.whitelist()
-def update_project_cron():
-	projects=frappe.db.sql("""select DISTINCT  project from `tabItem` where CAST(modified as date)=CURDATE()  """,as_dict=1)
-	if projects:
-		for i in projects:
-			print(i,"project22222")
-			fetch_all_item_project_enq(s_doc=i['project'])
-			frappe.db.commit()
-

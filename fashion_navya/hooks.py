@@ -401,7 +401,10 @@ scheduler_events = {
 
                 ],
 
+            "38 20 * * *":[
+                        "fashion_navya.utils.doc_event.cron.update_project_cron",
 
+                ],
 
 
         }

@@ -1338,7 +1338,26 @@ def set_reorder_project_wise(name=None):
 				if item.item_group=="Sample":
 					set_reorder_new_smpl_project(name=item.name)
 					frappe.msgprint("Updated for Sample")
-				
+
+
+@frappe.whitelist(allow_guest=True)
+def set_reorder_set_bulk(names=None):
+	names=json.loads(names)
+	for name in names:
+		doc=frappe.get_doc("Project",name)
+		get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where project='{}' and variant_of is not null  """.format(doc.name),as_dict=1)
+		if get_items:
+			for i in get_items:
+				item=frappe.get_doc("Item",i['name'])
+				if item.variant_of:
+					if item.item_group=="Ready Stock":
+						set_reorder_rtw(name=item.name)
+						frappe.msgprint("Updated for Ready Stock")
+					if item.item_group=="Sample":
+						set_reorder_new_smpl_project(name=item.name)
+						frappe.msgprint("Updated for Sample")
+
+					
 
 	
 
@@ -1407,6 +1426,7 @@ def set_reorder_rtw(name=None):
 					
 	if doc.reorder_levels:
 		doc.save()
+		frappe.db.commit()
 		#frappe.msgprint("Updated")
 
 
@@ -1461,6 +1481,7 @@ def set_reorder_new_smpl_project(name=None):
 
 	if doc.reorder_levels:
 		doc.save()
+		frappe.db.commit()
 
 
 
