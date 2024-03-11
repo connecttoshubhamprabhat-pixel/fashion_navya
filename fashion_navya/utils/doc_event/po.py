@@ -261,3 +261,19 @@ def subcontacted_check(doc,method):
 			get_so=frappe.db.sql(""" select name from `tabSubcontracting Receipt` where purchase_order='{}' and docstatus=1 """.format(po[0]),as_dict=1)
 			if len(get_so)==0:
 				frappe.throw("Subcontracting Receipt is not submitted")
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_purchase_from_production(doc,method):
+	production=[]
+	for i in doc.items:
+		if i.idx==0:
+			if i.material_request:
+				mr=frappe.get_doc("Material Request",i.material_request)
+				for j in mr.items:
+					if j.production_plan:
+						production.append("yes")
+	if production:
+		doc.set("custom_from_p",1)
