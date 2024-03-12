@@ -122,50 +122,40 @@ def get_data(filters):
 					count_temp+=1
 
 
-			if all_rtw_sizes or all_smpl_sizes:
-				d_1={}
-				d_2={}
-				miss_smpl=[]
-				miss_rtw=[]
-				if not frappe.db.exists("Silhouette",silvit_name):
-					d_1['smplsizemiss']="Not set silvit size"
-					d_1['rtwsizemiss']="not set silvit size"
-					d_1['silhoutte']=silvit_name
-					data.append(d_1)
-					continue
-
-				sildoc=frappe.get_doc("Silhouette",silvit_name)
-				if all_smpl_sizes:
+				if frappe.db.exists("Silhouette",silvit_name):
+					get_smpl_silvit_sizes=[]
+					get_rtw_silvit_sizes=[]
+					sildoc=frappe.get_doc("Silhouette",silvit_name)
 					if sildoc.capacity__silhouette:
-						for j in sildoc.capacity__silhouette:
-							if j.sizes in all_smpl_sizes:
-								size_count=all_smpl_sizes.count(j.sizes)
-								if j.capacity>size_count:
-									miss_int_val=j.capacity-size_count
-									miss_sizes_smpl="{}:{}".format(j.sizes,miss_int_val)
-									miss_smpl.append(miss_sizes_smpl)
+						for sil_smpl in sildoc.capacity__silhouette:
+							get_smpl_silvit_sizes.append(sil_smpl.sizes)
 
-				if all_rtw_sizes:
 					if sildoc.ready:
-						for j in sildoc.ready:
-							if j.sizes in all_rtw_sizes:
-								size_count=all_rtw_sizes.count(j.sizes)
-								if j.capacity>size_count:
-									miss_int_val=j.capacity-size_count
-									miss_sizes_rtw="{}:{}".format(j.sizes,miss_int_val)
-									miss_rtw.append(miss_sizes_rtw)
+						for sil_rtw in sildoc.ready:
+							get_rtw_silvit_sizes.append(sil_rtw.sizes)
+
+					dict_get_smpl_silvit_sizes=set(get_smpl_silvit_sizes)
+					dict_get_rtw_silvit_sizes=set(get_rtw_silvit_sizes)
+					dict_all_rtw_sizes=set(all_rtw_sizes)
+					dict_all_smpl_sizes=set(all_smpl_sizes)
+					final_miss_smpl=list(dict_get_smpl_silvit_sizes-dict_all_smpl_sizes)
+					final_miss_rtw=list(dict_get_rtw_silvit_sizes-dict_all_rtw_sizes)
+					final_miss_smpl_str=",".join(final_miss_smpl)
+					final_miss_rtw_str=",".join(final_miss_rtw)
+					d_1={}
+					d_1['smplsizemiss']=final_miss_smpl_str
+					d_1['rtwsizemiss']=final_miss_rtw_str
+					d_1['silhoutte']=silvit_name
+					d_1['template']=templates
+					data.append(d_1)
 
 
-				if miss_smpl:
-					string_mix_smpl=",".join(miss_smpl)
-					d_2['smplsizemiss']=string_mix_smpl
-					d_2['silhoutte']=silvit_name
-				if miss_rtw:
-					string_mix_rtw=",".join(miss_rtw)
-					d_2['rtwsizemiss']=string_mix_rtw
-					d_2['silhoutte']=silvit_name
 
-				data.append(d_2)
+
+
+
+
+
 
 
 
