@@ -3,6 +3,13 @@
 
 frappe.query_reports["Project Gap Analysis"] = {
 	"filters": [
+		{
+			fieldname: "project",
+			label: __("Project"),
+			fieldtype: "Link",
+			options: "Project",
+			reqd: 1
+		},
 
 	]
 };
