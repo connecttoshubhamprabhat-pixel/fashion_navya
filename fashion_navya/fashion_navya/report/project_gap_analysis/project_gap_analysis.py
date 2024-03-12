@@ -252,12 +252,7 @@ def get_columns():
 			"fieldname": "smplsheet",
 			"width":150,
 		},
-		{
-			"label":"SMPL/SizeMissing",
-			"fieldtype": "data",
-			"fieldname": "smplsizemiss",
-			"width":150,
-		},
+
 		{
 			"label":"RTW",
 			"fieldtype": "Link",
@@ -293,7 +288,13 @@ def get_columns():
 			"label":"RTW/SizeMissing",
 			"fieldtype": "data",
 			"fieldname": "rtwsizemiss",
-			"width":150,
+			"width":600,
+		},
+		{
+			"label":"SMPL/SizeMissing",
+			"fieldtype": "data",
+			"fieldname": "smplsizemiss",
+			"width":600,
 		},
 		{
 			"label":"Item Name",
