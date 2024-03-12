@@ -26,60 +26,148 @@ def get_data(filters):
 	if not filters.project:
 		return []
 
-	items = frappe.get_all(
-		"Item", filters=record_filters, fields=["name","variant_of","has_variants"]
-    )
-
 	doc=frappe.get_doc("Project",filters.project)
-	if doc.project_silhoutte:
-		for i in doc.project_silhoutte:
-			silvit=i.silhoutte
-			d={}
-			d['silhoutte']=silvit
-			get_templates=frappe.db.sql("""select item_code from `tabBOM Item` where parentfield="project_item" and parenttype="Project" and parent='{}' and item_code like '%-{}%'  """.format(doc.name,silvit),as_dict=1)
-			if len(get_templates)!=0:
-				d['template']=get_templates[0]['item_code']
-				get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where variant_of='{}'  """.format(get_templates[0]['item_code']),as_dict=1)
-				if len(get_items)!=0:
-					for product in get_items:
-						item=product['name']
-						netstock=[0]
-						not_wo_qty=[0]
-						in_wo_qty=[0]
-						not_start=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='Not Started' and production_item='{}'  """.format(item),as_dict=1)
-						inprocess=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='In Process' and production_item='{}'  """.format(item),as_dict=1)
-						if len(not_start)!=0:
-							if not_start[0]['qty']!=None:
-								not_wo_qty.append(not_start[0]['qty'])
+	get_templates=frappe.db.sql("""select name from `tabItem` where has_variants=1 and project='{}'  """.format(filters.project),as_dict=1)
+	if len(get_templates)!=0:
+		for i in get_templates:
+			templates=i['name']
+			count_temp=0
+			split_templates=templates.split("-")
+			silvit_name=split_templates[-1]
+			get_items=frappe.db.sql("""select name from `tabItem` where variant_of='{}'  """.format(templates),as_dict=1)
+			if len(get_items)==0:
+				d={}
+				d['silhoutte']=silvit_name
+				d['template']=templates
+				d['smplsizemiss']="ALL SMPL Size missing"
+				d['rtwsizemiss']="ALl RTW Size missing"
+				data.append(d)
+				continue
+			all_rtw_sizes=[]
+			all_smpl_sizes=[]
+			if len(get_items)!=0:
+				for product in get_items:
+					#print(silvit,'aa23')
+					d={}
+					if count_temp==0:
+						d['silhoutte']=silvit_name
+						d['template']=templates
 
-						if len(inprocess)!=0:
-							if inprocess[0]['qty']!=None:
-								in_wo_qty.append(inprocess[0]['qty'])
+					item=product['name']
+					itemdoc=frappe.get_doc("Item",item)
+					if itemdoc.item_group=="Ready Stock":
+						for a in itemdoc.attributes:
+							if a.attribute=="Size":
+								all_rtw_sizes.append(a.attribute_value)
+								break
+
+					if itemdoc.item_group=="Sample":
+						for a in itemdoc.attributes:
+							if a.attribute=="Size":
+								all_smpl_sizes.append(a.attribute_value)
+								break
+
+					netstock=[0]
+					not_wo_qty=[0]
+					in_wo_qty=[0]
+					all_sheets=[1,2,3,4]
+					approved_sheet=[]
+					get_approved_ppt=frappe.db.sql("""select sheet_no from `tabPattern` where item_code='{}' and docstatus=1  """.format(item),as_dict=1)
+					if len(get_approved_ppt)!=0:
+						for ptt in get_approved_ppt:
+							if ptt['sheet_no']!=None:
+								approved_sheet.append(int(ptt['sheet_no']))
+
+					dict_all_sheets=set(all_sheets)
+					dict_all_approved_sheet=set(approved_sheet)
+					final_miss_patt=list(dict_all_sheets-dict_all_approved_sheet)
+					#string_pattern=",".join(final_miss_patt)
+
+					not_start=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='Not Started' and production_item='{}'  """.format(item),as_dict=1)
+					inprocess=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='In Process' and production_item='{}'  """.format(item),as_dict=1)
+					if len(not_start)!=0:
+						if not_start[0]['qty']!=None:
+							not_wo_qty.append(not_start[0]['qty'])
+
+					if len(inprocess)!=0:
+						if inprocess[0]['qty']!=None:
+							in_wo_qty.append(inprocess[0]['qty'])
 
 
 
-						get_bins=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where actual_qty>0 and item_code='{}' """.format(item),as_dict=1)
-						if len(get_bins)!=0:
-							if get_bins[0]['qty']!=None:
-								netstock.append(get_bins[0]['qty'])
-						split_prodiuct=item.split("-")
-						if "PRSMPL" in split_prodiuct:
-							d['prsmpl']=item
-							d['nsprsmpl']=sum(netstock)
-							d['prwonot']=sum(not_wo_qty)
-							d['prwoin']=sum(in_wo_qty)
-						if "SMPL" in split_prodiuct:
-							d['smpl']=item
-							d['nssmpl']=sum(netstock)
-							d['smplwonot']=sum(not_wo_qty)
-							d['smplwoin']=sum(in_wo_qty)
-						if "RTW" in split_prodiuct:
-							d['rtw']=item
-							d['nsrtw']=sum(netstock)
-							d['rtwwonot']=sum(not_wo_qty)
-							d['rtwwoin']=sum(in_wo_qty)
+					get_bins=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where actual_qty>0 and item_code='{}' """.format(item),as_dict=1)
+					if len(get_bins)!=0:
+						if get_bins[0]['qty']!=None:
+							netstock.append(get_bins[0]['qty'])
+					split_prodiuct=item.split("-")
+					if "PRSMPL" in split_prodiuct:
+						d['prsmpl']=item
+						d['nsprsmpl']=sum(netstock)
+						d['prwonot']=sum(not_wo_qty)
+						d['prwoin']=sum(in_wo_qty)
+					if "SMPL" in split_prodiuct:
+						d['smpl']=item
+						d['nssmpl']=sum(netstock)
+						d['smplwonot']=sum(not_wo_qty)
+						d['smplwoin']=sum(in_wo_qty)
+					if "RTW" in split_prodiuct:
+						d['rtw']=item
+						d['nsrtw']=sum(netstock)
+						d['rtwwonot']=sum(not_wo_qty)
 
-			data.append(d)
+						d['rtwwoin']=sum(in_wo_qty)
+
+
+					data.append(d)
+					count_temp+=1
+
+
+			if all_rtw_sizes or all_smpl_sizes:
+				d_1={}
+				d_2={}
+				miss_smpl=[]
+				miss_rtw=[]
+				if not frappe.db.exists("Silhouette",silvit_name):
+					d_1['smplsizemiss']="Not set silvit size"
+					d_1['rtwsizemiss']="not set silvit size"
+					d_1['silhoutte']=silvit_name
+					data.append(d_1)
+					continue
+
+				sildoc=frappe.get_doc("Silhouette",silvit_name)
+				if all_smpl_sizes:
+					if sildoc.capacity__silhouette:
+						for j in sildoc.capacity__silhouette:
+							if j.sizes in all_smpl_sizes:
+								size_count=all_smpl_sizes.count(j.sizes)
+								if j.capacity>size_count:
+									miss_int_val=j.capacity-size_count
+									miss_sizes_smpl="{}:{}".format(j.sizes,miss_int_val)
+									miss_smpl.append(miss_sizes_smpl)
+
+				if all_rtw_sizes:
+					if sildoc.ready:
+						for j in sildoc.ready:
+							if j.sizes in all_rtw_sizes:
+								size_count=all_rtw_sizes.count(j.sizes)
+								if j.capacity>size_count:
+									miss_int_val=j.capacity-size_count
+									miss_sizes_rtw="{}:{}".format(j.sizes,miss_int_val)
+									miss_rtw.append(miss_sizes_rtw)
+
+
+				if miss_smpl:
+					string_mix_smpl=",".join(miss_smpl)
+					d_2['smplsizemiss']=string_mix_smpl
+					d_2['silhoutte']=silvit_name
+				if miss_rtw:
+					string_mix_rtw=",".join(miss_rtw)
+					d_2['rtwsizemiss']=string_mix_rtw
+					d_2['silhoutte']=silvit_name
+
+				data.append(d_2)
+
+
 
 
 
@@ -138,6 +226,12 @@ def get_columns():
 			"width":200,
 		},
 		{
+			"label":"Pattern/pending/PRSMPL",
+			"fieldtype": "data",
+			"fieldname": "prsheet",
+			"width":150,
+		},
+		{
 			"label":"SMPL",
 			"fieldtype": "Link",
 			"fieldname": "smpl",
@@ -163,6 +257,18 @@ def get_columns():
 			"width":200,
 		},
 		{
+			"label":"Pattern/Pending/SMPL",
+			"fieldtype": "data",
+			"fieldname": "smplsheet",
+			"width":150,
+		},
+		{
+			"label":"SMPL/SizeMissing",
+			"fieldtype": "data",
+			"fieldname": "smplsizemiss",
+			"width":150,
+		},
+		{
 			"label":"RTW",
 			"fieldtype": "Link",
 			"fieldname": "rtw",
@@ -186,6 +292,18 @@ def get_columns():
 			"fieldtype": "float",
 			"fieldname": "rtwwonot",
 			"width":200,
+		},
+		{
+			"label":"Pattern/Pending/RTW",
+			"fieldtype": "data",
+			"fieldname": "rtwsheet",
+			"width":200,
+		},
+		{
+			"label":"RTW/SizeMissing",
+			"fieldtype": "data",
+			"fieldname": "rtwsizemiss",
+			"width":150,
 		},
 		{
 			"label":"Item Name",
