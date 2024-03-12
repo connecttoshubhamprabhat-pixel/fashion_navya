@@ -314,7 +314,7 @@ doc_events = {
 
                                     },
                             "Item Price":{
-                                        "on_update":["fashion_navya.utils.doc_event.api_1.update_price_item"],
+                                        "on_update":["fashion_navya.utils.doc_event.item.make_price_from_template","fashion_navya.utils.doc_event.api_1.update_price_item"],
 
                                     },
                             "Address":{

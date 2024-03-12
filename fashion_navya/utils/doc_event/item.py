@@ -1583,3 +1583,23 @@ def rebuild_refrences_insert(name=None,old=None):
 	new.db_set("custom_by_project",1, update_modified=False)
 	#new.submit()
 	frappe.msgprint("rebuild")
+
+
+
+@frappe.whitelist(allow_guest=True)
+def make_price_from_template(doc,method):
+	item_doc=frappe.get_doc("Item",doc.item_code)
+	if item_doc.has_variants==1:
+		get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where variant_of='{}' """.format(doc.item_code),as_dict=1)
+		if len(get_items)!=0 and doc.name:
+			doc_name=frappe.get_doc("Item Price",doc.name)
+			for i in get_items:
+				item=i['name']
+				new=frappe.copy_doc(doc_name)
+				new.item_code=item
+				exists=frappe.db.sql(""" select name from `tabItem Price` where item_code='{}' """.format(item),as_dict=1)
+				if len(exists)==0:
+					try:
+						new.insert(ignore_permissions=True)
+					except:
+						pass
