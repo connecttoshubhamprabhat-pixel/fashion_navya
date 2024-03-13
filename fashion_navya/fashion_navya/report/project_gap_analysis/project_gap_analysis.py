@@ -186,13 +186,13 @@ def get_columns():
 			"label":"RTW/SizeMissing",
 			"fieldtype": "data",
 			"fieldname": "rtwsizemiss",
-			"width":500,
+			"width":300,
 		},
 		{
 			"label":"SMPL/SizeMissing",
 			"fieldtype": "data",
 			"fieldname": "smplsizemiss",
-			"width":500,
+			"width":300,
 		},
 		{
 			"label":"Template",
