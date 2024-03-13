@@ -183,6 +183,18 @@ def get_columns():
 			"width":170,
 		},
 		{
+			"label":"RTW/SizeMissing",
+			"fieldtype": "data",
+			"fieldname": "rtwsizemiss",
+			"width":500,
+		},
+		{
+			"label":"SMPL/SizeMissing",
+			"fieldtype": "data",
+			"fieldname": "smplsizemiss",
+			"width":500,
+		},
+		{
 			"label":"Template",
 			"fieldtype": "Link",
 			"fieldname": "template",
@@ -284,18 +296,7 @@ def get_columns():
 			"fieldname": "rtwsheet",
 			"width":200,
 		},
-		{
-			"label":"RTW/SizeMissing",
-			"fieldtype": "data",
-			"fieldname": "rtwsizemiss",
-			"width":600,
-		},
-		{
-			"label":"SMPL/SizeMissing",
-			"fieldtype": "data",
-			"fieldname": "smplsizemiss",
-			"width":600,
-		},
+
 		{
 			"label":"Item Name",
 			"fieldtype": "Data",
