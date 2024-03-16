@@ -599,6 +599,7 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 	print(doc,'doc9')
 
 	if warehouses:
+		warehouses=[{"warehouse":"All Warehouses - NAVYA"}]
 		warehouses = list(set(get_warehouse_list_custom(warehouses)))
 
 		if (
@@ -607,6 +608,14 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 			and doc.get("for_warehouse") in warehouses
 		):
 			warehouses.remove(doc.get("for_warehouse"))
+			if "Libberheri Work In Progress - NAVYA" in warehouses:
+				warehouses.remove("Libberheri Work In Progress - NAVYA")
+			if "Libberheri  - NAVYA" in warehouses:
+				warehouses.remove("Libberheri  - NAVYA")
+
+			if "Sampling Unit - NAVYA" in warehouses:
+				warehouses.remove('Sampling Unit - NAVYA')
+
 
 	doc["mr_items"] = []
 
@@ -1112,6 +1121,6 @@ def make_stock_entry(source_name, target_doc=None):
 		target_doc,
 	)
 
-	
+
 
 	return doc
