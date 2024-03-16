@@ -37,4 +37,16 @@ def set_warehouse_target_mr(doc,method):
 
 	
 
+@frappe.whitelist()
+def set_so__mr(doc,method):
+	so=[]
+	if doc.items:
+		for i in doc.items:
+			if i.material_request:
+				mrdoc=frappe.get_doc("Material Request",i.material_request)
+				if mrdoc.custom_is_so:
+					so.append("ap")
+					
+	if so:
+		doc.set("custom_so",1)
 

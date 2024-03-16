@@ -49,7 +49,7 @@ def make_smpl_sizes(values=None,items=None):
                     dp.set("workflow_state","Draft")
                     try:
                         dp.insert(ignore_permissions=True)
-                        dp.submit()
+                        dp.submit(ignore_permissions=True)
                     except:
                         pass
 

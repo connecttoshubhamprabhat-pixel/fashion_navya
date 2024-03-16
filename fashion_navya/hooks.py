@@ -131,7 +131,7 @@ doctype_calendar_js ={
 
 doc_events = {
 	"Stock Entry": {
-		        "before_save":["fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
+		        "before_save":["fashion_navya.utils.doc_event.sow.set_so__mr","fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
                #"before_insert":["fashion_navya.utils.doc_event.api_1.update_putway_rule"],
@@ -179,7 +179,7 @@ doc_events = {
     "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
     },
     "Purchase Order":{
-        "before_save":["fashion_navya.utils.doc_event.po.check_automated_po","fashion_navya.utils.doc_event.po.get_wo_set_po","fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_save":["fashion_navya.utils.doc_event.po.check_automated_po","fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_submit":["fashion_navya.utils.doc_event.po.get_wo_set_po","fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
         "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
         "after_insert":["fashion_navya.utils.doc_event.api_3.fetch_items_sq","fashion_navya.utils.doc_event.po.set_sell_item_po"],
@@ -381,7 +381,7 @@ scheduler_events = {
                 ],
             "50 23 * * *":[
 
-                    #"fashion_navya.utils.overides.mr.automated_plan_without_so",
+                    "fashion_navya.utils.overides.mr.automated_plan_without_so",
 
                 ],
             "40 22 * * *":[

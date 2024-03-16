@@ -847,8 +847,8 @@ def make_material_request_custom(self):
 	for material_request in material_request_list:
 		material_request.flags.ignore_permissions = 1
 		material_request.run_method("set_missing_values")
-		material_request.save()
-		material_request.submit()
+		material_request.save(ignore_permissions=True)
+		#material_request.submit()
 		frappe.db.commit()
 
 

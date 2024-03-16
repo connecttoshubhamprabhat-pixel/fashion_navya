@@ -661,8 +661,11 @@ def set_read_flilter_logs(doc,method):
 def set_warehouse_wo(doc,method):
     doc.set("wip_warehouse","Sampling Unit - NAVYA")
     doc.set("fg_warehouse","Navya Store Office - NAVYA")
+    if doc.sales_order:
+         return
+    
     split_item=doc.production_item.split("-")
-    if "BP" in  split_item and "RTW" in split_item:
+    if "BP" in  split_item and "RTW" in split_item and doc.custom_skip_warehouse==0:
         doc.set("wip_warehouse","Libberheri Work In Progress - NAVYA")
         doc.set("fg_warehouse","Libberheri  - NAVYA")
         if doc.operations:

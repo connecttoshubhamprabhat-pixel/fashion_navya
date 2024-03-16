@@ -147,7 +147,8 @@ def fetch_msrement():
 
 @frappe.whitelist()
 def check_subconrcat(doc,method):
+	return
 	name=doc.name
 	split=name.split("-")
-	if 'RTW' in  split or  'MTM' in split:
+	if 'MTM' in split:
 		doc.set("is_sub_contracted_item",1)

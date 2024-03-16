@@ -605,7 +605,10 @@ def fetch_source_se_without(items=None):
 
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
-	doc.set("is_sub_contracted_item",0)
+	if doc.ignore_project:
+		return
+	if doc.variant_of:
+		doc.set("is_sub_contracted_item",0)
 	if doc.variant_of:
 		doc.set("is_sales_item",1)
 	items_groups=["Prototype","PP Sample"]
@@ -614,34 +617,37 @@ def check_subconracted(doc,method):
 		
 	if doc.name:
 		names=doc.name.split("-")
-		if "BPK" in names:
-			#frappe.msgprint(names)
-			doc.set("is_sub_contracted_item",0)
-			
-		if "DPK" in names:
-			#frappe.msgprint(names)
+		if 'MTM' in names:
 			doc.set("is_sub_contracted_item",1)
 		
-			
-		if "HEK"  in names and "SMPL" in names:
-			doc.set("is_sub_contracted_item",0)
 		
-		if "k"  in names and "SMPL" in names:
-			doc.set("is_sub_contracted_item",0)
+		
+		if "SMPL" in names:
+			if "HEK"  in names and "SMPL" in names:
+				doc.set("is_sub_contracted_item",0)
+				
+			if "k"  in names or  "BPK" in names:
+				doc.set("is_sub_contracted_item",0)
 			
+		
 		if "PRSMPL" in names or "PPSMPL" in names:
 			if "DPK" in names:
 				doc.set("is_sub_contracted_item",1)
 			else:
 				doc.set("is_sub_contracted_item",0)
-
-			
-		if "k" in names and "RTW" in names or "HEK" in names and "RTW" in names:
+				
+		if "RTW" in names and "BP" in names:
+			if "HEK" in names or  "BPK" in names or "k" in names:
+				doc.set("is_sub_contracted_item",0)
+				
+		if "DPK" in names:
 			doc.set("is_sub_contracted_item",1)
 			
-		if "DPK" in names and "RTW" in names:
-			doc.set("is_sub_contracted_item",1)
-
+		if "RTW" in names and not "BP" in names:
+			if "BPK" in names:
+				doc.set("is_sub_contracted_item",0)
+				
+			
 
 		
 
