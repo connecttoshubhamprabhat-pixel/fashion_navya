@@ -354,6 +354,7 @@ def get_not_started_pro_bulk_auto():
         items.append(a['project'])
 
     items=list(set(items))
+    print(items)
     if items:
         for p in items:
             project=p
@@ -361,6 +362,7 @@ def get_not_started_pro_bulk_auto():
             get_mr=frappe.db.sql("""select name from `tabMaterial Request`  where  docstatus=1 and  status!="Stopped"  and material_request_type="Manufacture" and per_ordered<90  and project='{}'  """.format(project),as_dict=1)
             if len(get_mr)!=0:
                 for i in get_mr:
+                    print(i['name'],'sssname')
                     lists_mr.append(i['name'])
 
             if lists_mr:
@@ -394,7 +396,7 @@ def get_not_started_pro_bulk_auto():
                             doc.append(
                                         "mr_items",
                                         {
-                                                "item_code":d.get("item_code"),
+                                            "item_code":d.get("item_code"),
                                             "item_name":d.get("item_name"),
                                             "description":d.get("description"),
                                             "stock_uom":d.get("stock_uom"),

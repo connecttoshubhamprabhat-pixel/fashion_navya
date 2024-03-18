@@ -602,7 +602,7 @@ def fetch_source_se_without(items=None):
 
 
 
-
+#march 16/2024
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
 	if doc.ignore_project:
@@ -646,15 +646,9 @@ def check_subconracted(doc,method):
 		if "RTW" in names and not "BP" in names:
 			if "BPK" in names:
 				doc.set("is_sub_contracted_item",0)
+			
 				
 			
-
-		
-
-
-
-			
-		
 
 
 
