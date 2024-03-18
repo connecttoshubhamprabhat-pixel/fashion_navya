@@ -348,7 +348,7 @@ def make_mr_first_bom(doc,method):
     check_mr_exists=frappe.db.sql("""select DISTINCT parent from `tabMaterial Request Item` where  item_code='{}' and  parent in (select name from `tabMaterial Request`  where docstatus=1 and custom_by_bom=1)  """.format(doc.item),as_dict=1)
     if len(check_mr_exists)!=0:
         return
-    
+
     item_doc=frappe.get_doc("Item",doc.item)
     split=doc.item.split("-")
     qtys=[0]
@@ -359,16 +359,16 @@ def make_mr_first_bom(doc,method):
              if i.attribute=="Size":
                 size.append(i.attribute_value)
                 break
-            
+
         get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
         if get_val:
             capacity=get_val[0]['capacity']
             if capacity>0:
                  qtys.append(capacity)
-        
+
         else:
              qtys.append(1)
-         
+
 
     #make mr code
     today = datetime.now().strftime('%Y-%m-%d')
@@ -663,7 +663,7 @@ def set_warehouse_wo(doc,method):
     doc.set("fg_warehouse","Navya Store Office - NAVYA")
     if doc.sales_order:
          return
-    
+
     split_item=doc.production_item.split("-")
     if "BP" in  split_item and "RTW" in split_item and doc.custom_skip_warehouse==0:
         doc.set("wip_warehouse","Libberheri Work In Progress - NAVYA")
@@ -672,6 +672,21 @@ def set_warehouse_wo(doc,method):
              for i in doc.operations:
                   i.set("workstation","Libberheri Unit")
 
-         
- 
 
+
+@frappe.whitelist()
+def make_pattern_copy(values=None,newcode=None):
+    values=json.loads(values)
+    name=values.get("item_code")
+    get_ptt=frappe.db.sql("""select name from `tabPattern` where item_code='{}' and docstatus=1  """.format(name),as_dict=1)
+    if len(get_ptt)!=0:
+        for i in get_ptt:
+            old_ptt=frappe.get_doc("Pattern",i['name'])
+            new_patt=frappe.copy_doc(old_ptt)
+            new_patt.set("item_code",newcode)
+            new_patt.set("docstatus",0)
+            new_patt.set("workflow_state","Draft")
+            new_patt.insert()
+            # new_patt.set("docstatus",1)
+            # new_patt.submit()
+            frappe.msgprint("created")
