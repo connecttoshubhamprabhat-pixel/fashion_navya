@@ -510,15 +510,31 @@ def make_duplicate_project(old_project=None,values=None):
     new_project.project_name =new_project_name
     new_project.project_item=[]
     new_project.save(ignore_permissions=True)
+    old_project_name=original_project.project_name.split()
+    new_project_name=new_project.project_name.split()
 
     # Update Items
-    items = frappe.get_all('Item', filters={'project': original_project_name}, fields=['name'])
-    for item in items:
-        original_item = frappe.get_doc('Item', item.name)
+    item_templates = frappe.get_all('Item', filters={'project': original_project_name,"has_variants":1}, fields=['name'])
+    items = frappe.get_all('Item', filters={'project': original_project_name,"has_variants":0}, fields=['name'])
+    for temp_item in item_templates:
+        original_item = frappe.get_doc('Item', temp_item.name)
         new_item = frappe.copy_doc(original_item)
         new_item.item_code = new_item.item_code.replace(original_project_name, new_project_name)  # Example replacement, adjust as needed
         new_item.project = new_project_name
         new_item.item_name=new_string
+        new_item.save(ignore_permissions=True)
+
+
+
+    for item in items:
+        original_item = frappe.get_doc('Item', item.name)
+        repl=original_item.variant_of.replace(old_project_name[0],new_project_name[0])
+        new_item = frappe.copy_doc(original_item)
+        new_item.item_code = new_item.item_code.replace(original_project_name, new_project_name)  # Example replacement, adjust as needed
+        new_item.project = new_project_name
+        new_item.item_name=new_string
+        if frappe.db.exists("Item",repl):
+            new_item.variant_of=repl
         new_item.save(ignore_permissions=True)
 
     # Update related documents
