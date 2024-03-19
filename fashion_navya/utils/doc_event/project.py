@@ -508,6 +508,7 @@ def make_duplicate_project(old_project=None,values=None):
     original_project = frappe.get_doc('Project',original_project_name)
     new_project = frappe.copy_doc(original_project)
     new_project.project_name =new_project_name
+    new_project.project_item=[]
     new_project.save(ignore_permissions=True)
 
     # Update Items
