@@ -1603,3 +1603,23 @@ def make_price_from_template(doc,method):
 						new.insert(ignore_permissions=True)
 					except:
 						pass
+
+
+#source warehouse stock count
+@frappe.whitelist(allow_guest=True)
+def check_stock_count(doc,method):
+	admin_users=['amita@navya.biz','pawasthy11@gmails.com']
+	stock_entry_type=['Material Transfer','Material Transfer for Manufacture']
+	user=frappe.session.user
+	if user not in admin_users and doc.stock_entry_type in stock_entry_type and doc.ignore_custom==0:
+		for i in doc.items:
+			get_bin=frappe.db.sql("""select sum(actual_qty) as qty from  `tabBin`  where item_code='{}' and warehouse='{}'  and  actual_qty>0    """.format(i.item_code,i.s_warehouse),as_dict=1)
+			if len(get_bin)!=0:
+				if get_bin[0]['qty']!=None:
+					if i.qty>get_bin[0]['qty']:
+						msg="Out Of Stock,row:-{},Actual Stock in {},:-{}".format(i.idx,i.s_warehouse,get_bin[0]['qty'])
+						frappe.throw(msg)
+
+
+
+					

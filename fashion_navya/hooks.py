@@ -131,7 +131,7 @@ doctype_calendar_js ={
 
 doc_events = {
 	"Stock Entry": {
-		        "before_save":["fashion_navya.utils.doc_event.sow.set_so__mr","fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
+		        "before_save":["fashion_navya.utils.doc_event.item.check_stock_count","fashion_navya.utils.doc_event.sow.set_so__mr","fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
                #"before_insert":["fashion_navya.utils.doc_event.api_1.update_putway_rule"],
@@ -290,7 +290,7 @@ doc_events = {
 
                         },
                         "Maintenance Visit":{
-                                "after_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
+                                "before_insert":["fashion_navya.utils.doc_event.mv.fetch_attribues"],
                                 "before_submit":["fashion_navya.utils.doc_event.mv.make_mr_from_mv","fashion_navya.utils.doc_event.mv.fetch_attribues","fashion_navya.utils.doc_event.mv.custom_maintence_visit"],
 
 

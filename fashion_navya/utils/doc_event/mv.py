@@ -5,13 +5,22 @@ from erpnext.stock.dashboard.item_dashboard import get_data
 @frappe.whitelist(allow_guest=True)
 def fetch_attribues(doc,method):
 	if doc.sales_order:
+		#frappe.throw("hello")
 		so=frappe.get_doc("Sales Order",doc.sales_order)
+
 		items=[]
 		for i in so.items:
 			items.append(i.item_code)
 		for j in  doc.purposes:
 			if j.item_code  not in items:
 				frappe.throw("This is not an item on the sales order")
+				
+			j.set("prevdoc_doctype","Sales Order")
+			j.set("prevdoc_docname",doc.sales_order)
+			get_mr=frappe.db.sql("""select parent from `tabMaterial Request Item` where docstatus<2 and item_code='{}' and sales_order='{}' and parent in (select name from `tabMaterial Request`  where docstatus<2 and material_request_type='Manufacture' )  """.format(j.item_code ,doc.sales_order),as_dict=1)
+			if len(get_mr)!=0:
+				for  mr in get_mr:
+					doc.set('custom_material_request',mr['parent'])
 
 			get_val=frappe.db.sql("""select * from `tabSales Order Item` where docstatus=1 and item_code='{}' and parent='{}'  """.format(j.item_code,so.name),as_dict=1)
 			if get_val:
@@ -25,6 +34,9 @@ def fetch_attribues(doc,method):
 					j.set("custom_bottom_length",m['custom_bottom_length'])
 					j.set("custom_shoulder",m['custom_shoulder'])
 			j.set("custom_sales_order",so.name)
+			for j in  doc.purposes:
+				if not j.prevdoc_docname:
+					frappe.throw("Source Doctype is missing")
 
 
 @frappe.whitelist(allow_guest=True)
@@ -107,3 +119,6 @@ def make_se_entry_mv(doc,method):
 					frappe.msgprint("Stock Entry is created successfully")
 				except:
 					frappe.msgprint("Not Created Entry")
+
+
+	
