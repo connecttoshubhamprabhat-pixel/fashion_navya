@@ -981,7 +981,7 @@ def get_material_request_items_custom(row, sales_order, company, ignore_existing
 			pass
 
 			if required_qty>0:
-				required_qty = required_qty / row["conversion_factor"]
+				required_qty = required_qty / 1
 			else:
 				required_qty=1
 

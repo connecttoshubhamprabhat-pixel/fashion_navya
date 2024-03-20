@@ -376,6 +376,7 @@ def make_mr_first_bom(doc,method):
     m={"doctype":"Material Request","material_request_type":"Manufacture"}
     m['schedule_date']=after_3_days
     m['custom_by_bom']=1
+    m['project']=doc.project
     m['set_warehouse']="Navya Store Office - NAVYA"
     mr=frappe.get_doc(m)
     row = mr.append("items", {})
@@ -680,13 +681,17 @@ def make_pattern_copy(values=None,newcode=None):
     name=values.get("item_code")
     get_ptt=frappe.db.sql("""select name from `tabPattern` where item_code='{}' and docstatus=1  """.format(name),as_dict=1)
     if len(get_ptt)!=0:
-        for i in get_ptt:
+         for i in get_ptt:
             old_ptt=frappe.get_doc("Pattern",i['name'])
             new_patt=frappe.copy_doc(old_ptt)
             new_patt.set("item_code",newcode)
             new_patt.set("docstatus",0)
             new_patt.set("workflow_state","Draft")
-            new_patt.insert()
-            # new_patt.set("docstatus",1)
-            # new_patt.submit()
+            try:
+                 new_patt.insert()
+            
+            except:
+                 pass
+            
+            #new_patt.submit()
             frappe.msgprint("created")
