@@ -134,7 +134,7 @@ doc_events = {
 		        "before_save":["fashion_navya.utils.doc_event.item.check_stock_count","fashion_navya.utils.doc_event.sow.set_so__mr","fashion_navya.utils.perm.perm.check_stock_warehouse_source","fashion_navya.utils.doc_event.api_2.fetch_val","fashion_navya.utils.doc_event.stock.fetch_price_sed","fashion_navya.utils.doc_event.st.remove_serial_no","fashion_navya.utils.doc_event.stock.count_qty_noc","fashion_navya.utils.doc_event.stock.check_work_flow"],
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
-               #"before_insert":["fashion_navya.utils.doc_event.transit.check_transit_entry"],
+               "before_insert":["fashion_navya.utils.doc_event.transit.check_transit_entry"],
                "on_submit":["fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
@@ -299,6 +299,7 @@ doc_events = {
                                     "before_submit":["fashion_navya.utils.doc_event.mr.check_bom_project","fashion_navya.utils.doc_event.sow.set_warehouse_target_mr","fashion_navya.utils.doc_event.mr.mr_links_transfer","fashion_navya.utils.doc_event.todo.create_todo_mr_bom","fashion_navya.utils.doc_event.mr.check_bom_mr","fashion_navya.utils.doc_event.api_2.customer_added_mr"],
                                     "before_save":["fashion_navya.utils.doc_event.wo.fetch_msrement_mr","fashion_navya.utils.doc_event.api_2.status_updated"],
                                     "after_insert":["fashion_navya.utils.doc_event.so.make_mr_manual_so"],
+                                    "on_update":["fashion_navya.utils.doc_event.sow.set_warehouse_target_mr"],
                                     #"before_update_after_submit":["fashion_navya.utils.doc_event.wo.fetch_msrement_mr"],
 
                                     },
@@ -320,10 +321,11 @@ doc_events = {
                             "Address":{
                                     "on_update":["fashion_navya.utils.doc_event.address.check_is_shipping"],
 
+ 
                                     },
                             "Job Card":{
-                                    "before_submit":["fashion_navya.utils.doc_event.job_card.qty_check_jc"],
-                                    "validate":["fashion_navya.utils.doc_event.jc.se_check_all_jc"],
+                                    "before_submit":["fashion_navya.utils.doc_event.jc.set_validation_for_submit","fashion_navya.utils.doc_event.job_card.qty_check_jc"],
+                                    "validate":["fashion_navya.utils.doc_event.api_1.set_branch_jc","fashion_navya.utils.doc_event.jc.se_check_all_jc"],
                                     "on_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all"],
 
                                     },

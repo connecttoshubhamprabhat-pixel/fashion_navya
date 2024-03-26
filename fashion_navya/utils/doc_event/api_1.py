@@ -695,3 +695,22 @@ def make_pattern_copy(values=None,newcode=None):
             
             #new_patt.submit()
             frappe.msgprint("created")
+
+
+
+@frappe.whitelist()
+def set_branch_jc(doc,method):
+    if doc.work_order:
+        wo=frappe.get_doc("Work Order",doc.work_order)
+        if wo.fg_warehouse in ['Libberheri  - NAVYA']:
+             doc.set("custom_branch","Libberhedi")
+             
+        if wo.fg_warehouse in ['Navya Store Office - NAVYA','Courier Station - NAVYA']:
+             doc.set("custom_branch","Sainik Farms")
+
+
+
+
+
+
+            

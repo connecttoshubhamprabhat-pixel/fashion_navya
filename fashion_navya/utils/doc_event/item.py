@@ -1588,6 +1588,7 @@ def rebuild_refrences_insert(name=None,old=None):
 
 @frappe.whitelist(allow_guest=True)
 def make_price_from_template(doc,method):
+	doc.set("workflow_state","Approved")
 	item_doc=frappe.get_doc("Item",doc.item_code)
 	if item_doc.has_variants==1:
 		get_items=frappe.db.sql("""select DISTINCT name from `tabItem` where variant_of='{}' """.format(doc.item_code),as_dict=1)

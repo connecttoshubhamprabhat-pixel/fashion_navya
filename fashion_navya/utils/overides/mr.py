@@ -130,7 +130,7 @@ class CustomProductionPlan(ProductionPlan):
 
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
-	warehouses_mr=["Sampling Unit - NAVYA"]
+	warehouses_mr=["Purchase Station - NAVYA"]
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
 	d['custom_production_plan_type']="Sales Order"
 	doc=frappe.get_doc(d)
@@ -146,7 +146,7 @@ def automated_plan():
 	get_mr_items_custom(doc)
 	get_sub_assembly_items(doc, manufacturing_type=None)
 	doc.insert()
-	doc.set("for_warehouse","Sampling Unit - NAVYA")
+	doc.set("for_warehouse","Purchase Station - NAVYA")
 	for w in warehouses_mr:
 		warehouse_list_mr=[{"warehouse":w}]
 		dump_Warehoues=json.dumps(warehouse_list_mr)
@@ -223,8 +223,8 @@ def make_work_order_for_finished_goods(self, wo_list, default_warehouses):
 
 @frappe.whitelist(allow_guest=True)
 def automated_plan_without_so():
-	warehouses_mr=["Sampling Unit - NAVYA"]
-	warehouse_list_mr=[{"warehouse":"Sampling Unit - NAVYA"}]
+	warehouses_mr=["Purchase Station - NAVYA"]
+	warehouse_list_mr=[{"warehouse":"Purchase Station - NAVYA"}]
 	dump_Warehoues=json.dumps(warehouse_list_mr)
 	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
 	d['custom_production_plan_type']="Without Sales Order"
@@ -244,7 +244,7 @@ def automated_plan_without_so():
 	doc.insert()
 	#doc_into_dumps=json.loads(doc_dict)
 	dump_doc=json.dumps(doc_dict,default=datetime_handler)
-	doc.set("for_warehouse","Sampling Unit - NAVYA")
+	doc.set("for_warehouse","Purchase Station - NAVYA")
 	# print(dump_doc,"dumpdoc")
 	for w in warehouses_mr:
 		warehouse_list_mr=[{"warehouse":w}]
@@ -599,7 +599,7 @@ def get_items_for_material_requests_custom(doc, warehouses=None, get_parent_ware
 	print(doc,'doc9')
 
 	if warehouses:
-		warehouses=[{"warehouse":"All Warehouses - NAVYA"}]
+		warehouses=[{"warehouse":"Raw material - NAVYA"}]
 		warehouses = list(set(get_warehouse_list_custom(warehouses)))
 
 		if (

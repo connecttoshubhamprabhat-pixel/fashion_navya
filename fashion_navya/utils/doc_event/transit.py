@@ -36,7 +36,7 @@ def check_transit_entry(doc,method):
             transit_stock_total=sum(transit_stock)
             #if not doc.add_to_transit:
             total_stock_in_draft=sum(draft_stock)
-            total_qty_transfered=transit_stock_total+total_stock_in_draft
+            total_qty_transfered=transit_stock_total
             total_actual=abs(actua_stock-total_qty_transfered)
             if new_qty>total_actual:
                 str="transit_stock_total:{},total_stock_in_draft:{},total_actual:{}".format(transit_stock_total,total_stock_in_draft,actua_stock)

@@ -188,7 +188,7 @@ def make_mr_so(doc,method):
 						qty +=item_qty['qty']
 
 				#get_id_soi=frappe.db.sql("""select * from `tabSales Order Item` where parent='{}' and docstatus<2 and item_code='{}'  """.format(sodoc.name,i),as_dict=1)
-				m={"doctype":"Material Request","material_request_type":"Manufacture"}
+				m={"doctype":"Material Request","material_request_type":"Manufacture","custom_is_so":1}
 				m['schedule_date']=new_date_delivery
 				#m['custom_payment_entry']=doc.name
 				m['custom_automated']=1
