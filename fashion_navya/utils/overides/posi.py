@@ -19,9 +19,10 @@ class CustomPOSInvoice(POSInvoice):
 		from erpnext.stock.stock_ledger import is_negative_stock_allowed
 		for d in self.get("items"):
 			if d.serial_no:
-				self.validate_pos_reserved_serial_nos(d)
-				self.validate_delivered_serial_nos(d)
-				self.validate_invalid_serial_nos(d)
+				print()
+				#self.validate_pos_reserved_serial_nos(d)
+				#self.validate_delivered_serial_nos(d)
+				#self.validate_invalid_serial_nos(d)
 
 			elif d.batch_no:
 				self.validate_pos_reserved_batch_qty(d)

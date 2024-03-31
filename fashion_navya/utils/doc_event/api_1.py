@@ -660,6 +660,8 @@ def set_read_flilter_logs(doc,method):
 
 @frappe.whitelist()
 def set_warehouse_wo(doc,method):
+    if doc.custom_skip_warehouse:
+         return
     doc.set("wip_warehouse","Sampling Unit - NAVYA")
     doc.set("fg_warehouse","Navya Store Office - NAVYA")
     if doc.sales_order:

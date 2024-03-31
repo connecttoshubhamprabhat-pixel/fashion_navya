@@ -44,7 +44,7 @@ doctype_js = {
                 "Sales Order":"public/js/custom_script/sales_order.js",
                 "Pattern":"public/js/custom_script/pattern.js",
                 "Payment Entry":"public/js/custom_script/payment_entry.js",
-                "Purchase Order":"public/js/custom_script/purchase_order.js",
+                #"Purchase Order":"public/js/custom_script/purchase_order.js",
             }
 
 
@@ -324,7 +324,7 @@ doc_events = {
  
                                     },
                             "Job Card":{
-                                    "before_submit":["fashion_navya.utils.doc_event.jc.set_validation_for_submit","fashion_navya.utils.doc_event.job_card.qty_check_jc"],
+                                    "before_submit":["fashion_navya.utils.doc_event.job_card.qty_check_jc"],
                                     "validate":["fashion_navya.utils.doc_event.api_1.set_branch_jc","fashion_navya.utils.doc_event.jc.se_check_all_jc"],
                                     "on_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all"],
 

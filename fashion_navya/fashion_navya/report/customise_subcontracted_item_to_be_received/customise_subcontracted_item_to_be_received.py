@@ -128,28 +128,46 @@ def get_columns(filters):
 			"width": 100,
 		},
 		{
-                        "label": _("Wo/Item"),
-                        "fieldtype": "Link",
-                        "fieldname": "woitem",
-                        "options":"Item",
-                        "width":200,
-                },
+            "label": _("Wo/Item"),
+            "fieldtype": "Link",
+            "fieldname": "woitem",
+            "options":"Item",
+            "width":200,
+        },
 		{"label": _("Item name"), "fieldtype": "Data", "fieldname": "item_name", "width":200},
         {
 			"label": _("W/oQTY"),
-			"fieldtype": "Int",
+			"fieldtype": "Float",
 			"fieldname": "wo_qty",
 			"width":100,
 		},
 		{
+			"label": _("W/oQTY/pending"),
+			"fieldtype": "Float",
+			"fieldname": "wo_qty_p",
+			"width":100,
+		},
+		{
+			"label": _("Net/Stock"),
+			"fieldtype": "Float",
+			"fieldname": "net_qty",
+			"width":100,
+		},
+		{
+			"label": _("Sold Stock"),
+			"fieldtype": "Float",
+			"fieldname": "sold",
+			"width":100,
+		},
+		{
 			"label": _("W/produced/qty"),
-			"fieldtype": "Int",
+			"fieldtype": "Float",
 			"fieldname": "wopqty",
 			"width":120,
 		},
 		{
 			"label": _("PO/FG QTY"),
-			"fieldtype": "Int",
+			"fieldtype": "Float",
 			"fieldname": "pofg",
 			"width":100,
 		},
@@ -176,7 +194,7 @@ def get_data(filters):
 		["planned_start_date", ">=", filters.from_date],
 		["docstatus", "=", 1],
 		["qty",">","produced_qty"],
-		["status","!=","Stopped"]]
+		["status","=",filters.status]]
 
 	if filters.project:
 		record_filters.append(["project","=",filters.project])
@@ -186,11 +204,18 @@ def get_data(filters):
         "Work Order", filters=record_filters, fields=["production_item","status","produced_qty","name","planned_start_date","qty"]
     )
 	if get_alls:
+		si_item_dup=[]
+		net_item_duplicate=[]
 		for i in get_alls:
 			row={}
+			itemdoc=frappe.get_doc("Item",i['production_item'])
+			if filters.item_group:
+				if filters.item_group!=itemdoc.item_group:
+					continue
 			sup=filters.supplier
 			if sup:
 				get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus=1 and work_order='{}' and parent in (select name from `tabPurchase Order` where docstatus=1 and supplier='{}' )  """.format(i['name'],sup),as_dict=1)
+				
 			else:
 				get_po=frappe.db.sql("""select * from `tabPurchase Order Item` where docstatus=1 and work_order='{}'   """.format(i['name']),as_dict=1)
 
@@ -206,9 +231,10 @@ def get_data(filters):
 							sub_doc=frappe.get_doc("Subcontracting Order",s['name'])
 							row['subcontract_order']=s['name']
 							for s_item in sub_doc.items:
-								row['required_qty']=s_item.qty
-								row['received_qty']=s_item.received_qty
-								row['pending_qty']=s_item.qty-s_item.received_qty
+								if s_item.item_code==p['fg_item']:
+									row['required_qty']=s_item.qty
+									row['received_qty']=s_item.received_qty
+									row['pending_qty']=s_item.qty-s_item.received_qty
 							get_se=frappe.db.sql("""select name from `tabStock Entry` where docstatus<2 and subcontracting_order='{}' """.format(sub_doc.name),as_dict=1)
 							if get_se:
 								for se in get_se:
@@ -231,6 +257,40 @@ def get_data(filters):
 			row['wo_qty']=i['qty']
 			row['wos']=i['status']
 			row['woitem']=i['production_item']
+			penwo=i['qty']-i['produced_qty']
+			row['wo_qty_p']=penwo
+			sold_qty=[0]
+			si_item_dup=[]
+			net_item_duplicate=[]
+			si_sold=frappe.db.sql(""" select sum(qty) as qty from `tabSales Invoice Item`  where  docstatus=1 and item_code='{}'  and parent in (select name from `tabSales Invoice` where docstatus=1 and is_consolidated=1 ) """.format(i['production_item']),as_dict=1)
+			dn_sold=frappe.db.sql(""" select sum(qty) as qty from `tabDelivery Note Item`  where  docstatus=1 and item_code='{}'  and parent in (select name from `tabDelivery Note` where docstatus=1) """.format(i['production_item']),as_dict=1)
+			if i['production_item'] not in si_item_dup:
+				if si_sold:
+					if si_sold[0]['qty']!=None:
+						sold_qty.append(si_sold[0]['qty'])
+						si_item_dup.append(i['production_item'])
+
+
+						
+				if dn_sold:
+					if dn_sold[0]['qty']!=None:
+						sold_qty.append(dn_sold[0]['qty'])
+						si_item_dup.append(i['production_item'])
+						
+				row['sold']=sum(sold_qty)
+
+
+			
+			get_qty=frappe.db.sql("""select sum(actual_qty) as qty  from `tabBin` where actual_qty>0 and item_code='{}'   """.format(i['production_item']),as_dict=1)
+			if get_qty and i['production_item'] not in net_item_duplicate:
+				if get_qty[0]['qty']!=None:
+					row['net_qty']=get_qty[0]['qty']
+					net_item_duplicate.append(i['production_item'])
+
+
+
+
+
 			get_set_mt=frappe.db.sql("""select * from `tabStock Entry` where docstatus<2 and stock_entry_type='Material Transfer for Manufacture' and work_order='{}' """.format(i['name']),as_dict=1)
 			if get_set_mt:
 				row['mtstatus']=get_set_mt[0]['workflow_state']

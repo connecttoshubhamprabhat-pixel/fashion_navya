@@ -70,6 +70,7 @@ def get_data(filters):
 					netstock=[0]
 					not_wo_qty=[0]
 					in_wo_qty=[0]
+					in_wo_qty_left=[0]
 					all_sheets=[1,2,3,4]
 					approved_sheet=[]
 					get_approved_ppt=frappe.db.sql("""select sheet_no from `tabPattern` where item_code='{}' and docstatus=1  """.format(item),as_dict=1)
@@ -82,16 +83,23 @@ def get_data(filters):
 					dict_all_approved_sheet=set(approved_sheet)
 					final_miss_patt=list(dict_all_sheets-dict_all_approved_sheet)
 					#string_pattern=",".join(final_miss_patt)
-
+					
+					not_start_left=frappe.db.sql("""select (sum(qty)-sum(produced_qty)) as qty from `tabWork Order` where status='Not Started' and production_item='{}'  """.format(item),as_dict=1)
 					not_start=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='Not Started' and production_item='{}'  """.format(item),as_dict=1)
-					inprocess=frappe.db.sql("""select sum(qty) as qty from `tabWork Order` where status='In Process' and production_item='{}'  """.format(item),as_dict=1)
+					inprocess_felt=frappe.db.sql("""select (sum(qty)-sum(produced_qty)) as qty from `tabWork Order` where status='In Process' and production_item='{}'  """.format(item),as_dict=1)
+					inprocess_total=frappe.db.sql("""select sum(qty)  as qty from `tabWork Order` where status='In Process' and production_item='{}'  """.format(item),as_dict=1)
 					if len(not_start)!=0:
 						if not_start[0]['qty']!=None:
 							not_wo_qty.append(not_start[0]['qty'])
 
-					if len(inprocess)!=0:
-						if inprocess[0]['qty']!=None:
-							in_wo_qty.append(inprocess[0]['qty'])
+					if len(inprocess_felt)!=0:
+						if inprocess_felt[0]['qty']!=None:
+							in_wo_qty_left.append(inprocess_felt[0]['qty'])
+					
+					if len(inprocess_total)!=0:
+						if inprocess_total[0]['qty']!=None:
+							in_wo_qty.append(inprocess_total[0]['qty'])
+
 
 
 
@@ -116,6 +124,7 @@ def get_data(filters):
 						d['rtwwonot']=sum(not_wo_qty)
 
 						d['rtwwoin']=sum(in_wo_qty)
+						d['rtwwoin_left']=sum(in_wo_qty_left)
 
 
 					data.append(d)
@@ -247,9 +256,15 @@ def get_columns():
 			"width":110,
 		},
 		{
-			"label":"SMPL/wo/Inprocess",
+			"label":"SMPL/wo/Inprocess/total",
 			"fieldtype": "float",
 			"fieldname": "smplwoin",
+			"width":200,
+		},
+		{
+			"label":"SMPL/wo/Inprocess/left",
+			"fieldtype": "float",
+			"fieldname": "smplwoin_left",
 			"width":200,
 		},
 		{
@@ -279,11 +294,18 @@ def get_columns():
 			"width":110,
 		},
 		{
-			"label":"RTW/wo/InProcess",
+			"label":"Total/RTW/wo/InProcess",
 			"fieldtype": "float",
 			"fieldname": "rtwwoin",
 			"width":200,
 		},
+		{
+			"label":"RTW/wo/InProcess/left qty",
+			"fieldtype": "float",
+			"fieldname": "rtwwoin_left",
+			"width":200
+		},
+		
 		{
 			"label":"RTW/wo/NOTStart",
 			"fieldtype": "float",

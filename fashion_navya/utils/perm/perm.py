@@ -9,7 +9,7 @@ def check_stock_warehouse_source(doc,method):
         roles=frappe.get_roles(frappe.session.user)
         if "Sales Executive" in roles:
             return
-    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry and not doc.pick_list:
+    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry:
         user=frappe.session.user
         source_warehouse=[]
         if doc.stock_entry_type=="Material Transfer" and user not in skip_user:

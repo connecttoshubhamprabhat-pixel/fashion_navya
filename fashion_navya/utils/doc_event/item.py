@@ -605,8 +605,8 @@ def fetch_source_se_without(items=None):
 #march 16/2024
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
-	#if doc.ignore_project:
-	#	return
+	if doc.custom_subcontracted:
+		return
 	if doc.variant_of:
 		doc.set("is_sub_contracted_item",0)
 	if doc.variant_of:

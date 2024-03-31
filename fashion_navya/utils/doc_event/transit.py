@@ -3,8 +3,8 @@ import frappe
 
 @frappe.whitelist(allow_guest=True)
 def check_transit_entry(doc,method):
-    stock_entry_type=['Material Transfer','Material Transfer for Manufacture']
-    if doc.ignore_custom==0 and doc.stock_entry_type in stock_entry_type and not doc.outgoing_stock_entry:
+    stock_entry_type=['Material Transfer']
+    if doc.add_to_transit and doc.ignore_custom==0 and doc.stock_entry_type in stock_entry_type and not doc.outgoing_stock_entry:
         for i in doc.items:
             if i.s_warehouse=="Default Transit - NAVYA":
                 frappe.throw("It is not part of the End Transit Entry,So please change the source warehouse")
