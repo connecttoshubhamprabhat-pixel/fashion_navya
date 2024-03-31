@@ -9,7 +9,7 @@ def check_stock_warehouse_source(doc,method):
         roles=frappe.get_roles(frappe.session.user)
         if "Sales Executive" in roles:
             return
-    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry:
+    if doc.doctype=="Stock Entry":
         user=frappe.session.user
         source_warehouse=[]
         if doc.stock_entry_type=="Material Transfer" and user not in skip_user:
@@ -22,6 +22,10 @@ def check_stock_warehouse_source(doc,method):
                             source_warehouse.append(w.warehouse)
 
                 for i in doc.items:
+                    if doc.outgoing_stock_entry:
+                        if i.s_warehouse!="Default Transit - NAVYA":
+                            frappe.throw("Source warehouse should be only Default Transit")
+                            
                     if i.s_warehouse not in source_warehouse:
                         msg="Sorry Source Warehouse is wrong ,Row {}".format(i.idx)
                         frappe.throw(msg)
@@ -34,7 +38,7 @@ def check_stock_warehouse_target(doc,method):
         if "Sales Manager" in roles and doc.custom_destination=="Navya Store Office - NAVYA":
             return
     skip_user=['Administrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
-    if doc.doctype=="Stock Entry" and not doc.outgoing_stock_entry:
+    if doc.doctype=="Stock Entry":
         user=frappe.session.user
         target_warehouse=[]
         if doc.stock_entry_type=="Material Transfer" and user not in skip_user:
@@ -47,6 +51,11 @@ def check_stock_warehouse_target(doc,method):
                             target_warehouse.append(w.warehouse)
 
             for i in doc.items:
+                if doc.outgoing_stock_entry:
+                    transit_se=frappe.get_doc("Stock Entry",doc.outgoing_stock_entry)
+                    if i.t_warehouse!=transit_se.custom_destination:
+                        frappe.throw("Target Warehouse should be  Destination Warehouse,Please verify With Transit Entry")
+                        
                 if i.t_warehouse not in target_warehouse:
                     msg="Sorry target Warehouse is wrong ,Row {}".format(i.idx)
                     frappe.throw(msg)
