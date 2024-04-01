@@ -257,6 +257,7 @@ doc_events = {
             "Subcontracting Order":{
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
                 "before_save":["fashion_navya.utils.doc_event.api_2.get_wo_sub"],
+                "after_insert":["fashion_navya.utils.doc_event.sub.update_subcontracting_order_item"],
 
             },
 		"Journal Entry":{
