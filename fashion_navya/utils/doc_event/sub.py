@@ -19,3 +19,33 @@ def update_rate_after_submit(doc,method):
 			for i in doc.items:
 				frappe.db.sql("""update `tabSubcontracting Order Item` set service_cost_per_qty={} where parent='{}' and item_code='{}'  """.format(i.rate,so,i.fg_item))
 				frappe.db.commit()
+
+#apr 1 15:30/2024
+@frappe.whitelist()
+def update_subcontracting_order_item(doc, method):
+	# Get fg_parent value from Purchase Order Item for items in doc.purchase_order
+	fg_parent_dict = frappe.db.sql("""
+        SELECT fg_name_parent, fg_parent
+        FROM `tabPurchase Order Item`
+        WHERE parent = %(purchase_order)s
+    """, {"purchase_order": doc.purchase_order}, as_dict=True)
+
+	# Get item_names associated with doc.name in Subcontracting Order Item
+	so_items = frappe.db.sql("""
+        SELECT name, item_name
+        FROM `tabSubcontracting Order Item`
+        WHERE parent = %(subcontracting_order)s
+    """, {"subcontracting_order": doc.name}, as_dict=True)
+
+
+	for so_item in so_items:
+		item_name = so_item.get("item_name")
+		fg_parent = next((item.get("fg_parent") for item in fg_parent_dict if item.get("fg_name_parent") == item_name), None)
+
+		if fg_parent:
+			frappe.db.sql("""UPDATE `tabSubcontracting Order Item`
+                SET custom_mitem = %(fg_parent)s
+                WHERE name = %(name)s
+            """, {"fg_parent": fg_parent, "name": so_item.name})
+		else:
+			frappe.throw("No fg_parent found for item_name {}".format(item_name))
