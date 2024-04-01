@@ -1,5 +1,5 @@
 import frappe
-
+import json
 
 @frappe.whitelist()
 def se_check_all(doc,method):
@@ -29,3 +29,13 @@ def set_validation_for_submit(doc,method):
 		if get_id[0]['branch']!=doc.custom_branch:
 			frappe.throw("आपकी ब्रांच अलग है ,आप इसको Submit नहीं कर सकते (You can't submit)||")
 
+@frappe.whitelist()
+def make_time_log(args):
+	if isinstance(args, str):
+		args = json.loads(args)
+
+	args = frappe._dict(args)
+	doc = frappe.get_doc("Job Card", args.job_card_id)
+	doc.validate_sequence_id()
+	doc.add_time_log(args)
+	doc.validate_time_logs()

@@ -426,6 +426,7 @@ scheduler_events = {
 override_whitelisted_methods = {
 	#"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
        #"frappe.desk.form.load.getdoc":"fashion_navya.utils.overides.load.getdoc",
+       "erpnext.manufacturing.doctype.job_card.job_card.make_time_log":"fashion_navya.utils.doc_event.jc.make_time_log",
        "frappe.www.list.get_list_data":"fashion_navya.utils.website.web_frm.get_list_data_custom",
        "erpnext.selling.page.point_of_sale.point_of_sale.get_items":"fashion_navya.utils.overides.pos.get_items_custom",
        "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability":"fashion_navya.utils.overides.pos.get_stock_availability_custom",
