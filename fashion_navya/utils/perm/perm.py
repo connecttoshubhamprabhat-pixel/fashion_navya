@@ -4,8 +4,10 @@ import frappe
 #check for transfer entry
 @frappe.whitelist()
 def check_stock_warehouse_source(doc,method):
+    if doc.custom_permitted==1:
+        return
     #frappe.throw("aa")
-    skip_user=['Aadministrator','ppawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
+    skip_user=['Aadministrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
     if doc.rfse=="Dry clean":
         roles=frappe.get_roles(frappe.session.user)
         if "Sales Executive" in roles:
@@ -34,12 +36,14 @@ def check_stock_warehouse_source(doc,method):
 
 @frappe.whitelist()
 def check_stock_warehouse_target(doc,method):
-    transit_users=['gate@navyacustom.com','nilesh@example.com']
+    if doc.custom_permitted==1:
+        return
+    transit_users=['gate@navyacustom.com','nilesh@example.com',"pawasthy11@gmail.com"]
     if doc.rfse=="Dry clean":
         roles=frappe.get_roles(frappe.session.user)
         if "Sales Manager" in roles and doc.custom_destination=="Navya Store Office - NAVYA":
             return
-    skip_user=['Aadministrator','ppawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
+    skip_user=['Aadministrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
     if doc.doctype=="Stock Entry":
         user=frappe.session.user
         target_warehouse=[]

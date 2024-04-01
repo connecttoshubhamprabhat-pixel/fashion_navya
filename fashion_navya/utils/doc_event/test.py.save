@@ -155,26 +155,9 @@ def check_subconrcat(doc,method):
 
 
 
+
 @frappe.whitelist()
-def update_stock():
-	items=frappe.db.sql("""select * from `tabBin` where actual_qty>0 and item_code in (select name from `tabItem` where  item_group='Ready Stock' and disabled=0)  """,as_dict=1)
-	warehoues=['Transit  - NAVYA','Default Transit - NAVYA','Libberheri  - NAVYA','Libberheri Work In Progress - NAVYA','Sampling Unit - NAVYA']
-	san=frappe.db.sql("""select name from `tabWarehouse`  where parent_warehouse in  ('Santushti - NAVYA','Manufacturing unit - NAVYA','Sainik Farm - NAVYA','Subcontractor  - NAVYA') and disabled=0   """,as_dict=1)
-	for w in san:
-		warehoues.append(w['name'])
-	doc=frappe.get_doc("Stock Entry","MAT-STE-2024-01931")
-	for i in  items:
-		item=i['item_code']
-		if i['warehouse'] not in warehoues and frappe.db.exists("Item",item):
-			print(item)
-			itemdoc=frappe.get_doc("Item",item)
-			row = doc.append("items", {})
-			row.item_code=item
-			row.stock_uom=itemdoc.stock_uom
-			row.uom=itemdoc.stock_uom
-			row.qty=i['actual_qty']
-			row.s_warehouse=i['warehouse']
-			row.t_warehouse='Main Storage - NAVYA'
-			row.conversion_factor=1
-	doc.save()
-	frappe.db.commit()
+def update_stock_entry()
+	items=frappe.db.sql("""select * from `tabBin` where actual_qty>0 and item_code in (select name from `tabItem` where  item_group='Ready Stock' and disabled=0)  """)
+	doc=frappe.get_doc("Stock Entry","")
+
