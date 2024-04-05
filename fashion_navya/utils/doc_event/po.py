@@ -77,7 +77,9 @@ def check_delete_draft(doc,method):
 
 frappe.whitelist(allow_guest=True)
 def get_wo_set_po(doc,method):
-	if doc.is_subcontracted and doc.docstatus==0 and doc.custom_skip_work_order==0:
+	#frappe.throw("apr42")
+	if doc.is_subcontracted and  doc.custom_skip_work_order==0:
+		#frappe.throw("apr4")
 		for i in doc.items:
 			if i.fg_parent and not  i.production_plan:
 				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started')  """.format(i.fg_parent),as_dict=1)
@@ -277,3 +279,30 @@ def check_purchase_from_production(doc,method):
 						production.append("yes")
 	if production:
 		doc.set("custom_from_p",1)
+
+
+
+
+
+
+frappe.whitelist(allow_guest=True)
+def get_wo_set_po_condition(doc,method):
+	if doc.is_subcontracted and  doc.custom_skip_work_order==0 and doc.workflow_state in ['Authorisation Pending','Authorised']:
+		for i in doc.items:
+			if i.fg_parent and not  i.production_plan:
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started')  """.format(i.fg_parent),as_dict=1)
+				if get_wo:
+					i.set('work_order',get_wo[0]['name'])
+				else:
+					frappe.throw("Work order is missing for row :- {}".format(i.idx))
+
+
+			if i.fg_parent and i.production_plan:
+				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started') and production_plan='{}' """.format(i.fg_parent,i.production_plan),as_dict=1)
+				if get_wo:
+					i.set('work_order',get_wo[0]['name'])
+				else:
+					frappe.throw("Work order is missing for row :- {}".format(i.idx))
+
+
+

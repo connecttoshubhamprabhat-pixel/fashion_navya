@@ -62,9 +62,9 @@ def check_stock_warehouse_target(doc,method):
                     if i.t_warehouse!=transit_se.custom_destination:
                         frappe.throw("Target Warehouse should be  Destination Warehouse,Please verify With Transit Entry")
 
-                if doc.add_to_transit:
-                    if user not in transit_users:
-                        frappe.throw("Only Gate Man can receive this Entry")
+                #if doc.add_to_transit:
+                 #   if user not in transit_users:
+                  #      frappe.throw("Only Gate Man can receive this Entry")
 
                 if i.t_warehouse not in target_warehouse and not doc.outgoing_stock_entry:
                     msg="Sorry target Warehouse is wrong ,Row {}".format(i.idx)
