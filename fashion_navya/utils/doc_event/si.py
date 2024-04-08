@@ -124,7 +124,12 @@ def set_si_custom_series(doc,method):
     #get fiscal year
     get_fiscal_yr=str(get_current_financial_year())
     # Define the naming series
-    series_name = "SI/24-25/"
+    #series_name = "SI/24-25/"
+    prefix="SI/"
+    pre_name=get_fiscal_yr.split("-")
+    pre_1=str(pre_name[0][2:])+"-"+str(pre_name[1])+"/"
+    series_name=prefix+pre_1
+    print(series_name,"series_name111")
     counter_no=['0001q']
     #get max counter
     print(get_fiscal_yr,'get_fiscal_yr')
