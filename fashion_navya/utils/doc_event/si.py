@@ -1,4 +1,5 @@
 import frappe
+from datetime import datetime
 
 @frappe.whitelist(allow_guest=True)
 def make_new_si_id(doc,method):
@@ -107,7 +108,7 @@ def make_record_in(no=None,status=0,name=None,commit=0):
 
 
 
-#status update 
+#status update
 @frappe.whitelist(allow_guest=True)
 def cancel_doc_si_series(doc,method):
     if doc.custom_invoice_no:
@@ -115,3 +116,46 @@ def cancel_doc_si_series(doc,method):
         if get_name:
             frappe.db.sql("""update `tabInvoice No series` set series_status="cancelled"  where series_no='{}' and si_no='{}' """.format(doc.custom_invoice_no,doc.name))
             frappe.db.commit()
+
+
+@frappe.whitelist(allow_guest=True)
+def set_si_custom_series(doc,method):
+
+    #get fiscal year
+    get_fiscal_yr=str(get_current_financial_year())
+    # Define the naming series
+    series_name = "SI/24-25/"
+    counter_no=['0001q']
+    #get max counter
+    print(get_fiscal_yr,'get_fiscal_yr')
+    get_max_counter=frappe.db.sql("""select MAX(custom_sicounter) as nos from `tabSales Invoice` where custom_sifiscal='{}'  """.format(get_fiscal_yr),as_dict=1)
+    if len(get_max_counter)!=0:
+        if get_max_counter[0]['nos']!=None:
+            counter_int=int(get_max_counter[0]['nos'])
+            # Increment current value
+            next_value= int(counter_int) + 1
+            print(next_value,'next_value')
+            # Pad with leading zeros
+            next_value_padded = str(next_value).zfill(4)
+            counter_no.append(next_value_padded)
+        else:
+            counter_no.append("0001")
+    else:
+        counter_no.append("0001")
+
+    #series name final
+    name_series=series_name+counter_no[-1]
+    doc.name=name_series
+    print(name_series,"name_series")
+    doc.set("custom_sifiscal",get_fiscal_yr)
+    doc.set("custom_sicounter",counter_no[-1])
+
+
+# Function to get the current financial year
+@frappe.whitelist(allow_guest=True)
+def get_current_financial_year():
+    today = datetime.now()
+    if today.month < 4:
+        return f"{today.year - 1}-{today.year % 100:02d}"
+    else:
+        return f"{today.year}-{(today.year + 1) % 100:02d}"
