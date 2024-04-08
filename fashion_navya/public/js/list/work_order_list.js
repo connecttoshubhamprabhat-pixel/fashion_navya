@@ -18,7 +18,7 @@ frappe.listview_settings['Work Order'] = {
 			}
 			if (libberheri_users.includes(user)){
 				console.log('a')
-			frappe.route_options = {"fg_warehouse":["=","Libberheri  - NAVYA"]};
+			frappe.route_options = {"fg_warehouse":["=","Libberhedi finished Products - NAVYA"]};
 			frappe.set_route("List", "Work Order");
 
 			}

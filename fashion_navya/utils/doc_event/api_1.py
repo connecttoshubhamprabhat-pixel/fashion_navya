@@ -664,16 +664,27 @@ def set_warehouse_wo(doc,method):
          return
     doc.set("wip_warehouse","Sampling Unit - NAVYA")
     doc.set("fg_warehouse","Navya Store Office - NAVYA")
+    itemdoc=frappe.get_doc("Item",doc.production_item)
     if doc.sales_order:
-         return
+        return
 
     split_item=doc.production_item.split("-")
     if "BP" in  split_item and "RTW" in split_item and doc.custom_skip_warehouse==0:
         doc.set("wip_warehouse","Libberheri Work In Progress - NAVYA")
-        doc.set("fg_warehouse","Libberheri  - NAVYA")
+        doc.set("fg_warehouse","Libberhedi finished Products - NAVYA")
+        if not itemdoc.variant_of:
+            doc.set("wip_warehouse","Semi Finished Libberhedi - NAVYA")
+            doc.set("fg_warehouse","Libberhedi finished Products - NAVYA")
+
         if doc.operations:
              for i in doc.operations:
                   i.set("workstation","Libberheri Unit")
+    else:
+        if not itemdoc.variant_of:
+            doc.set("wip_warehouse","Semi finished Sampling Unit - NAVYA")
+            doc.set("fg_warehouse","Navya Store Office - NAVYA")
+
+
 
 
 
@@ -691,10 +702,10 @@ def make_pattern_copy(values=None,newcode=None):
             new_patt.set("workflow_state","Draft")
             try:
                  new_patt.insert()
-            
+
             except:
                  pass
-            
+
             #new_patt.submit()
             frappe.msgprint("created")
 
@@ -704,15 +715,8 @@ def make_pattern_copy(values=None,newcode=None):
 def set_branch_jc(doc,method):
     if doc.work_order:
         wo=frappe.get_doc("Work Order",doc.work_order)
-        if wo.fg_warehouse in ['Libberheri  - NAVYA']:
+        if wo.fg_warehouse in ['Libberhedi finished Products - NAVYA']:
              doc.set("custom_branch","Libberhedi")
-             
+
         if wo.fg_warehouse in ['Navya Store Office - NAVYA','Courier Station - NAVYA']:
              doc.set("custom_branch","Sainik Farms")
-
-
-
-
-
-
-            

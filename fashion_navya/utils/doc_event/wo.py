@@ -234,3 +234,56 @@ def replace_items_bom(doc,method):
 				if frappe.db.exists("Item",i.item_code+"-"+"New"):
 					i.set("item_code",i.item_code+"-"+"New")
 
+
+#fethc bin qty required_items
+@frappe.whitelist(allow_guest=True)
+def get_stock_raw(doc,method):
+	lib_warehoues=['Libberheri  - NAVYA','Libberhedi finished Products - NAVYA','Semi Finished Libberhedi - NAVYA']
+	delhi_warehoues=['Semi finished Sampling Unit - NAVYA','Navya Store Office - NAVYA','Sampling Unit - NAVYA']
+
+	if doc.required_items:
+		for i in doc.required_items:
+			if doc.fg_warehouse not in delhi_warehoues and doc.fg_warehouse not in lib_warehoues:
+				if frappe.db.exists("Warehouse","Purchase Station - NAVYA"):
+					i.set('source_warehouse','Purchase Station - NAVYA')
+				else:
+					frappe.throw("Purchase Station - NAVYA is not exists")
+
+			if doc.fg_warehouse in delhi_warehoues:
+				get_bin_qty=frappe.db.sql("""select * from `tabBin` where item_code='{}' and actual_qty>0 and warehouse in (select name from `tabWarehouse` where parent_warehouse='Delhi Raw Material  - NAVYA')  """.format(i.item_code),as_dict=1)
+				if len(get_bin_qty)!=0:
+					for j in get_bin_qty:
+						if j['actual_qty']>=i.required_qty:
+							i.set('source_warehouse',j['warehouse'])
+						else:
+							if frappe.db.exists("Warehouse","Purchase Station - NAVYA"):
+								i.set('source_warehouse','Purchase Station - NAVYA')
+							else:
+								frappe.throw("Purchase Station - NAVYA is not exists")
+				else:
+					if frappe.db.exists("Warehouse","Purchase Station - NAVYA"):
+						i.set('source_warehouse','Purchase Station - NAVYA')
+					else:
+						frappe.throw("Purchase Station - NAVYA is not exists")
+
+
+
+
+
+			if doc.fg_warehouse in lib_warehoues:
+				get_bin_qty=frappe.db.sql("""select * from `tabBin` where item_code='{}' and actual_qty>0 and warehouse in (select name from `tabWarehouse` where parent_warehouse='Libberhedi Raw Material - NAVYA')   """.format(i.item_code),as_dict=1)
+				if len(get_bin_qty)!=0:
+					for j in get_bin_qty:
+						if j['actual_qty']>=i.required_qty:
+							i.set('source_warehouse',j['warehouse'])
+						else:
+							if frappe.db.exists("Warehouse","Purchase Station - NAVYA"):
+								i.set('source_warehouse','Purchase Station - NAVYA')
+
+							else:
+								frappe.throw("Purchase Station - NAVYA is not exists")
+				else:
+					if frappe.db.exists("Warehouse","Purchase Station - NAVYA"):
+						i.set('source_warehouse','Purchase Station - NAVYA')
+					else:
+						frappe.throw("Purchase Station - NAVYA is not exists")
