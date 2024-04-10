@@ -42,14 +42,33 @@ def get_data(filters):
 				d['item']=item_name
 				if mr.custom_is_so:
 					d['is_so']="Yes"
+					get_mr_ts=frappe.db.sql("""select parent from `tabMaterial Request Item` where docstatus=1 and sales_order='{}' and parent in (select name from `tabMaterial Request`  where docstatus=1 and material_request_type='Material Transfer')  """.format(item.sales_order),as_dict=1)
+					if len(get_mr_ts)!=0:
+						mr_tsered=get_mr_ts[0]['parent']
+						get_se=frappe.db.sql("""select parent from `tabStock Entry Detail` where material_request='{}' and docstatus=1 and item_code='{}' """.format(mr_tsered,item_name),as_dict=1)
+						if len(get_se)!=0:
+							sedoc=frappe.get_doc("Stock Entry",get_se[0]['parent'])
+							if sedoc.add_to_transit==1:
+								get_se_out=frappe.db.sql("""select name from `tabStock Entry` where docstatus=1 and outgoing_stock_entry='{}'  """.format(sedoc.name),as_dict=1)
+								if len(get_se_out)!=0:
+									d['mr_ts']="Transferred"
+								else:
+									d['mr_ts']="No"
+							else:
+								d['mr_ts']="Transferred"
+						else:
+							d['mr_ts']="No"
+					else:
+						d['mr_ts']="No MR made"
 				else:
 					d['is_so']="No"
 				if mr.custom_is_so:
 					d['customer']=mr.custom_customer
 				#mr_doc=frappe.get_doc("Material Request",mr.name)
-				get_wo=frappe.db.sql("""select name from `tabWork Order` where  produced_qty=qty and material_request='{}' and docstatus<2 and production_item='{}'  """.format(mr.name,item_name),as_dict=1)
+				get_wo=frappe.db.sql("""select name,status from `tabWork Order` where material_request='{}' and docstatus=1 and production_item='{}'  """.format(mr.name,item_name),as_dict=1)
 				if len(get_wo)!=0:
 					d['is_wo']="Yes"
+					d['wo_status']=get_wo[0]['status']
 					get_po=frappe.db.sql("""select parent,item_code,fg_item from `tabPurchase Order Item` where docstatus=1 and work_order='{}'  """.format(get_wo[0]['name']),as_dict=1)
 					if len(get_po)!=0:
 						d['is_po']="Yes"
@@ -74,6 +93,7 @@ def get_columns():
 			"options":"Material Request",
 			"width":190,
 		},
+
 		{
 			"label": _("Item"),
 			"fieldtype": "Link",
@@ -99,12 +119,12 @@ def get_columns():
 			"fieldname": "is_wo",
 			"width":100,
 		},
-		# {
-		# 	"label": _("W/o Status"),
-		# 	"fieldtype": "Data",
-		# 	"fieldname": "wo_status",
-		# 	"width":150,
-		# },
+		{
+			"label": _("W/o Status"),
+			"fieldtype": "Data",
+			"fieldname": "wo_status",
+			"width":150,
+		},
 		{
 			"label": _("is/po"),
 			"fieldtype": "Data",
@@ -117,6 +137,12 @@ def get_columns():
 			"fieldname":"customer",
 			"options":"Customer",
 			"width":150,
+		},
+		{
+			"label": _("MR/Transferred"),
+			"fieldtype": "Data",
+			"fieldname": "mr_ts",
+			"width":230,
 		},
 
 
