@@ -605,6 +605,12 @@ def fetch_source_se_without(items=None):
 #march 16/2024
 @frappe.whitelist(allow_guest=True)
 def check_subconracted(doc,method):
+	if not doc.variant_of:
+		if doc.parent_item:
+			if not frappe.db.exists("Item",doc.parent_item):
+				doc.set("parent_item",None)
+
+
 	if doc.custom_subcontracted:
 		return
 	if doc.variant_of:
@@ -1319,6 +1325,26 @@ def fetch_source_me(name=None):
 		doc.save(ignore_permissions=True)
 		frappe.msgprint("Updated")
 
+
+
+@frappe.whitelist(allow_guest=True)
+def re_order_set_item_wise(items=None):
+	items=json.loads(items)
+	make=[]
+	if items:
+		for i in items:
+			doc=frappe.get_doc("Item",i)
+			if doc.item_group=="Sample":
+				set_reorder_new_smpl_project(name=i)
+				make.append("aa")
+			
+			if doc.item_group=="Ready Stock":
+				#frappe.msgprint(i)
+				set_reorder_rtw(name=i)
+				make.append("12")
+	
+	if make:
+		frappe.msgprint("Re-Order Set")
 	
 
 @frappe.whitelist(allow_guest=True)

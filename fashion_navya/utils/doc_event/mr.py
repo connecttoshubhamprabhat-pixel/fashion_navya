@@ -52,10 +52,11 @@ def make_mr_select(items=None,name=None):
 
 @frappe.whitelist()
 def check_bom_mr(doc,method):
+	bom_not_exists=[]
 	for i in doc.items:
 		check_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and is_active=1 and is_default=1 and item='{}'  """.format(i.item_code),as_dict=1)
-		if len(check_bom)!=0:
-			doc.set("custom_bom",1)
+		if len(check_bom)==0:
+			bom_not_exists.append("yes")
 
 		if i.sales_order:
 			doc.set("custom_is_so",1)
@@ -67,6 +68,9 @@ def check_bom_mr(doc,method):
 		get_so_cms=frappe.db.sql("""select name from `tabSales Order Item` where item_type='Customize'  and  docstatus=1 and name='{}' and parent='{}'   """.format(i.sales_order_item,i.sales_order),as_dict=1)
 		if len(get_so_cms)!=0:
 			doc.set("custom_cms",1)
+			
+	if not bom_not_exists:
+		doc.set("custom_bom",1)
 
 
 
@@ -161,10 +165,16 @@ def mr_links_transfer(doc,method):
 
 @frappe.whitelist()
 def check_bom_project(doc,method):
+	bom_not_exists=[]
 	for i in doc.items:
-		get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}'  """.format(i.item_code),as_dict=1)
-		if len(get_bom)!=0:
-			doc.set("custom_bom",1)
+		get_bom=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and item='{}' and is_active=1 and is_default=1  """.format(i.item_code),as_dict=1)
+		if len(get_bom)==0:
+			bom_not_exists.append("yes")
+	
+	if not bom_not_exists:
+		doc.set("custom_bom",1)
+
+
 
 
 
@@ -293,3 +303,12 @@ def project_update_mr():
 				frappe.db.sql(""" update `tabMaterial Request Item` set project='{}'   where parent='{}' and idx='{}' """.format(item.project,doc.name,i.idx))
 				frappe.db.commit()
 
+@frappe.whitelist()
+def reset_reorder(items=None):
+	items=json.loads(items)
+	if items:
+		for project in items:
+			frappe.db.sql(""" delete from `tabItem Reorder` where parent in (select name from `tabItem` where project='{}')  """.format(project))
+			frappe.db.commit()
+			
+	frappe.msgprint("Reset re-order")

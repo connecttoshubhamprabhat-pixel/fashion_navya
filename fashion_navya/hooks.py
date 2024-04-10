@@ -258,6 +258,7 @@ doc_events = {
             "Subcontracting Order":{
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
                 "before_save":["fashion_navya.utils.doc_event.api_2.get_wo_sub"],
+                "on_update":["fashion_navya.utils.doc_event.sub.update_subcontracting_order_and_total"],
                 "after_insert":["fashion_navya.utils.doc_event.sub.update_subcontracting_order_item"],
 
             },
@@ -346,6 +347,10 @@ doc_events = {
                                     "before_save":["fashion_navya.utils.doc_event.item.set_validation_bomc","fashion_navya.utils.doc_event.item.fabric_fetch_pattt"],
 
                                     },
+                                "Purchase Estimate":{
+                                        "before_submit":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields"],
+
+                                        },
 
 }
 
