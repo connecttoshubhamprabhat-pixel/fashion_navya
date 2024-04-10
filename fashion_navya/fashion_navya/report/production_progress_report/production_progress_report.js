@@ -1,8 +1,25 @@
-// Copyright (c) 2024, pawasthy11@gmail.com and contributors
-// For license information, please see license.txt
-
 frappe.query_reports["Production Progress Report"] = {
-	"filters": [
+    "filters": [{
+            "fieldname": "from_date",
+            "label": __("From Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.get_today()
+        },
+        {
+            "fieldname": "to_date",
+            "label": __("To Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.get_today()
+        },
+				{
+					fieldname: "project",
+					label: __("Project"),
+					fieldtype: "Link",
+					options: "Project",
+					reqd: 0
+				},
 
-	]
+
+
+    ]
 };
