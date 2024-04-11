@@ -287,3 +287,72 @@ def get_stock_raw(doc,method):
 						i.set('source_warehouse','Purchase Station - NAVYA')
 					else:
 						frappe.throw("Purchase Station - NAVYA is not exists")
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def finish_work_order_added_old():
+	#split production items
+	get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and CAST(creation as date) >= DATE_SUB(CURRENT_DATE, INTERVAL 3 MONTH) """,as_dict=1)
+	for i in wo:
+		wodoc=frappe.get_doc("Work Order",i['name'])
+		item=wodoc.production_item.split("-")
+		all_kits=["HEK","DPK","BPK","k"]
+		get_last_word=item[-1]
+		if get_last_word in kits:
+			parent_item="-".join(item[:-1])
+			if frappe.db.exists("Item",parent_item):
+				if wodoc.production_plan:
+					get_work_order=frappe.db.sql("""select name from `tabWork Order` where production_item='{}' and production_plan='{}'  """.format(parent_item,wodoc.production_plan),as_dict=1)
+					if len(get_work_order)!=0:
+						frappe.db.sql("""update `tabWork Order` set custom_finish_order='{}' where name='{}'  """.format(get_work_order[0]['name'],wodoc.name))
+						#frappe.db.commit()
+
+@frappe.whitelist(allow_guest=True)
+def finish_work_order_added_old():
+    # get work order
+	wo_list = frappe.get_all(
+        "Work Order",
+        filters={"docstatus": 1, "creation": (">", frappe.utils.add_months(frappe.utils.nowdate(), -3))},
+        pluck="name"
+    )
+
+	for wo_name in wo_list:
+		wodoc = frappe.get_doc("Work Order", wo_name)
+		items = wodoc.production_item.split("-")
+		last_word = items[-1]
+		kits = ["HEK", "DPK", "BPK", "k"]
+		if last_word in kits:
+			parent_item = "-".join(items[:-1])
+			if frappe.db.exists("Item", parent_item) and wodoc.production_plan:
+				work_order = frappe.get_value(
+                    "Work Order",
+                    {"production_item": parent_item, "production_plan": wodoc.production_plan,"docstatus":1},
+                    "name"
+                )
+
+				if work_order:
+					print(work_order,"a")
+					frappe.db.set_value("Work Order", wodoc.name, "custom_finish_order", work_order)
+					frappe.db.commit()
+
+
+@frappe.whitelist(allow_guest=True)
+def finish_work_order_added(doc,method):
+	items = doc.production_item.split("-")
+	last_word = items[-1]
+	kits = ["HEK", "DPK", "BPK", "k"]
+	if last_word in kits:
+		parent_item = "-".join(items[:-1])
+		if frappe.db.exists("Item", parent_item) and doc.production_plan:
+			work_order = frappe.get_value(
+                "Work Order",
+                {"production_item": parent_item, "production_plan":doc.production_plan,"docstatus":1},
+                "name"
+            )
+
+			if work_order:
+				frappe.db.set_value("Work Order",doc.name, "custom_finish_order", work_order)
+				frappe.db.commit()
