@@ -59,20 +59,20 @@ def update_subcontracting_order_and_total(doc, method):
 
 @frappe.whitelist()
 def update_subcontracting_order_item(doc, method):
-    # Get fg_parent and custom_qtywo values from Purchase Order Item for items in doc.purchase_order
-	 po_items = frappe.db.sql("""
+	# Get fg_parent and custom_qtywo values from Purchase Order Item for items in doc.purchase_order
+	po_items = frappe.db.sql("""
         SELECT fg_parent, custom_qtywo
         FROM `tabPurchase Order Item`
         WHERE parent = %(purchase_order)s
     """, {"purchase_order": doc.purchase_order}, as_dict=True)
 
-    # Update fg_parent and custom_qtywo values for Subcontracting Order Item
+	# Update fg_parent and custom_qtywo values for Subcontracting Order Item
 	for po_item in po_items:
 		fg_parent = po_item.get("fg_parent")
 		custom_qtywo = po_item.get("custom_qtywo")
-        
-        # Update fg_parent and custom_qtywo values for Subcontracting Order Item
-		frappe.db.sql("""
+
+	# Update fg_parent and custom_qtywo values for Subcontracting Order Item
+	frappe.db.sql("""
             UPDATE `tabSubcontracting Order Item`
             SET custom_mitem = %(fg_parent)s,
                 custom_qtywo = %(custom_qtywo)s
@@ -81,11 +81,11 @@ def update_subcontracting_order_item(doc, method):
 
 @frappe.whitelist()
 def calculating_total_miquantity(doc, method):
-    # Update total_custom_qtywo value in the document
+	# Update total_custom_qtywo value in the document
 	total_custom_qtywo = frappe.db.sql("""
         SELECT SUM(custom_qtywo) as total_qty
         FROM `tabPurchase Order Item`
         WHERE parent = %(purchase_order)s
     """, {"purchase_order": doc.purchase_order}, as_dict=True)[0].get('total_qty') or 0
-	
+
 	frappe.db.set_value("Subcontracting Order", doc.name, "custom_total_custom_qtywo", total_custom_qtywo)
