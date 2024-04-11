@@ -445,6 +445,7 @@ override_doctype_class = {
     "File":"fashion_navya.utils.overides.file.CustomFile",
     "BOM Creator":"fashion_navya.utils.overides.bomc.CustomBOMCreator",
     "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
+    "Asset":["fashion_navya.utils.overides.override_asset.CustomAsset"],
 
 }
 
