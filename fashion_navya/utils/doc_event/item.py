@@ -143,7 +143,7 @@ def renamedoc(doc,method):
 def set_item_project_reorder(doc,method):
     item=doc.name
     split_name=item.split("-")
-    if doc.variant_of and doc.project:
+    if doc.variant_of and doc.project and frappe.db.exists("Item",doc.name):
         if "RTW" in split_name:
             project=frappe.get_doc("Project",doc.project)
             exists=frappe.db.sql(""" select name from `tabReItems` where item_code='{}' and parent='{}' """.format(item,project.name),as_dict=1)
@@ -151,7 +151,7 @@ def set_item_project_reorder(doc,method):
                 row = project.append("re_order", {})
                 row.item_code=doc.name
                 row.min=1
-                project.save(ignore_permissions=True)
+                #project.save(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
 def remove_item_rtw(doc,method):
@@ -620,41 +620,41 @@ def check_subconracted(doc,method):
 	items_groups=["Prototype","PP Sample"]
 	if doc.item_group in items_groups:
 		doc.set("is_sub_contracted_item",0)
-		
+
 	if doc.name:
 		names=doc.name.split("-")
 		if 'MTM' in names:
 			doc.set("is_sub_contracted_item",1)
-		
-		
-		
+
+
+
 		if "SMPL" in names:
 			if "HEK"  in names and "SMPL" in names:
 				doc.set("is_sub_contracted_item",0)
-				
+
 			if "k"  in names or  "BPK" in names:
 				doc.set("is_sub_contracted_item",0)
-			
-		
+
+
 		if "PRSMPL" in names or "PPSMPL" in names:
 			if "DPK" in names:
 				doc.set("is_sub_contracted_item",1)
 			else:
 				doc.set("is_sub_contracted_item",0)
-				
+
 		if "RTW" in names and "BP" in names:
 			if "HEK" in names or  "BPK" in names or "k" in names:
 				doc.set("is_sub_contracted_item",0)
-				
+
 		if "DPK" in names:
 			doc.set("is_sub_contracted_item",1)
-			
+
 		if "RTW" in names and not "BP" in names:
 			if "BPK" in names:
 				doc.set("is_sub_contracted_item",0)
-			
-				
-			
+
+
+
 
 
 
@@ -667,24 +667,24 @@ def make_bom_cr(items=None):
 			for p in range(len(pmain_item)):
 				if pmain_item[p]=="RTW":
 					pmain_item[p]="SMPL"
-					
+
 			pmain_item_join="-".join(pmain_item)
 			get_bom_creator=frappe.db.sql("""select name from `tabBOM Creator` where item_code='{}' and docstatus=1 and status in ("In Progress","Completed")   ORDER BY  modified limit 1 """.format(pmain_item_join),as_dict=1)
 			if len(get_bom_creator)!=0:
 				make_duplicate_rtw(name=get_bom_creator[0]['name'])
 				#frappe.db.commit()
-			
+
 			get_bom_creator_new=frappe.db.sql("""select name,custom_old_bomc from `tabBOM Creator` where item_code='{}' and docstatus=0  """.format(i),as_dict=1)
 			if len(get_bom_creator_new)!=0:
 				rebuild_refrences_submit(name=get_bom_creator_new[0]['name'],old=get_bom_creator_new[0]['custom_old_bomc'])
 
-			
 
 
 
 
 
-			
+
+
 
 @frappe.whitelist(allow_guest=True)
 def make_duplicate_rtw(name=None):
@@ -696,11 +696,11 @@ def make_duplicate_rtw(name=None):
 	for p in range(len(pmain_item)):
 		if pmain_item[p]=="SMPL":
 			pmain_item[p]="RTW"
-			
+
 	pmain_item_join="-".join(pmain_item)
 	if frappe.db.exists("Item",pmain_item_join):
 		new_bom.set("item_code",pmain_item_join)
-		
+
 	if new_bom.items:
 		for y in new_bom.items:
 			child_item=y.item_code.split("-")
@@ -710,7 +710,7 @@ def make_duplicate_rtw(name=None):
 			child_item_join="-".join(child_item)
 			if frappe.db.exists("Item",child_item_join):
 				y.set("item_code",child_item_join)
-			
+
 
 			child_items=y.fg_item.split("-")
 			for q in range(len(child_items)):
@@ -719,8 +719,8 @@ def make_duplicate_rtw(name=None):
 			child_item_joins="-".join(child_items)
 			if frappe.db.exists("Item",child_item_joins):
 				y.set("fg_item",child_item_joins)
-				
-				
+
+
 	new_bom.insert()
 	frappe.msgprint("created")
 
@@ -742,7 +742,7 @@ def rebuild_refrences(name=None,old=None):
 			if len(get_row_new)!=0:
 				i.set("fg_reference_id",get_row_new[0]['name'])
 
-				
+
 	new.save()
 	frappe.msgprint("rebuild")
 
@@ -763,13 +763,13 @@ def rebuild_refrences_submit(name=None,old=None):
 			if len(get_row_new)!=0:
 				i.set("fg_reference_id",get_row_new[0]['name'])
 
-				
+
 	new.save()
 	new.db_set("custom_by_project",1, update_modified=False)
 	new.submit()
 	frappe.msgprint("rebuild")
 
-		
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -778,7 +778,7 @@ def submit_bom_rtw_bomc(doc,method):
 	# frappe.logger().debug("***ssssswwwwwwww")
 	# if doc.bom_creator:
 	# 	bomc=frappe.get_doc("BOM Creator",doc.bom_creator)
-		
+
 	# 	if bomc.custom_old_bomc:
 	# 		boms=frappe.db.sql("""select name from `tabBOM` where docstatus=0 and bom_creator='{}' ORDER BY creation ASC """.format(doc.bom_creator),as_dict=1)
 	# 		if len(boms)!=0:
@@ -796,15 +796,15 @@ def submit_bom_rtw_bomc(doc,method):
 	# 					bom.append(3)
 	# 					indx=pmain_item.index("SMPL")
 	# 					pmain_item[indx]="RTW"
-						
-					
+
+
 	# 				if "RTW" in pmain_item and not box:
 	# 					indx=pmain_item.index("RTW")
 	# 					pmain_item[indx]="SMPL"
-				
-			
-			
-				
+
+
+
+
 	# 				join_name="-".join(pmain_item)
 	# 				frappe.msgprint(join_name,"itemname")
 	# 				get_bom_name=frappe.db.sql(""" select routing,name from `tabBOM` where docstatus<2 and item='{}' and  with_operations=1 and bom_creator='{}'  """.format(join_name,old),as_dict=1)
@@ -827,14 +827,14 @@ def submit_bom_rtw_bomc(doc,method):
 	# 						row.workstation=k.workstation
 	# 						row.cost_per_unit=k.cost_per_unit
 	# 						row.sequence_id=k.sequence_id
-							
-			
+
+
 	# 					#b.save()
 	# 					b.submit()
 	# 					#frappe.msgprint("Saved")
 
 
-					
+
 
 
 
@@ -850,10 +850,10 @@ def size_changes_bomc(name=None,values=None):
 		if m in sizes:
 			idx=name_split.index(m)
 			name_split[idx]=size
-	
+
 	join_name="-".join(name_split)
 	new.set("item_code",join_name)
-	
+
 	for i in new.items:
 		a_1=i.item_code.split("-")
 		a_2=i.fg_item.split("-")
@@ -862,17 +862,17 @@ def size_changes_bomc(name=None,values=None):
 			if m in sizes:
 				idx=a_1.index(m)
 				a_1[idx]=size
-		
+
 		for k in a_2:
 			if k in sizes:
 				idx=a_2.index(k)
 				a_2[idx]=size
-				
+
 		a_1_join="-".join(a_1)
 		a_2_join="-".join(a_2)
 		i.set("item_code",a_1_join)
 		i.set("fg_item",a_2_join)
-	
+
 	new.save()
 	frappe.msgprint("Changed")
 
@@ -909,11 +909,11 @@ def color_changes(name=None,values=None):
 		if m in sizes:
 			idx=name_split.index(m)
 			name_split[idx]=size
-	
+
 	join_name="-".join(name_split)
 	new.set("item_code",join_name)
 	##print(join_name,'join_name')
-	
+
 	for i in new.items:
 		a_1=i.item_code.split("-")
 		a_2=i.fg_item.split("-")
@@ -921,12 +921,12 @@ def color_changes(name=None,values=None):
 			if m in sizes:
 				idx=a_1.index(m)
 				a_1[idx]=size
-		
+
 		for k in a_2:
 			if k in sizes:
 				idx=a_2.index(k)
 				a_2[idx]=size
-		
+
 
 		a_1_join="-".join(a_1)
 		a_2_join="-".join(a_2)
@@ -934,7 +934,7 @@ def color_changes(name=None,values=None):
 		#print(a_2_join,'a_2_join')
 		i.set("item_code",a_1_join)
 		i.set("fg_item",a_2_join)
-	
+
 	new.save()
 	frappe.msgprint("Changed")
 
@@ -957,15 +957,15 @@ def submit_bom_rtw_bomc_manul(name=None,old=None):
 					print()
 					#pass
 					frappe.throw("BOM is not Submit yet")
-			
+
 			if "BPK" in split_name:
 				get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%BPK%' """.format(old),as_dict=1)
 				if len(get_bom_name)!=0:
 					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
 				else:
 					frappe.throw("BOM is not Submit yet")
-			
-			
+
+
 			if "DPK" in split_name:
 				get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%DPK%' """.format(old),as_dict=1)
 				if len(get_bom_name)!=0:
@@ -973,17 +973,17 @@ def submit_bom_rtw_bomc_manul(name=None,old=None):
 				else:
 					#pass
 					frappe.throw("BOM is not Submit yet")
-					
-			
+
+
 			if "HEK" in split_name:
 				get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%HEK%' """.format(old),as_dict=1)
-				
+
 				if len(get_bom_name)!=0:
 					submit_bom_op(new=new.name,old=get_bom_name[0]['name'])
 				else:
 					#pass
 					frappe.throw("BOM is not Submit yet")
-			
+
 			if "k" in split_name:
 				get_bom_name=frappe.db.sql("""select name from `tabBOM` where docstatus=1 and bom_creator='{}' and item like '%-k%' """.format(old),as_dict=1)
 				if len(get_bom_name)!=0:
@@ -999,7 +999,7 @@ def submit_bom_rtw_bomc_manul(name=None,old=None):
 
 
 
-			
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -1010,19 +1010,19 @@ def submit_bom_op(new=None,old=None):
 	split_name=new.item.split("-")
 	if "k" in split_name and "RTW" in split_name:
 		new.set("routing","Main KIT RTW")
-		
+
 	elif "k" in split_name and "SMPL" in split_name:
 		new.set("routing","Main KIT SMPL")
-		
+
 	elif "HEK" in split_name and "RTW" in split_name:
 		new.set("routing","HEK RTW")
-		
+
 	elif "HEK" in split_name and "SMPL" in split_name:
 		new.set("routing","HEK SMPL")
-		
+
 	else:
 		new.db_set("routing",old.routing)
-	
+
 	new.set("with_operations",1)
 	new.submit()
 	frappe.msgprint("operations added and submit")
@@ -1041,11 +1041,11 @@ def color_sizes_changes(name=None,values=None):
 	colors=[]
 	get_colors=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent="Colour" """,as_dict=1)
 	get_sizes=frappe.db.sql("""select abbr from `tabItem Attribute Value` where parent="Size" """,as_dict=1)
-	
+
 	if get_colors:
 		for c in get_colors:
 			colors.append(c['abbr'])
-			
+
 	if get_sizes:
 		for s in get_sizes:
 			sizes.append(s['abbr'])
@@ -1053,16 +1053,16 @@ def color_sizes_changes(name=None,values=None):
 		if m in sizes:
 			idx=name_split.index(m)
 			name_split[idx]=size
-	
+
 	for c in name_split:
 		if c in colors:
 			idx=name_split.index(c)
 			name_split[idx]=color
-	
-	
+
+
 	join_name="-".join(name_split)
 	new.set("item_code",join_name)
-	
+
 	for i in new.items:
 		a_1=i.item_code.split("-")
 		a_2=i.fg_item.split("-")
@@ -1070,28 +1070,28 @@ def color_sizes_changes(name=None,values=None):
 			if m in sizes:
 				idx=a_1.index(m)
 				a_1[idx]=size
-		
+
 		for m in a_1:
 			if m in colors:
 				idx=a_1.index(m)
 				a_1[idx]=color
-		
-		
+
+
 		for k in a_2:
 			if k in sizes:
 				idx=a_2.index(k)
 				a_2[idx]=size
-		
+
 		for k in a_2:
 			if k in colors:
 				idx=a_2.index(k)
 				a_2[idx]=color
-				
+
 		a_1_join="-".join(a_1)
 		a_2_join="-".join(a_2)
 		i.set("item_code",a_1_join)
 		i.set("fg_item",a_2_join)
-	
+
 	new.save()
 	frappe.msgprint("Changed")
 
@@ -1108,13 +1108,13 @@ def fabric_fetch_pattt(doc,method):
 		if get_fabric_item:
 			for f in get_fabric_item:
 				fabrics.append(f['item_code'])
-				
+
 		#get fabrice of list
 		#fetch pattern
 		get_apptern_pattern=frappe.db.sql("""select name from `tabPattern` where item_code='{}' and sheet_no=2 and docstatus=1  """.format(doc.item_code),as_dict=1)
 		if not get_apptern_pattern:
 			frappe.msgprint("Pattern missing")
-			
+
 		fabric_non_exists=[]
 		row_remove=[]
 		fab_exists=[]
@@ -1132,7 +1132,7 @@ def fabric_fetch_pattt(doc,method):
 							ptt_doc_n=frappe.get_doc("Pattern",get_apptern_pattern[0]['name'])
 							if ptt_doc_n.fabrices:
 								doc.items.remove(i)
-		
+
 		if len(get_apptern_pattern)!=0:
 			ptt_doc=frappe.get_doc("Pattern",get_apptern_pattern[0]['name'])
 			new_items=[]
@@ -1151,7 +1151,7 @@ def fabric_fetch_pattt(doc,method):
 						row.fg_reference_id=get_last_row_details.fg_reference_id
 						row.item_group=get_last_row_details.item_group
 
-				
+
 
 
 
@@ -1168,33 +1168,33 @@ def submit_bom_project(doc,method):
 		split=doc.item.split("-")
 		if "DPK" in split:
 			doc.set("routing","DPK")
-			
+
 		if "BPK" in split and "HE" in split:
 			doc.set("routing","BPK with Dyeing")
-			
+
 		if "BPK" in split and  not "HE" in split:
 			doc.set("routing","BPK without Dyeing")
-			
-			
+
+
 		if "k" in split and "RTW" in split:
 			doc.set("routing","Main KIT RTW")
-			
-			
+
+
 		if "k" in split and "SMPL" in split:
 			doc.set("routing","Main KIT SMPL")
-			
-			
+
+
 		item=frappe.get_doc("Item",doc.item)
 		if item.variant_of:
 			doc.set("routing","Final BOM")
-			
-			
+
+
 		if "HEK" in split and "RTW" in split:
 			doc.set("routing","HEK RTW")
-			
+
 		if "HEK" in split and "SMPL" in split:
 			doc.set("routing","HEK SMPL")
-			
+
 		doc.submit()
 
 
@@ -1211,7 +1211,7 @@ def set_reorder_new(doc,method):
 			if i.attribute=="Size":
 				size.append(i.attribute_value)
 				break
-			
+
 		get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
 		if get_val:
 			capacity=get_val[0]['capacity']
@@ -1220,7 +1220,7 @@ def set_reorder_new(doc,method):
 			if get_shops:
 				for s in get_shops:
 					shops.append(s['name'])
-			
+
 			shops=list(set(shops))
 			manufactures_qty=capacity*len(shops)
 			#set re order for level manufacture
@@ -1230,7 +1230,7 @@ def set_reorder_new(doc,method):
 			row.warehouse_reorder_level=capacity
 			row.warehouse_reorder_qty=capacity
 			row.warehouse="Navya Store Office - NAVYA"
-			
+
 			for i in shops:
 				if i=="Pune - NAVYA":
 					row1 = doc.append("reorder_levels", {})
@@ -1239,7 +1239,7 @@ def set_reorder_new(doc,method):
 					row1.warehouse_reorder_level=capacity
 					row1.warehouse_reorder_qty=capacity
 					row1.warehouse="PStore - NAVYA"
-					
+
 				if i=="Santushti - NAVYA":
 					row2 = doc.append("reorder_levels", {})
 					row2.warehouse_group="Santushti - NAVYA"
@@ -1258,7 +1258,7 @@ def set_reorder_new_smpl(doc,method):
 		if get_shops:
 			for s in get_shops:
 				shops.append(s['name'])
-				
+
 		shops=list(set(shops))
 		#set re order for level manufacture
 		row = doc.append("reorder_levels", {})
@@ -1267,7 +1267,7 @@ def set_reorder_new_smpl(doc,method):
 		row.warehouse_reorder_level=1
 		row.warehouse_reorder_qty=1
 		row.warehouse="Navya Store Office - NAVYA"
-		
+
 		for i in shops:
 			if i=="Pune - NAVYA":
 				row1 = doc.append("reorder_levels", {})
@@ -1276,7 +1276,7 @@ def set_reorder_new_smpl(doc,method):
 				row1.warehouse_reorder_level=1
 				row1.warehouse_reorder_qty=1
 				row1.warehouse="PStore - NAVYA"
-				
+
 			if i=="Santushti - NAVYA":
 				row2 = doc.append("reorder_levels", {})
 				row2.warehouse_group="Santushti - NAVYA"
@@ -1292,7 +1292,7 @@ def set_reorder_new_smpl(doc,method):
 def fetch_source_me(name=None):
 	if not name:
 		return
-		
+
 	doc=frappe.get_doc("Material Request",name)
 	items=doc.items
 	if not doc.set_from_warehouse:
@@ -1337,22 +1337,22 @@ def re_order_set_item_wise(items=None):
 			if doc.item_group=="Sample":
 				set_reorder_new_smpl_project(name=i)
 				make.append("aa")
-			
+
 			if doc.item_group=="Ready Stock":
 				#frappe.msgprint(i)
 				set_reorder_rtw(name=i)
 				make.append("12")
-	
+
 	if make:
 		frappe.msgprint("Re-Order Set")
-	
+
 
 @frappe.whitelist(allow_guest=True)
 def set_reorder_project_wise(name=None):
 	doc=frappe.get_doc("Project",name)
 	if not doc.custom_wop:
 		frappe.throw("Work orders Item table is empty")
-		
+
 	for i in doc.custom_wop:
 		if i.manufactured==1:
 			item=frappe.get_doc("Item",i.item)
@@ -1383,9 +1383,9 @@ def set_reorder_set_bulk(names=None):
 						set_reorder_new_smpl_project(name=item.name)
 						frappe.msgprint("Updated for Sample")
 
-					
 
-	
+
+
 
 @frappe.whitelist(allow_guest=True)
 def set_reorder_rtw(name=None):
@@ -1398,7 +1398,7 @@ def set_reorder_rtw(name=None):
 			if i.attribute=="Size":
 				size.append(i.attribute_value)
 				break
-			
+
 		get_val=frappe.db.sql("""select capacity from `tabCapacity  Silhouette` where parent='{}' and parentfield="ready"  and sizes='{}'  """.format(split_parent,size[0]),as_dict=1)
 		if get_val:
 			capacity=get_val[0]['capacity']
@@ -1407,9 +1407,9 @@ def set_reorder_rtw(name=None):
 			if get_shops:
 				for s in get_shops:
 					shops.append(s['name'])
-					
-					
-					
+
+
+
 			shops=list(set(shops))
 			manufactures_qty=capacity*len(shops)
 			capacity_shops=capacity/2
@@ -1421,9 +1421,9 @@ def set_reorder_rtw(name=None):
 			row.warehouse_reorder_level=3
 			row.warehouse_reorder_qty=3
 			row.warehouse="Navya Store Office - NAVYA"
-			
-			
-			
+
+
+
 			for i in shops:
 				if i=="Pune - NAVYA":
 					row1 = doc.append("reorder_levels", {})
@@ -1432,7 +1432,7 @@ def set_reorder_rtw(name=None):
 					row1.warehouse_reorder_level=1
 					row1.warehouse_reorder_qty=1
 					row1.warehouse="PStore - NAVYA"
-					
+
 				if i=="Santushti - NAVYA":
 					row2 = doc.append("reorder_levels", {})
 					row2.warehouse_group="Santushti - NAVYA"
@@ -1440,7 +1440,7 @@ def set_reorder_rtw(name=None):
 					row2.warehouse_reorder_level=1
 					row2.warehouse_reorder_qty=1
 					row2.warehouse="SStore - NAVYA"
-					
+
 				if i=="Sainik Farm - NAVYA":
 					row2 = doc.append("reorder_levels", {})
 					row2.warehouse_group="Sainik Farm - NAVYA"
@@ -1448,8 +1448,8 @@ def set_reorder_rtw(name=None):
 					row2.warehouse_reorder_level=1
 					row2.warehouse_reorder_qty=1
 					row2.warehouse="Main Storage - NAVYA"
-				
-					
+
+
 	if doc.reorder_levels:
 		doc.save()
 		frappe.db.commit()
@@ -1469,7 +1469,7 @@ def set_reorder_new_smpl_project(name=None):
 		if get_shops:
 			for s in get_shops:
 				shops.append(s['name'])
-				
+
 		shops=list(set(shops))
 		#set re order for level manufacture
 		row = doc.append("reorder_levels", {})
@@ -1478,7 +1478,7 @@ def set_reorder_new_smpl_project(name=None):
 		row.warehouse_reorder_level=2
 		row.warehouse_reorder_qty=1
 		row.warehouse="Navya Store Office - NAVYA"
-		
+
 		for i in shops:
 			if i=="Pune - NAVYA":
 				row1 = doc.append("reorder_levels", {})
@@ -1487,7 +1487,7 @@ def set_reorder_new_smpl_project(name=None):
 				row1.warehouse_reorder_level=0
 				row1.warehouse_reorder_qty=1
 				row1.warehouse="PStore - NAVYA"
-				
+
 			if i=="Santushti - NAVYA":
 				row2 = doc.append("reorder_levels", {})
 				row2.warehouse_group="Santushti - NAVYA"
@@ -1495,7 +1495,7 @@ def set_reorder_new_smpl_project(name=None):
 				row2.warehouse_reorder_level=0
 				row2.warehouse_reorder_qty=1
 				row2.warehouse="SStore - NAVYA"
-				
+
 			if i=="Sainik Farm - NAVYA":
 				row2 = doc.append("reorder_levels", {})
 				row2.warehouse_group="Sainik Farm - NAVYA"
@@ -1503,7 +1503,7 @@ def set_reorder_new_smpl_project(name=None):
 				row2.warehouse_reorder_level=0
 				row2.warehouse_reorder_qty=1
 				row2.warehouse="Main Storage - NAVYA"
-				
+
 
 	if doc.reorder_levels:
 		doc.save()
@@ -1532,7 +1532,7 @@ def make_bom_cr_prsmpl(items=None):
 			for p in range(len(pmain_item)):
 				if pmain_item[p]=="SMPL":
 					pmain_item[p]="PRSMPL"
-					
+
 			pmain_item_join="-".join(pmain_item)
 			get_bom_creator=frappe.db.sql("""select name from `tabBOM Creator` where item_code='{}' and docstatus=1 and status in ("In Progress","Completed")   ORDER BY  modified limit 1 """.format(pmain_item_join),as_dict=1)
 			if len(get_bom_creator)!=0:
@@ -1540,7 +1540,7 @@ def make_bom_cr_prsmpl(items=None):
 				#frappe.db.commit()
 			else:
 				frappe.msgprint("BOMC Is not found")
-			
+
 			get_bom_creator_new=frappe.db.sql("""select name,custom_old_bomc from `tabBOM Creator` where item_code='{}' and docstatus=0  """.format(i),as_dict=1)
 			if len(get_bom_creator_new)!=0:
 				rebuild_refrences_insert(name=get_bom_creator_new[0]['name'],old=get_bom_creator_new[0]['custom_old_bomc'])
@@ -1557,11 +1557,11 @@ def make_duplicate_prsmpl(name=None):
 	for p in range(len(pmain_item)):
 		if pmain_item[p]=="PRSMPL":
 			pmain_item[p]="SMPL"
-			
+
 	pmain_item_join="-".join(pmain_item)
 	if frappe.db.exists("Item",pmain_item_join):
 		new_bom.set("item_code",pmain_item_join)
-		
+
 	if new_bom.items:
 		for y in new_bom.items:
 			child_item=y.item_code.split("-")
@@ -1571,7 +1571,7 @@ def make_duplicate_prsmpl(name=None):
 			child_item_join="-".join(child_item)
 			if frappe.db.exists("Item",child_item_join):
 				y.set("item_code",child_item_join)
-			
+
 
 			child_items=y.fg_item.split("-")
 			for q in range(len(child_items)):
@@ -1580,8 +1580,8 @@ def make_duplicate_prsmpl(name=None):
 			child_item_joins="-".join(child_items)
 			if frappe.db.exists("Item",child_item_joins):
 				y.set("fg_item",child_item_joins)
-				
-				
+
+
 	new_bom.insert()
 	frappe.msgprint("created")
 
@@ -1604,7 +1604,7 @@ def rebuild_refrences_insert(name=None,old=None):
 			if len(get_row_new)!=0:
 				i.set("fg_reference_id",get_row_new[0]['name'])
 
-				
+
 	new.save()
 	new.db_set("custom_by_project",1, update_modified=False)
 	#new.submit()
@@ -1646,7 +1646,3 @@ def check_stock_count(doc,method):
 					if i.qty>get_bin[0]['qty']:
 						msg="Out Of Stock,row:-{},Actual Stock in {},:-{}".format(i.idx,i.s_warehouse,get_bin[0]['qty'])
 						frappe.throw(msg)
-
-
-
-					
