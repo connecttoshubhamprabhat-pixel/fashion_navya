@@ -399,7 +399,7 @@ def update_price_item(doc,method):
         item_doc.set("ignore_project",0)
     if item_doc.ignore_project==0:
         item_doc.set("ignore_project",1)
-    item_doc.save(ignore_permissions=True)
+    #item_doc.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
