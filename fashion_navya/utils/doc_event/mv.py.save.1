@@ -36,8 +36,6 @@ def fetch_attribues(doc,method):
 			j.set("custom_sales_order",so.name)
 			for j in  doc.purposes:
 				if not j.prevdoc_docname:
-					frappe.msgprint("There is some issue while creating the Maintenance Visit")
-					pass
 					#frappe.throw("Source Doctype is missing")
 
 
