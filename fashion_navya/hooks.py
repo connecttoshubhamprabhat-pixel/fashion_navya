@@ -206,8 +206,8 @@ doc_events = {
 
                 },
         "Pattern":{
-                "after_insert":["fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.fetch_silvit"],
-                "on_update":["fashion_navya.utils.doc_event.pattern.pattern_validation"],
+                "after_insert":["fashion_navya.utils.doc_event.todo.create_todo_on_insert_pattern_doc","fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.fetch_silvit"],
+                "on_update":["fashion_navya.utils.doc_event.todo.create_todo_on_send_to_approve_pattern_doc","fashion_navya.utils.doc_event.pattern.pattern_validation"],
                 "before_save":["fashion_navya.utils.doc_event.pattern.set_location_pttrn","fashion_navya.utils.doc_event.pattern.check_sheet_apprved","fashion_navya.utils.doc_event.pattern.pattern_not_dup"],
 
                 },
@@ -349,6 +349,11 @@ doc_events = {
                                     },
                                 "Purchase Estimate":{
                                         "before_submit":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields"],
+
+                                        },
+                                "Drawing":{
+                                        "on_submit":["fashion_navya.utils.doc_event.todo.create_todo_on_submit_drawing_doc"],
+
 
                                         },
 

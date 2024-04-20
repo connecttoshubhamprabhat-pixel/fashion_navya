@@ -199,3 +199,120 @@ def create_todo_urgent(emp=None,task=None,doctype=None):
 		td=frappe.get_doc(d)
 		td.insert()
 		frappe.msgprint("TODO is created")
+
+
+
+
+
+
+##################################################################################
+
+# Define a function to be executed on submission of the document
+def create_todo_on_send_to_approve_pattern_doc(doc, method):
+	try:
+		# Check if the document is being submitted
+		if doc.workflow_state == "Authorisation Pending":
+			# Create a new ToDo document
+			todo = frappe.new_doc("ToDo")
+			# Set the fields as per your requirements
+			todo.status = "Open"
+			todo.priority = "High"
+			todo.todo_title = None
+			todo.color = None
+			todo.date = frappe.utils.today()
+			todo.allocated_to = "amita@navya.biz"
+			todo.allot_to_user =  "amita@navya.biz"
+			todo.full_name = "Amita Adlakha"
+			todo.description = "Mam, Please approve this pattern."
+			todo.reference_type = "Pattern"
+			todo.reference_name = doc.name
+			todo.project = None
+			todo.role = None
+			todo.assigned_by = doc.modified_by
+			todo.assigned_by_full_name = frappe.get_value("User", doc.modified_by, "full_name")
+			print("##################################################################################################")
+			# Save and submit the ToDo document
+			todo.insert(ignore_permissions=True)
+			# todo.submit()
+			frappe.db.commit()
+			frappe.msgprint("ToDo created and submitted successfully.")
+
+
+	except Exception as e:
+		frappe.log_error(f"Error creating and submitting ToDo: {e}")
+######################################################################################
+
+
+
+
+# Define a function to be executed on submission of the document
+def create_todo_on_submit_drawing_doc(doc, method):
+	try:
+		# Check if the document is being submitted
+		if doc.docstatus == 1:
+			# Create a new ToDo document
+			todo = frappe.new_doc("ToDo")
+			# Set the fields as per your requirements
+			todo.status = "Open"
+			todo.priority = "High"
+			todo.todo_title = None
+			todo.color = None
+			todo.date = frappe.utils.today()
+			todo.allocated_to = "gaurav@example.com"
+			todo.allot_to_user = "gaurav@example.com"
+			todo.full_name = "Gaurav Basoya"
+			todo.description = "Hey, This Drawing has been approved.."
+			todo.reference_type = "Drawing"
+			todo.reference_name = doc.name
+			todo.project = None
+			todo.role = None
+			todo.assigned_by = doc.modified_by
+			todo.assigned_by_full_name = frappe.get_value("User", doc.modified_by, "full_name")
+			# Save and submit the ToDo document
+			todo.insert(ignore_permissions=True)
+			# todo.submit()
+			frappe.db.commit()
+			frappe.msgprint("ToDo created and submitted successfully.")
+
+	except Exception as e:
+		frappe.log_error(f"Error creating and submitting ToDo: {e}")
+
+
+
+
+
+
+# Define a function to be executed on submission of the document
+def create_todo_on_insert_pattern_doc(doc, method):
+	try:
+		# Check if the document is being submitted
+		if doc.workflow_state == "Draft":
+			# Create a new ToDo document
+			todo = frappe.new_doc("ToDo")
+			# Set the fields as per your requirements
+			todo.status = "Open"
+			todo.priority = "High"
+			todo.todo_title = None
+			todo.color = None
+			todo.date = frappe.utils.today()
+			todo.allocated_to = "vivekd@navyacustom.com"
+			todo.allot_to_user = "vivekd@navyacustom.com"
+			todo.full_name = "Vivek "
+			todo.description = "Hey, This Pattern has been created.."
+			todo.reference_type = "Pattern"
+			todo.reference_name = doc.name
+			todo.project = None
+			todo.role = None
+			todo.assigned_by = doc.modified_by
+			todo.assigned_by_full_name = frappe.get_value("User", doc.modified_by, "full_name")
+			print("##################################################################################################")
+			# Save and submit the ToDo document
+			todo.insert(ignore_permissions=True)
+			# todo.submit()
+			frappe.db.commit()
+			frappe.msgprint("ToDo created and submitted successfully.")
+
+	except Exception as e:
+		frappe.log_error(f"Error creating and submitting ToDo: {e}")
+
+
