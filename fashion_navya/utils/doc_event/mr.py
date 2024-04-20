@@ -312,3 +312,33 @@ def reset_reorder(items=None):
 			frappe.db.commit()
 			
 	frappe.msgprint("Reset re-order")
+
+
+
+#sale sorder from
+@frappe.whitelist()
+def fetch_delivery_type(doc,method):
+	so=[]
+	for i in doc.items:
+		if i.sales_order:
+			so.append(i.sales_order)
+			break
+		
+	if so:
+		sodoc=frappe.get_doc("Sales Order",so[-1])
+		doc.db_set("custom_delivery_type",sodoc.delivery_type, update_modified=False)
+		doc.db_set("custom_delivery_location",sodoc.delivery_location, update_modified=False)
+	
+
+@frappe.whitelist()
+def fetch_delivery_type_old():
+	mr=frappe.db.sql("""select parent ,sales_order from `tabMaterial Request Item` where sales_order is not null  and parent in (select name from `tabMaterial Request` where docstatus=1 and material_request_type='Material Transfer' and status='Pending') """,as_dict=1)
+	if mr:
+		for i in mr:
+			mr=i['parent']
+			so=i['sales_order']
+			print(mr)
+			sodoc=frappe.get_doc("Sales Order",so)
+			frappe.db.sql(""" update `tabMaterial Request` set  custom_delivery_type='{}' , custom_delivery_location='{}'   where name='{}'  """.format(sodoc.delivery_type,sodoc.delivery_location,mr))
+			frappe.db.commit()
+			

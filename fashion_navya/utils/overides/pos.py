@@ -11,6 +11,7 @@ def get_stock_availability_custom(item_code, warehouse):
     print(item_code,'11code')
     print(warehouse,'12ware')
     group_warehouses = frappe.get_doc('Warehouse',warehouse)
+    is_stock_item=False
     if group_warehouses.is_group==1:
         child_warehouses = frappe.get_all('Warehouse', filters={'parent_warehouse':warehouse},fields=['name'])
         bin_qty_total=0
