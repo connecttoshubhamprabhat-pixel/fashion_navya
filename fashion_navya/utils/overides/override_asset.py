@@ -4,6 +4,7 @@
 
 import json
 import math
+from frappe.utils import now_datetime
 
 import frappe
 from frappe import _
@@ -41,135 +42,194 @@ from erpnext.assets.doctype.asset.asset import Asset
 
 
 class CustomAsset(Asset):
-    # begin: auto-generated types
-    # This code is auto-generated. Do not modify anything in this block.
-    from typing import TYPE_CHECKING
+		# begin: auto-generated types
+		# This code is auto-generated. Do not modify anything in this block.
+		from typing import TYPE_CHECKING
 
-    if TYPE_CHECKING:
-        from frappe.types import DF
+		if TYPE_CHECKING:
+				from frappe.types import DF
 
-        from erpnext.assets.doctype.asset_finance_book.asset_finance_book import AssetFinanceBook
+				from erpnext.assets.doctype.asset_finance_book.asset_finance_book import AssetFinanceBook
 
-        additional_asset_cost: DF.Currency
-        amended_from: DF.Link | None
-        asset_category: DF.Link | None
-        asset_name: DF.Data
-        asset_owner: DF.Literal["", "Company", "Supplier", "Customer"]
-        asset_owner_company: DF.Link | None
-        asset_quantity: DF.Int
-        available_for_use_date: DF.Date | None
-        booked_fixed_asset: DF.Check
-        calculate_depreciation: DF.Check
-        capitalized_in: DF.Link | None
-        company: DF.Link
-        comprehensive_insurance: DF.Data | None
-        cost_center: DF.Link | None
-        custodian: DF.Link | None
-        customer: DF.Link | None
-        default_finance_book: DF.Link | None
-        department: DF.Link | None
-        depr_entry_posting_status: DF.Literal["", "Successful", "Failed"]
-        depreciation_method: DF.Literal["", "Straight Line", "Double Declining Balance", "Manual"]
-        disposal_date: DF.Date | None
-        finance_books: DF.Table[AssetFinanceBook]
-        frequency_of_depreciation: DF.Int
-        gross_purchase_amount: DF.Currency
-        image: DF.AttachImage | None
-        insurance_end_date: DF.Date | None
-        insurance_start_date: DF.Date | None
-        insured_value: DF.Data | None
-        insurer: DF.Data | None
-        is_composite_asset: DF.Check
-        is_existing_asset: DF.Check
-        is_fully_depreciated: DF.Check
-        item_code: DF.Link
-        item_name: DF.ReadOnly | None
-        journal_entry_for_scrap: DF.Link | None
-        location: DF.Link
-        maintenance_required: DF.Check
-        naming_series: DF.Literal["ACC-ASS-.YYYY.-"]
-        next_depreciation_date: DF.Date | None
-        number_of_depreciations_booked: DF.Int
-        opening_accumulated_depreciation: DF.Currency
-        policy_number: DF.Data | None
-        purchase_date: DF.Date | None
-        purchase_invoice: DF.Link | None
-        purchase_receipt: DF.Link | None
-        purchase_receipt_amount: DF.Currency
-        split_from: DF.Link | None
-        custom_pattern: DF.Link | None
-        target_location: DF.Link | None
-        status: DF.Literal[
-			"Draft",
-			"Submitted",
-			"Partially Depreciated",
-			"Fully Depreciated",
-			"Sold",
-			"Scrapped",
-			"In Maintenance",
-			"Out of Order",
-			"Issue",
-			"Receipt",
-			"Capitalized",
-			"Decapitalized",
-		]
+				additional_asset_cost: DF.Currency
+				amended_from: DF.Link | None
+				asset_category: DF.Link | None
+				asset_name: DF.Data
+				asset_owner: DF.Literal["", "Company", "Supplier", "Customer"]
+				asset_owner_company: DF.Link | None
+				asset_quantity: DF.Int
+				available_for_use_date: DF.Date | None
+				booked_fixed_asset: DF.Check
+				calculate_depreciation: DF.Check
+				capitalized_in: DF.Link | None
+				company: DF.Link
+				comprehensive_insurance: DF.Data | None
+				cost_center: DF.Link | None
+				custodian: DF.Link | None
+				customer: DF.Link | None
+				default_finance_book: DF.Link | None
+				department: DF.Link | None
+				depr_entry_posting_status: DF.Literal["", "Successful", "Failed"]
+				depreciation_method: DF.Literal["", "Straight Line", "Double Declining Balance", "Manual"]
+				disposal_date: DF.Date | None
+				finance_books: DF.Table[AssetFinanceBook]
+				frequency_of_depreciation: DF.Int
+				gross_purchase_amount: DF.Currency
+				image: DF.AttachImage | None
+				insurance_end_date: DF.Date | None
+				insurance_start_date: DF.Date | None
+				insured_value: DF.Data | None
+				insurer: DF.Data | None
+				is_composite_asset: DF.Check
+				is_existing_asset: DF.Check
+				is_fully_depreciated: DF.Check
+				item_code: DF.Link
+				item_name: DF.ReadOnly | None
+				journal_entry_for_scrap: DF.Link | None
+				location: DF.Link
+				maintenance_required: DF.Check
+				naming_series: DF.Literal["ACC-ASS-.YYYY.-"]
+				next_depreciation_date: DF.Date | None
+				number_of_depreciations_booked: DF.Int
+				opening_accumulated_depreciation: DF.Currency
+				policy_number: DF.Data | None
+				purchase_date: DF.Date | None
+				purchase_invoice: DF.Link | None
+				purchase_receipt: DF.Link | None
+				purchase_receipt_amount: DF.Currency
+				split_from: DF.Link | None
+				custom_pattern: DF.Link | None
+				target_location: DF.Link | None
+				status: DF.Literal[
+					"Draft",
+					"Submitted",
+					"Partially Depreciated",
+					"Fully Depreciated",
+					"Sold",
+					"Scrapped",
+					"In Maintenance",
+					"Out of Order",
+					"Issue",
+					"Receipt",
+					"Capitalized",
+					"Decapitalized",
+					]
 
-        supplier: DF.Link | None
-        total_asset_cost: DF.Currency
-        total_number_of_depreciations: DF.Int
-        value_after_depreciation: DF.Currency
-
-
+				supplier: DF.Link | None
+				total_asset_cost: DF.Currency
+				total_number_of_depreciations: DF.Int
+				value_after_depreciation: DF.Currency
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def make_asset_movement(self):
-        reference_doctype = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
-        reference_docname = self.purchase_receipt or self.purchase_invoice
-        transaction_date = getdate(self.purchase_date)
-        if reference_docname:
-            posting_date, posting_time = frappe.db.get_value(
+		def make_asset_movement(self):
+				reference_doctype = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
+				reference_docname = self.purchase_receipt or self.purchase_invoice
+				transaction_date = getdate(self.purchase_date)
+				if reference_docname:
+						posting_date, posting_time = frappe.db.get_value(
 				reference_doctype, reference_docname, ["posting_date", "posting_time"]
 			)
-            transaction_date = get_datetime("{} {}".format(posting_date, posting_time))
+						transaction_date = get_datetime("{} {}".format(posting_date, posting_time))
 
-        assets = [
-			{
-				"asset": self.name,
-				"asset_name": self.asset_name,
-				# "target_location": self.location,
-				"from_location": self.location,
-				"target_location": self.custom_target_location,
-				# "to_employee": self.custodian,
-			}
-		]
+				assets = [
+							{
+								"asset": self.name,
+								"asset_name": self.asset_name,
+								# "target_location": self.location,
+								"from_location": self.location,
+								"target_location": self.custom_target_location,
+								# "to_employee": self.custodian,
+							}
+						]
 
-        asset_movement = frappe.get_doc(
-			{
-				"doctype": "Asset Movement",
-				"assets": assets,
-				"purpose": "Transfer",
-				"target_location": self.custom_target_location,
-				"custom_linked_asset_request": self.custom_linked_asset_request,
-				"company": self.company,
-				"pattern": self.custom_pattern,
-				"transaction_date": transaction_date,
-				"reference_doctype": reference_doctype,
-				"reference_name": reference_docname,
-			}
-		).insert()
+				asset_movement = frappe.get_doc(
+					{
+						"doctype": "Asset Movement",
+						"assets": assets,
+						"purpose": "Transfer",
+						"target_location": self.custom_target_location,
+						"custom_linked_asset_request": self.custom_linked_asset_request,
+						"company": self.company,
+						"pattern": self.custom_pattern,
+						"transaction_date": transaction_date,
+						"reference_doctype": reference_doctype,
+						"reference_name": reference_docname,
+					}
+				).insert()
 
-        asset_movement.save()
+				asset_movement.save()
+				#Update Asset's location after submitting Asset Movement
+				frappe.db.set_value("Asset", self.name, "location", self.custom_target_location)
+
+
+#################################################################################
+@frappe.whitelist()
+def check_ready_stock_items_list_of_from_table_return_test(docname):
+		try:
+				# Fetch the doc.name of the Production Plan document
+				production_plan_doc = frappe.get_doc("Production Plan", docname)
+
+				# Filter Work Order by the doc.name of Production Plan in the column "production_plan"
+				work_orders = frappe.db.get_list("Work Order", filters={"production_plan": docname}, fields=["name"])
+
+				# Keep track of created assets to avoid duplicates
+				created_assets = []
+
+				for work_order in work_orders:
+						# Get the Work Order document
+						work_order_doc = frappe.get_doc("Work Order", work_order["name"])
+
+
+						# Filter the fields production_item and fg_warehouse
+						production_item = work_order_doc.production_item
+						fg_warehouse = work_order_doc.fg_warehouse
+
+						# Retrieve the value of doc.location from the Warehouse doctype corresponding to fg_warehouse
+						warehouse_location = frappe.db.get_value("Warehouse", fg_warehouse, "custom_location")
+
+						# Check which item has an item_group of "Ready Stock" from the Item doctype using the production_item value
+						item = frappe.get_doc("Item", production_item)
+						if item.item_group == 'Ready Stock':
+								# Get the pattern document
+								pattern_doc = frappe.db.get_list("Pattern", filters={"item_code": production_item, "sheet_no": 1}, fields=["name"])
+								if pattern_doc:
+										pattern_name = pattern_doc[0].name
+										# Check if the asset already exists based on custom_pattern
+										asset_name = frappe.db.get_value("Asset", {"custom_pattern": pattern_name}, "name")
+										if not asset_name:
+												# Create the Asset if it doesn't exist
+												asset = frappe.new_doc("Asset")
+												asset.naming_series = "ACC-ASS-.YYYY.-"
+												asset.item_code = "Asset Item-ones"
+												asset.asset_owner = "Company"
+												asset.is_existing_asset = 1
+												asset.available_for_use_date = now_datetime().date()
+												asset.gross_purchase_amount = 1
+												asset.asset_quantity = 1
+												# Set default location and custom_target_location
+												default_location = "Sainik Farm"
+												custom_target_location = warehouse_location if warehouse_location != "Sainik Farm" else "Sainik Farm Showroom"
+												asset.location = default_location
+												asset.custom_target_location = custom_target_location
+												asset.custom_pattern = pattern_name
+												asset.custom_new_asset_name = item.item_code
+												asset.insert()
+												asset.submit()
+												created_assets.append(asset.name)
+												print("Asset created:", asset.name)
+
+										else:
+												# Asset already exists, update the existing asset
+												frappe.db.set_value("Asset", asset_name, {
+							                            "docstatus": 0,
+							                            "location": "Sainik Farm Showroom" if warehouse_location == "Sainik Farm" else warehouse_location,
+							                            "custom_target_location": warehouse_location
+							                        })
+												print("Asset updated:", asset_name)
+
+
+				return "Assets created/updated successfully."
+		except Exception as e:
+				# Log the error
+				frappe.log_error(f"Error creating/updating assets: {str(e)}")
+				return "Error: Failed to create/update assets. Please check error logs for details."
