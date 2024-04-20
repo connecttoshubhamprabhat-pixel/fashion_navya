@@ -356,3 +356,31 @@ def finish_work_order_added(doc,method):
 			if work_order:
 				frappe.db.set_value("Work Order",doc.name, "custom_finish_order", work_order)
 				frappe.db.commit()
+
+#apr 20/2024 13:09
+@frappe.whitelist(allow_guest=True)
+def incharge_work_order(doc,method):
+	get_warehouses=frappe.db.sql("""select user from `tabIncharge WO` where warehouse='{}'   """.format(doc.fg_warehouse),as_dict=1)
+	if len(get_warehouses)!=0:
+		doc.set("incharge",get_warehouses[0]['user'])
+
+#apr 20/24 13:09
+@frappe.whitelist(allow_guest=True)
+def se_check_incharge_before_receive(doc, method):
+	user = frappe.session.user
+	user_warehouse_list = []
+
+	# Get warehouses assigned to the user
+	user_warehouses = frappe.get_all("Incharge WO", filters={"user": user}, fields=["warehouse"])
+	user_warehouse_list = [wh["warehouse"] for wh in user_warehouses]
+
+
+	if not doc.ignore_custom and doc.stock_entry_type == "Material Transfer for Manufacture" and doc.work_order:
+		wo_doc = frappe.get_doc("Work Order", doc.work_order)
+		if wo_doc.incharge:
+
+			incharge_warehouse = wo_doc.fg_warehouse
+
+			if incharge_warehouse not in user_warehouse_list:
+				msg = f"Only {wo_doc.incharge} can receive because they are in charge of this Work Order. You can verify in the 'Incharge' field of the Work Order."
+				frappe.throw(msg)

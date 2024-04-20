@@ -135,7 +135,7 @@ doc_events = {
                "after_insert":["fashion_navya.utils.perm.perm.check_stock_warehouse_source"],
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
                "before_insert":["fashion_navya.utils.doc_event.transit.check_transit_entry"],
-               "on_submit":["fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.updte_incharge_wo","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
+               "on_submit":["fashion_navya.utils.doc_event.wo.se_check_incharge_before_receive","fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.doc_event.pos.check_for_sample","fashion_navya.utils.doc_event.pos.check_discount","fashion_navya.utils.doc_event.reserv.reserve_stock_pos","fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
@@ -156,7 +156,7 @@ doc_events = {
     "Work Order":{
         "autoname":["fashion_navya.utils.doc_event.wo.autoname_wo_custom"],
         "validate":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
-        "before_submit":["fashion_navya.utils.doc_event.wo.finish_work_order_added","fashion_navya.utils.doc_event.wo.get_stock_raw","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
+        "before_submit":["fashion_navya.utils.doc_event.wo.incharge_work_order","fashion_navya.utils.doc_event.wo.finish_work_order_added","fashion_navya.utils.doc_event.wo.get_stock_raw","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "on_update":["fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "before_save":["fashion_navya.utils.doc_event.wo.finish_work_order_added","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "after_insert":["fashion_navya.utils.doc_event.wo.get_stock_raw","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.overides.mr.send_nofify_wo","fashion_navya.utils.doc_event.production.wo_stop_pp","fashion_navya.utils.doc_event.api_2.set_so_mr"],
