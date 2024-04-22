@@ -274,5 +274,5 @@ def make_work_order_kit(name=None):
         d['bom_no'] = get_bom[0].name
         doc = frappe.get_doc(d)
         doc.insert(ignore_permissions=True)
-        doc.submit()
+        #doc.submit()
         frappe.msgprint("Created successfully")
