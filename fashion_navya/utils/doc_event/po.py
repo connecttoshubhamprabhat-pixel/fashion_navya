@@ -87,8 +87,8 @@ def get_wo_set_po(doc,method):
 					i.set('work_order',get_wo[0]['name'])
 				else:
 					frappe.throw("Work order is missing for row :- {}".format(i.idx))
-					
-			
+
+
 			if i.fg_parent and i.production_plan:
 				get_wo=frappe.db.sql("""select name from `tabWork Order` where docstatus=1 and production_item='{}'  and status in ('In Process','Not Started') and production_plan='{}' """.format(i.fg_parent,i.production_plan),as_dict=1)
 				if get_wo:
@@ -117,16 +117,16 @@ def level_wise_po(items=None,name=None):
 				if get_level:
 					if get_level[0]['bom_level']==0:
 						level_zero.append(i.get("fg_item"))
-						
+
 					if get_level[0]['bom_level']==1:
 						level_one.append(i.get("fg_item"))
-						
+
 					if get_level[0]['bom_level']==2:
 						level_two.append(i.get("fg_item"))
 					if get_level[0]['bom_level']==3:
 						level_three.append(i.get("fg_item"))
 
-	
+
 	if level_zero:
 		d={"doctype":"Purchase Order","supplier":"Production Plan"}
 		d['schedule_date']=date
@@ -147,10 +147,10 @@ def level_wise_po(items=None,name=None):
 				row.production_plan=get_items_details[0]['production_plan']
 				row.bom=get_items_details[0]['bom']
 				row.description=get_items_details[0]['description']
-				
+
 		doc.insert(ignore_permissions=True)
 		frappe.msgprint("Level 0 created")
-	
+
 
 	if level_one:
 		d={"doctype":"Purchase Order","supplier":"Production Plan"}
@@ -172,10 +172,10 @@ def level_wise_po(items=None,name=None):
 				row.production_plan=get_items_details[0]['production_plan']
 				row.bom=get_items_details[0]['bom']
 				row.description=get_items_details[0]['description']
-				
+
 		doc.insert(ignore_permissions=True)
 		frappe.msgprint("Level 1 created")
-	
+
 
 	if level_two:
 		d={"doctype":"Purchase Order","supplier":"Production Plan"}
@@ -197,10 +197,10 @@ def level_wise_po(items=None,name=None):
 				row.production_plan=get_items_details[0]['production_plan']
 				row.bom=get_items_details[0]['bom']
 				row.description=get_items_details[0]['description']
-				
+
 		doc.insert(ignore_permissions=True)
 		frappe.msgprint("Level 2 created")
-	
+
 
 
 	if level_three:
@@ -222,14 +222,14 @@ def level_wise_po(items=None,name=None):
 				row.production_plan=get_items_details[0]['production_plan']
 				row.bom=get_items_details[0]['bom']
 				row.description=get_items_details[0]['description']
-				
+
 		doc.insert(ignore_permissions=True)
 		frappe.msgprint("Level 3 created")
 
 
 
 
-			
+
 @frappe.whitelist(allow_guest=True)
 def check_automated_po(doc,method):
 	plan=[]
@@ -237,17 +237,17 @@ def check_automated_po(doc,method):
 		for i in doc.items:
 			if i.idx==0 and i.production_plan:
 				plan.append(i.production_plan)
-				
-				
+
+
 	if plan and doc.custom_automated==0:
 		pl=frappe.get_doc("Production Plan",plan[0])
 		if pl.custom_automated==1:
 			doc.set("custom_automated",1)
-	
+
 	if doc.is_subcontracted and doc.items:
 		for i in doc.items:
 			i.set("qty",i.fg_item_qty)
-				
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -256,7 +256,7 @@ def subcontacted_check(doc,method):
 	for j in doc.items:
 		if j.idx==0 and j.purchase_order:
 			po.append(j.purchase_order)
-			
+
 	if po:
 		pdoc=frappe.get_doc("Purchase Order",po[0])
 		if pdoc.is_subcontracted:
@@ -306,3 +306,34 @@ def get_wo_set_po_condition(doc,method):
 
 
 
+@frappe.whitelist(allow_guest=True)
+def get_wo_set_po_condition_btn(name=None):
+		po = frappe.get_doc("Purchase Order", name)
+		for item in po.items:
+				if not item.item_code:
+						frappe.throw("Service Item is missing")
+				fg_item = item.fg_item.split("-")
+				fg_parent = "-".join(fg_item[:-1])
+				idx = item.idx
+				# Check if the parent item exists
+				if not frappe.db.exists("Item", fg_parent):
+						frappe.throw("Row No {} parent does not exist".format(idx))
+
+				# Define filter conditions for the work order query
+				filters = {"docstatus": 1, "production_item": fg_parent, "status": ["in", ["In Process", "Not Started"]]}
+				if item.production_plan:
+						filters["production_plan"] = item.production_plan
+
+				# Fetch relevant work orders
+				work_orders = frappe.get_list("Work Order", filters=filters, fields=["name", "qty"], limit=1)
+				# Handle cases where work orders are missing
+				if not work_orders:
+					frappe.throw("Work order is missing for row: {}".format(idx))
+
+				# Update Purchase Order item fields
+				item.work_order = work_orders[0]['name']
+				item.fg_parent = fg_parent
+				item.custom_qtywo = work_orders[0]['qty']
+
+		po.save()
+		frappe.msgprint("updated successfully")
