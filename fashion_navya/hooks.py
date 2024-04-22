@@ -352,7 +352,7 @@ doc_events = {
 
                                         },
                                 "Drawing":{
-                                        "on_submit":["fashion_navya.utils.doc_event.todo.create_todo_on_submit_drawing_doc"],
+                                        "on_submit":["fashion_navya.utils.doc_event.api_2.make_variant_drw_approved","fashion_navya.utils.doc_event.todo.create_todo_on_submit_drawing_doc"],
 
 
                                         },

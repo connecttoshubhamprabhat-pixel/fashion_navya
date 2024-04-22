@@ -210,13 +210,33 @@ def get_wo_sub(doc,method):
 
 @frappe.whitelist()
 def get_wo_sub_old():
-	get_sub=frappe.db.sql("""select name from `tabSubcontracting Order` where docstatus=1 """,as_dict=1)
-	if get_sub:
-		for m in get_sub:
-			doc=frappe.get_doc("Subcontracting Order",m['name'])
-			for i in doc.items:
-				get_wo=frappe.db.sql("""select work_order from `tabPurchase Order Item` where docstatus=1 and fg_item='{}' and parent='{}'  """.format(i.item_code,doc.purchase_order),as_dict=1)
-				if get_wo:
-					print(doc.name,"aa")
-					frappe.db.sql("""update `tabSubcontracting Order Item` set work_order='{}' where parent='{}' and item_code='{}'  """.format(get_wo[0]['work_order'],doc.name,i.item_code))
-					frappe.db.commit()
+    pass
+
+@frappe.whitelist()
+def make_variant_drw_approved(doc, method):
+    item_doc = frappe.get_doc("Item", doc.item_code)
+    if item_doc.has_variants:
+        variants = frappe.get_all("Item", filters={"variant_of": doc.item_code}, fields=["name", "item_code"])
+        if variants:
+            for item in variants:
+                create_and_approve_drawing(item.name, doc.name)
+    frappe.msgprint("Updated successfully")
+
+@frappe.whitelist()
+def create_and_approve_drawing(item_name, drw_name):
+    # Check if a drawing exists for the item and is in draft state
+    drawing_exists = frappe.get_all("Drawing", filters={"item_code": item_name, "docstatus": 0}, fields=["name"])
+    if drawing_exists:
+        # If drawing exists, approve it
+        drw_doc = frappe.get_doc("Drawing", drawing_exists[0].name)
+        #drw_doc.workflow_state = "Approved"
+        #drw_doc.docstatus = 1
+        drw_doc.submit()
+    else:
+        # If drawing doesn't exist, create a new drawing and approve it
+        parent_drw = frappe.get_doc("Drawing", drw_name)
+        new_drw = frappe.copy_doc(parent_drw)
+        new_drw.item_code = item_name
+        new_drw.workflow_state = "Draft"
+        new_drw.insert(ignore_permissions=True)
+        new_drw.submit()
