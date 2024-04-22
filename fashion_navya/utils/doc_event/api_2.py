@@ -222,6 +222,25 @@ def make_variant_drw_approved(doc, method):
                 create_and_approve_drawing(item.name, doc.name)
     frappe.msgprint("Updated successfully")
 
+
+@frappe.whitelist()
+def make_variant_drw_approved_new(doc, method):
+        if doc.has_variants==0 and doc.variant_of:
+                drw = frappe.get_all("Drawing", filters={"item_code":doc.variant_of,"docstatus":1}, fields=["name"])
+                if drw:
+                        create_and_approve_drawing(doc.name, drw[0].name)
+                        frappe.msgprint("Updated successfully")
+
+@frappe.whitelist()
+def make_variant_drw_approved_new_btn(name=None):
+        doc=frappe.get_doc("Item",name)
+        if doc.has_variants==0 and doc.variant_of:
+                drw = frappe.get_all("Drawing", filters={"item_code":doc.variant_of,"docstatus":1}, fields=["name"])
+                if drw:
+                        create_and_approve_drawing(doc.name, drw[0].name)
+                        frappe.msgprint("Updated successfully")
+
+
 @frappe.whitelist()
 def create_and_approve_drawing(item_name, drw_name):
     # Check if a drawing exists for the item and is in draft state
@@ -240,3 +259,20 @@ def create_and_approve_drawing(item_name, drw_name):
         new_drw.workflow_state = "Draft"
         new_drw.insert(ignore_permissions=True)
         new_drw.submit()
+
+
+#create work order
+@frappe.whitelist()
+def make_work_order_kit(name=None):
+        d = {"doctype": "Work Order", "production_item": name}
+
+        get_bom = frappe.get_all("BOM", filters={"item": name, "docstatus": 1, "is_active": 1, "is_default": 1}, fields=["name", "quantity"])
+        if not get_bom:
+                frappe.throw("BOM is missing for the item: {}".format(name))
+
+        d['qty'] = get_bom[0].quantity
+        d['bom_no'] = get_bom[0].name
+        doc = frappe.get_doc(d)
+        doc.insert(ignore_permissions=True)
+        doc.submit()
+        frappe.msgprint("Created successfully")
