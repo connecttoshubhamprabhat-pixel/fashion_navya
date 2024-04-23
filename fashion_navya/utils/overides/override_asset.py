@@ -164,7 +164,7 @@ class CustomAsset(Asset):
 
 #################################################################################
 @frappe.whitelist()
-def check_ready_stock_items_list_of_from_table_return_test(docname):
+def check_ready_stock_items_list_of_from_table(docname):
 		try:
 				# Fetch the doc.name of the Production Plan document
 				production_plan_doc = frappe.get_doc("Production Plan", docname)
@@ -233,3 +233,80 @@ def check_ready_stock_items_list_of_from_table_return_test(docname):
 				# Log the error
 				frappe.log_error(f"Error creating/updating assets: {str(e)}")
 				return "Error: Failed to create/update assets. Please check error logs for details."
+
+
+
+
+#######################################################################
+
+
+@frappe.whitelist()
+def return_asset(docname):
+    try:
+        # Fetch the doc.name of the Production Plan document
+        production_plan_doc = frappe.get_doc("Production Plan", docname)
+
+        # Filter Work Order by the doc.name of Production Plan in the column "production_plan"
+        work_orders = frappe.db.get_list("Work Order", filters={"production_plan": docname}, fields=["name"])
+
+        # Keep track of created assets to avoid duplicates
+        created_assets = []
+
+        for work_order in work_orders:
+            # Get the Work Order document
+            work_order_doc = frappe.get_doc("Work Order", work_order["name"])
+
+            # Filter the fields production_item and fg_warehouse
+            production_item = work_order_doc.production_item
+            fg_warehouse = work_order_doc.fg_warehouse
+
+            # Retrieve the value of doc.location from the Warehouse doctype corresponding to fg_warehouse
+            warehouse_location = frappe.db.get_value("Warehouse", fg_warehouse, "custom_location")
+
+            # Check which item has an item_group of "Ready Stock" from the Item doctype using the production_item value
+            item = frappe.get_doc("Item", production_item)
+            if item.item_group == 'Ready Stock':
+                # Get the pattern document
+                pattern_doc = frappe.db.get_list("Pattern", filters={"item_code": production_item, "sheet_no": 1}, fields=["name"])
+                if pattern_doc:
+                    pattern_name = pattern_doc[0].name
+
+                    # Check if the asset already exists based on custom_pattern
+                    asset_name = frappe.db.get_value("Asset", {"custom_pattern": pattern_name}, "name")
+                    if not asset_name:
+                        # Create the Asset if it doesn't exist
+                        asset = frappe.new_doc("Asset")
+                        asset.naming_series = "ACC-ASS-.YYYY.-"
+                        asset.item_code = "Asset Item-ones"
+                        asset.asset_owner = "Company"
+                        asset.is_existing_asset = 1
+                        asset.available_for_use_date = now_datetime().date()
+                        asset.gross_purchase_amount = 1
+                        asset.asset_quantity = 1
+                        # Set default location and custom_target_location
+                        default_location = "Sainik Farm"
+                        custom_target_location = warehouse_location if warehouse_location != "Sainik Farm" else "Sainik Farm Showroom"
+                        asset.location = default_location
+                        asset.custom_target_location = custom_target_location
+                        asset.custom_pattern = pattern_name
+                        asset.custom_new_asset_name = item.item_code
+                        asset.insert()
+                        asset.submit()
+                        created_assets.append(asset.name)
+                        print("Asset created:", asset.name)
+                    else:
+                        # Asset already exists, update the existing asset
+                        frappe.db.set_value("Asset", asset_name, {
+                            "docstatus": 0,
+                            "custom_target_location": "Sainik Farm Showroom" if warehouse_location == "Sainik Farm" else warehouse_location,
+                            "location": warehouse_location
+                        })
+                        print("Asset updated:", asset_name)
+
+        return "Assets created/updated successfully."
+    except Exception as e:
+        # Log the error
+        frappe.log_error(f"Error creating/updating assets: {str(e)}")
+        return "Error: Failed to create/update assets. Please check error logs for details."
+
+#####################################################################

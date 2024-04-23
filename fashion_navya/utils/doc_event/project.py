@@ -549,3 +549,24 @@ def make_duplicate_project(old_project=None,values=None):
 
     frappe.db.commit()
     return 'New project and related documents have been duplicated and set to draft.'
+
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_drawing_list(project_name):
+	# Fetch list of drawing names associated with the project
+	drawing_list = frappe.get_all("Drawing", filters={"project": project_name, "docstatus": 1}, fields=["name"])
+	return drawing_list
+
+
+@frappe.whitelist()
+def get_pattern_list(project_name):
+	# Fetch list of pattern names associated with the project
+	pattern_list = frappe.get_all("Pattern", filters={"project": project_name, "docstatus": 1}, fields=["name"])
+	return pattern_list
