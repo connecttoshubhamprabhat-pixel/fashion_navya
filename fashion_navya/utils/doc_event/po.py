@@ -309,6 +309,7 @@ def get_wo_set_po_condition(doc,method):
 @frappe.whitelist(allow_guest=True)
 def get_wo_set_po_condition_btn(name=None):
 		po = frappe.get_doc("Purchase Order", name)
+		work_order_lists=[]
 		for item in po.items:
 				if not item.item_code:
 						frappe.throw("Service Item is missing")
@@ -325,15 +326,21 @@ def get_wo_set_po_condition_btn(name=None):
 						filters["production_plan"] = item.production_plan
 
 				# Fetch relevant work orders
-				work_orders = frappe.get_list("Work Order", filters=filters, fields=["name", "qty"], limit=1)
+				work_orders = frappe.get_list("Work Order", filters=filters, fields=["name", "qty"], limit=10)
 				# Handle cases where work orders are missing
 				if not work_orders:
 					frappe.throw("Work order is missing for row: {}".format(idx))
 
+
 				# Update Purchase Order item fields
-				item.work_order = work_orders[0]['name']
 				item.fg_parent = fg_parent
-				item.custom_qtywo = work_orders[0]['qty']
+				for  mqty in  work_orders:
+					if mqty['name'] not in work_order_lists:
+						check_wo=frappe.db.sql("""select name from `tabPurchase Order Item` where docstatus<2 and work_order='{}'  """.format(mqty['name']),as_dict=1)
+						if len(check_wo)==0:
+							item.work_order = mqty['name']
+							item.custom_qtywo=mqty['qty']
+							work_order_lists.append(mqty['name'])
 
 		po.save()
 		frappe.msgprint("updated successfully")

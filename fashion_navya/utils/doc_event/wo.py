@@ -375,7 +375,7 @@ def se_check_incharge_before_receive(doc, method):
 	user_warehouse_list = [wh["warehouse"] for wh in user_warehouses]
 
 
-	if not doc.ignore_custom and doc.stock_entry_type == "Material Transfer for Manufacture" and doc.work_order:
+	if doc.ignore_custom==0 and doc.stock_entry_type == "Material Transfer for Manufacture" and doc.work_order:
 		wo_doc = frappe.get_doc("Work Order", doc.work_order)
 		if wo_doc.incharge:
 
@@ -384,3 +384,34 @@ def se_check_incharge_before_receive(doc, method):
 			if incharge_warehouse not in user_warehouse_list:
 				msg = f"Only {wo_doc.incharge} can receive because they are in charge of this Work Order. You can verify in the 'Incharge' field of the Work Order."
 				frappe.throw(msg)
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_kit_group(doc,method):
+	item=doc.production_item
+	split=item.split("-")
+	kit_attributes=["k","BPK","DPK","HEK","RTW","SMPL","PRSMPL","PPSMPL"]
+	name_att=split[-1]
+	if name_att in kit_attributes:
+		doc.db_set("custom_kit_item_group",name_att, update_modified=False)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_kit_group_old():
+	get_wo=frappe.db.sql(""" select name ,production_item from `tabWork Order` where  custom_kit_item_group is null and docstatus=1    """,as_dict=1)
+	if get_wo:
+		for i in get_wo:
+			doc=frappe.get_doc("Work Order",i['name'])
+			print(doc.name)
+			item=doc.production_item
+			split=item.split("-")
+			kit_attributes=["k","BPK","DPK","HEK","PPSMPL","PRSMPL","RTW","SMPL"]
+			name_att=split[-1]
+			if name_att in kit_attributes:
+				frappe.db.sql("""update `tabWork Order` set custom_kit_item_group='{}' where name='{}'   """.format(name_att,doc.name))
+				frappe.db.commit()
+
+

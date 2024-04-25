@@ -155,7 +155,7 @@ doc_events = {
     },
     "Work Order":{
         "autoname":["fashion_navya.utils.doc_event.wo.autoname_wo_custom"],
-        "validate":["fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
+        "validate":["fashion_navya.utils.doc_event.wo.set_kit_group","fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
         "before_submit":["fashion_navya.utils.doc_event.wo.incharge_work_order","fashion_navya.utils.doc_event.wo.finish_work_order_added","fashion_navya.utils.doc_event.wo.get_stock_raw","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.check_before_submit_disbaled_item"],
         "on_update":["fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_msrement"],
         "before_save":["fashion_navya.utils.doc_event.wo.finish_work_order_added","fashion_navya.utils.doc_event.api_1.set_warehouse_wo","fashion_navya.utils.doc_event.wo.set_parent_item","fashion_navya.utils.doc_event.custom.name_fetch_wo","fashion_navya.utils.doc_event.wo.fetch_msrement"],
@@ -179,8 +179,8 @@ doc_events = {
     "validate":["fashion_navya.utils.doc_event.api_1.calculate_total_amount"],
     },
     "Purchase Order":{
-        "before_save":["fashion_navya.utils.doc_event.po.get_wo_set_po_condition","fashion_navya.utils.doc_event.po.check_automated_po","fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
-        "before_submit":["fashion_navya.utils.doc_event.po.get_wo_set_po","fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
+        "before_save":["fashion_navya.utils.doc_event.po.check_automated_po","fashion_navya.utils.doc_event.api_2.check_work_order_status","fashion_navya.utils.doc_event.po.set_sell_item_po"],
+        "before_submit":["fashion_navya.utils.doc_event.sq.fetch_job_card_po"],
         "on_trash":["fashion_navya.utils.doc_event.po.check_delete_draft"],
         "after_insert":["fashion_navya.utils.doc_event.api_3.fetch_items_sq","fashion_navya.utils.doc_event.po.set_sell_item_po"],
         "before_update_after_submit":["fashion_navya.utils.doc_event.sub.update_rate_after_submit"],
