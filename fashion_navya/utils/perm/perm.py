@@ -15,7 +15,7 @@ def check_stock_warehouse_source(doc,method):
     if doc.doctype=="Stock Entry":
         user=frappe.session.user
         source_warehouse=[]
-        if doc.stock_entry_type=="Material Transfer" and user not in skip_user:
+        if doc.stock_entry_type in ["Material Transfer","Material Transfer for Manufacture"] and user not in skip_user:
             get_perm_file=frappe.db.sql(""" select name from `tabPermitted Files` where document_name="Stock Entry"  and docstatus <2 """,as_dict=1)
             if len(get_perm_file)!=0:
                 fdoc=frappe.get_doc("Permitted Files",get_perm_file[0]['name'])
@@ -43,11 +43,11 @@ def check_stock_warehouse_target(doc,method):
         roles=frappe.get_roles(frappe.session.user)
         if "Sales Manager" in roles and doc.custom_destination=="Navya Store Office - NAVYA":
             return
-    skip_user=['Aadministrator','pawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
+    skip_user=['Aadministrator','ppawasthy11@gmail.com','amita@navya.biz',"erpsupport@uttamenergy.com"]
     if doc.doctype=="Stock Entry":
         user=frappe.session.user
         target_warehouse=[]
-        if doc.stock_entry_type=="Material Transfer" and user not in skip_user:
+        if doc.stock_entry_type in ["Material Transfer","Material Transfer for Manufacture"] and user not in skip_user:
             get_perm_file=frappe.db.sql(""" select name from `tabPermitted Files` where document_name="Stock Entry"  and docstatus <2 """,as_dict=1)
             if len(get_perm_file)!=0:
                 fdoc=frappe.get_doc("Permitted Files",get_perm_file[0]['name'])
