@@ -49,3 +49,21 @@ def production_plan_set_fg_warehouse(doc,method):
 	if doc.po_items:
 		for i in doc.po_items:
 			i.set("warehouse","Navya Store Office - NAVYA")
+
+
+
+@frappe.whitelist()
+def custom_update_linked_production_plan(doc, method):
+	try:
+		if doc.docstatus == 0 or doc.docstatus == 1:
+			first_po_item = frappe.get_all("Purchase Order Item",
+				filters={"parent": doc.name},
+				fields=["production_plan"],
+				limit=1)
+
+
+			if first_po_item:
+				production_plan = first_po_item[0].production_plan
+				frappe.db.set_value("Purchase Order", doc.name, "custom_linked_production_plan", production_plan)
+	except Exception as e:
+		frappe.log_error("Error in custom_update_linked_production_plan: {}".format(e))

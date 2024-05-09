@@ -720,3 +720,21 @@ def set_branch_jc(doc,method):
 
         if wo.fg_warehouse in ['Navya Store Office - NAVYA','Courier Station - NAVYA']:
              doc.set("custom_branch","Sainik Farms")
+
+
+
+
+
+@frappe.whitelist()
+def add_item_to_wocom(items=None):
+    items=json.loads(items)
+    if items:
+        d={"doctype":"WooCommerce Product"}
+        for item in items:
+             doc=frappe.get_doc("Item",item)
+             d={"doctype":"WooCommerce Product"}
+             d['woocommerce_name']=doc.item_name
+             d['sku']=doc.name
+
+        doc.save()
+        frappe.msgprint("created")

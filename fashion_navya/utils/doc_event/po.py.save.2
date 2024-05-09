@@ -354,7 +354,7 @@ def get_wo_set_po_condition_btn(name=None):
 
 #####################################################
 @frappe.whitelist()
-def create_new_purchase_order_old(selected_purchase_orders):
+def create_new_purchase_order(selected_purchase_orders):
 	# Split the selected Purchase Order names
 	selected_po_names = selected_purchase_orders.split(',')
 	# Check if all selected Purchase Orders are in "Draft" status
@@ -508,38 +508,33 @@ def create_new_purchase_order_old(selected_purchase_orders):
 
 @frappe.whitelist()
 def create_new_purchase_order(selected_purchase_orders):
-	# Split the selected Purchase Order names
-	selected_po_names = selected_purchase_orders.split(',')
+    # Split the selected Purchase Order names
+    selected_po_names = selected_purchase_orders.split(',')
 
-	# Check if all selected Purchase Orders are in "Draft" status
-	for po_name in selected_po_names:
-		po_status = frappe.db.get_value("Purchase Order", po_name, "status")
-		if po_status != "Draft":
-			frappe.throw(f"Purchase Order {po_name} is not in 'Draft' status. Please select only Purchase Orders in 'Draft' status.")
+    # Check if all selected Purchase Orders are in "Draft" status
+    for po_name in selected_po_names:
+        po_status = frappe.db.get_value("Purchase Order", po_name, "status")
+        if po_status != "Draft":
+            frappe.throw(f"Purchase Order {po_name} is not in 'Draft' status. Please select only Purchase Orders in 'Draft' status.")
 
-
-	sql_query = """SELECT *
+    sql_query = """SELECT *
                    FROM `tabPurchase Order`
-                   WHERE name IN ({}) """.format(','.join(['%s'] * len(selected_po_names)))
+                   WHERE name IN ({})""".format(','.join(['%s'] * len(selected_po_names)))
+    
+    field_values = frappe.db.sql(sql_query, tuple(selected_po_names), as_dict=True)
+    
+    # Check if all selected Purchase Orders have the same supplier and subcontracted status
+    suppliers = set()
+    subcontracted_statuses = set()
+    for po_data in field_values:
+        suppliers.add(po_data.get("supplier"))
+        subcontracted_statuses.add(po_data.get("is_subcontracted"))
+    if len(suppliers) > 1 or len(subcontracted_statuses) > 1:
+        frappe.throw("Supplier is different or subcontracted status is not the same for selected Purchase Orders.")
 
-
-	field_values = frappe.db.sql(sql_query, tuple(selected_po_names), as_dict=True)
-
-
-	# Check if all selected Purchase Orders have the same supplier and subcontracted status
-	suppliers = set()
-	subcontracted_statuses = set()
-	for po_data in field_values:
-		suppliers.add(po_data.get("supplier"))
-		subcontracted_statuses.add(po_data.get("is_subcontracted"))
-
-	if len(suppliers) > 1 or len(subcontracted_statuses) > 1:
-		frappe.throw("Supplier is different or subcontracted status is not the same for selected Purchase Orders.")
-
-
-	# Create a new Purchase Order
-	new_po = frappe.new_doc("Purchase Order")
-	po_fields = ["transaction_date", "company", "schedule_date", "supplier_name", 
+    # Create a new Purchase Order
+    new_po = frappe.new_doc("Purchase Order")
+    po_fields = ["transaction_date", "company", "schedule_date", "supplier_name", 
                  "order_confirmation_no", "supplier_warehouse",
                  "order_confirmation_date", "supplier_type", "tem", "temname", "project", 
                  "custom_automated", "custom_from_p", "custom_bom_level", "so_customer", "custom_skip_work_order", 
@@ -551,44 +546,37 @@ def create_new_purchase_order(selected_purchase_orders):
                  "cost_center", "project", "project_name", "task", "document_record", "currency", 
                  "conversion_rate", "buying_price_list", "set_warehouse", "block"]
 
+    for field in po_fields:
+        setattr(new_po, field, None)  # Set to None if the field is not fetched from the database
 
-	for field in po_fields:
-		setattr(new_po, field, None)  # Set to None if the field is not fetched from the database
+    new_po.status = "Draft"  # Set status to Draft as default
+    new_po.schedule_date = nowdate()
 
-
-	new_po.status = "Draft"  # Set status to Draft as default
-	new_po.schedule_date = nowdate()
-
-
-
-	# Set fetched field values to the new Purchase Order
-	for field in ["apply_tds", "is_subcontracted", "ignore_pricing_rule", "disable_rounded_total", "supplier", "" "supplier_type"
+    # Set fetched field values to the new Purchase Order
+    for field in ["apply_tds", "is_subcontracted", "ignore_pricing_rule", "disable_rounded_total", "supplier", "" "supplier_type"
                   "group_same_items", "is_internal_supplier", "is_old_subcontracting_flow",
                   "custom_automated", "custom_from_p", "custom_skip_work_order", "is_reverse_charge", "custom_bom_level", "so_customer", "custom_sub_item", "order_amount", "petty_amount", "conversion_rate", "plc_conversion_rate", "total_qty", "total_net_weight", "additional_discount_percentage" ]:
-		setattr(new_po, field, field_values[0].get(field))
+        setattr(new_po, field, field_values[0].get(field))
 
+    # Fetch items from selected Purchase Orders and add non-empty items to the new Purchase Order
+    for po_name in selected_po_names:
+        po_items = frappe.get_all("Purchase Order Item", filters={"parent": po_name})
+        if not po_items:
+            frappe.throw(f"No items found for Purchase Order {po_name}")
 
-	# Fetch items from selected Purchase Orders and add non-empty items to the new Purchase Order
-	for po_name in selected_po_names:
-		po_items = frappe.get_all("Purchase Order Item", filters={"parent": po_name})
-		if not po_items:
-			frappe.throw(f"No items found for Purchase Order {po_name}")
-
-
-		for po_item in po_items:
-			# Fetch field values using SQL queries
-			sql_query = """SELECT fg_item_qty, item_code, qty, conversion_factor, stock_qty, margin_rate_or_amount, fg_item, schedule_date
+        for po_item in po_items:
+            # Fetch field values using SQL queries
+            sql_query = """SELECT fg_item_qty, item_code, qty, conversion_factor, stock_qty, margin_rate_or_amount, fg_item, schedule_date
                                 igst_rate, cgst_rate, sgst_rate, cess_rate, cess_non_advol_rate, actual_qty,
                                 company_total_stock, received_qty, returned_qty, weight_per_unit, total_weight,
                                 nop, noc, is_ineligible_for_itc, is_nil_exempt, is_non_gst, is_free_item, fg_parent, work_order,
                                 apply_tds, delivered_by_supplier, against_blanket_order, include_exploded_items, expected_delivery_date, cost_center, project, is_fixed_asset
                         FROM `tabPurchase Order Item`
                         WHERE name = %s"""
+            field_values = frappe.db.sql(sql_query, po_item.name, as_dict=True)
 
-			field_values = frappe.db.sql(sql_query, po_item.name, as_dict=True)
-
-			# Append item to the new Purchase Order
-			new_po.append("items", {
+            # Append item to the new Purchase Order
+            new_po.append("items", {
                 "supplier": po_item.supplier,
                 "item_code": field_values[0].get("item_code"),
                 "fg_item": field_values[0].get("fg_item"),
@@ -639,11 +627,10 @@ def create_new_purchase_order(selected_purchase_orders):
                 # Add other fields as required
             })
 
+    new_po.insert()
 
-	new_po.insert()
+    # Update the custom_purchase_order field in the original Purchase Orders
+    for po_name in selected_po_names:
+        frappe.db.set_value("Purchase Order", po_name, "custom_purchase_order", new_po.name)
 
-	# Update the custom_purchase_order field in the original Purchase Orders
-	for po_name in selected_po_names:
-		frappe.db.set_value("Purchase Order", po_name, "custom_purchase_order", new_po.name)
-
-	return new_po.name
+    return new_po.name

@@ -342,3 +342,31 @@ def fetch_delivery_type_old():
 			frappe.db.sql(""" update `tabMaterial Request` set  custom_delivery_type='{}' , custom_delivery_location='{}'   where name='{}'  """.format(sodoc.delivery_type,sodoc.delivery_location,mr))
 			frappe.db.commit()
 			
+
+
+@frappe.whitelist()
+def before_insert_set_automted(doc,method):
+	check_for_automated=[]
+	for i in doc.items:
+		if i.production_plan:
+			check_for_automated.append("yes")
+			break
+		
+	if check_for_automated:
+		doc.set("custom_is_production",1)
+
+
+@frappe.whitelist()
+def before_insert_set_automted_old():
+	get_mr=frappe.db.sql("""select DISTINCT name from `tabMaterial Request` where  docstatus<2 and custom_is_production=0 and name in (select parent from `tabMaterial Request Item`  where production_plan is not null and docstatus<2)  """,as_dict=1)
+	if get_mr:
+		for m in get_mr:
+			doc=frappe.get_doc("Material Request",m['name'])
+			print(doc.name)
+			frappe.db.sql("""update `tabMaterial Request`  set custom_is_production=1   where name='{}'  """.format(doc.name))
+			frappe.db.commit()
+
+
+
+
+

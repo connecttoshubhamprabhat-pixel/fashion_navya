@@ -13,6 +13,24 @@ def calculated_qty_project(doc,method):
     rtw_mn_qty_total=[0]
     no_started_smpl=[0]
     no_started_rtw=[0]
+    prototype_sample=[0]
+    pp_sample=[0]
+    wop=[0]
+    
+    
+    if doc.custom_prototype_sample:
+        for i in doc.custom_prototype_sample:
+            if i.mnqty!=None:
+                prototype_sample.append(i.mnqty)
+    if doc.custom_wop:
+        for i in doc.custom_wop:
+            if i.mn_qtyw!=None:
+                wop.append(i.mn_qtyw)
+            
+    if doc.custom_pp_sample:
+        for i in doc.custom_pp_sample:
+            if i.mnqty!=None:
+                pp_sample.append(i.mnqty)
 
 
     if doc.custom_sample_pending:
@@ -38,6 +56,12 @@ def calculated_qty_project(doc,method):
     doc.set("custom_rtwnwo",0)
     doc.set("custom_pqtynsmpl",sum(no_started_smpl))
     doc.set("custom_rtwnwo",sum(no_started_rtw))
+    doc.set("custom_p_net_qty",0)
+    doc.set("custom_p_net_qty",sum(prototype_sample))
+    doc.set("custom_pp_net_qty",0)
+    doc.set("custom_pp_net_qty",sum(pp_sample))
+    doc.set("custom_wop_net_qty",0)
+    doc.set("custom_wop_net_qty",sum(wop))
 
 
 
@@ -348,7 +372,7 @@ def get_not_started_pro_bulk(items=None):
 #automated this project
 @frappe.whitelist(allow_guest=True)
 def get_not_started_pro_bulk_auto():
-    projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request` where docstatus=1 and material_request_type='Manufacture' and  custom_is_so=0  """,as_dict=1)
+    projects=frappe.db.sql("""select DISTINCT project from `tabMaterial Request` where docstatus=1 and material_request_type='Manufacture' and  custom_is_so=0 and custom_bom=1  """,as_dict=1)
     items=[]
     for a in projects:
         items.append(a['project'])

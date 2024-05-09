@@ -652,6 +652,10 @@ def check_subconracted(doc,method):
 		if "RTW" in names and not "BP" in names:
 			if "BPK" in names:
 				doc.set("is_sub_contracted_item",0)
+				
+			if "HEK" in names or "k" in names:
+				doc.set("is_sub_contracted_item",1)
+
 
 
 
@@ -1646,3 +1650,15 @@ def check_stock_count(doc,method):
 					if i.qty>get_bin[0]['qty']:
 						msg="Out Of Stock,row:-{},Actual Stock in {},:-{}".format(i.idx,i.s_warehouse,get_bin[0]['qty'])
 						frappe.throw(msg)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def re_order_remove_item_wise(items=None):
+	items=json.loads(items)
+	if items:
+		for item in items:
+			frappe.db.sql("""delete from `tabItem Reorder` where parent='{}'  """.format(item))
+			frappe.db.commit()
+			
+	frappe.msgprint("Removed Re-order")

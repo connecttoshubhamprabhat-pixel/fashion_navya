@@ -9,7 +9,7 @@ def fetch_items_from_request_for_quotation(request_for_quotation):
         
     items = frappe.db.get_list("Request for Quotation Item",
                                filters={"parent": request_for_quotation},
-                               fields=["item_code", "item_code", "item_name",  "item_name", "schedule_date", "qty"],ignore_permissions=True)
+                               fields=["item_code", "item_name", "schedule_date", "qty","uom"],ignore_permissions=True)
                                
     
     if not items:
@@ -30,7 +30,7 @@ def populate_estimate_sheet_prices(docname):
 
     for item in estimate_sheet_items:
         # Fetching Purchase Order Items for the respective item_code
-        purchase_order_items = frappe.get_all("Purchase Order Item",
+        purchase_order_items = frappe.get_all("Purchase Receipt Item",
                                               filters={"item_code": item.item_code},
                                               fields=["item_code", "rate"],
                                               order_by="creation DESC")

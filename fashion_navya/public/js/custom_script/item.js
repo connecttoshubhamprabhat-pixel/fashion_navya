@@ -21,7 +21,7 @@ frappe.ui.form.on('Item',  'refresh',  function(frm) {
 	var user_list=["pawasthy11@gmail.com","amita@navya.biz","Administrator","prashant@example.com","erpsupport@uttamenergy.com"]
 	var user_login=user_list.includes(user)
     if (!user_login) {
-        $('#item-inventory_section').hide();
+	    //$('#item-inventory_section').hide();
         //$('#item-details').hide();
 	//$('#item-inventory_section').hide();
        // $('#item-sales_details').hide();

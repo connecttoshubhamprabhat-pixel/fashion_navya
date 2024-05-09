@@ -60,3 +60,9 @@ def fetch_fabrice_ptt(doc,method):
 						doc.set("custom_fabric_two",get_fabric[0]['fabric_2'])
 
 
+@frappe.whitelist()
+def check_kit_approved(doc,method):
+	if doc.item:
+		item=frappe.get_doc("Item",doc.item)
+		if item.item_group in ['M kit']:
+			doc.set("kit_item",1)
