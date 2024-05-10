@@ -120,12 +120,38 @@ def cancel_doc_si_series(doc,method):
 
 @frappe.whitelist(allow_guest=True)
 def set_si_custom_series(doc,method):
+    prefix_list=[]
+    if doc.is_pos==1:
+        if doc.pos_profile in ['Pune Ready To Wear']:
+            prefix_list.append("PI/")
 
+        else:
+            prefix_list.append("SI/")
+
+    else:
+        so=[]
+        for i in doc.items:
+            if i.sales_order:
+                so.append(i.sales_order)
+                break
+        if so:
+            sodoc=frappe.get_doc("Sales Order",so[-1])
+            if sodoc.custom_shop_location=="Pune":
+                prefix_list.append("PI/")
+            else:
+                prefix_list.append("SI/")
+        else:
+            prefix_list.append("SI/")
+
+
+    if not prefix_list:
+        frappe.throw("Naming series issues ,contact to Technical team")
+        #return
     #get fiscal year
     get_fiscal_yr=str(get_current_financial_year())
     # Define the naming series
     #series_name = "SI/24-25/"
-    prefix="SI/"
+    prefix=prefix_list[-1]
     pre_name=get_fiscal_yr.split("-")
     pre_1=str(pre_name[0][2:])+"-"+str(pre_name[1])+"/"
     series_name=prefix+pre_1
@@ -133,7 +159,7 @@ def set_si_custom_series(doc,method):
     counter_no=['0001q']
     #get max counter
     print(get_fiscal_yr,'get_fiscal_yr')
-    get_max_counter=frappe.db.sql("""select MAX(custom_sicounter) as nos from `tabSales Invoice` where custom_sifiscal='{}'  """.format(get_fiscal_yr),as_dict=1)
+    get_max_counter=frappe.db.sql("""select MAX(custom_sicounter) as nos from `tabSales Invoice` where custom_sifiscal='{}' and custom_prefix='{}'  """.format(get_fiscal_yr,prefix),as_dict=1)
     if len(get_max_counter)!=0:
         if get_max_counter[0]['nos']!=None:
             counter_int=int(get_max_counter[0]['nos'])
@@ -154,6 +180,7 @@ def set_si_custom_series(doc,method):
     print(name_series,"name_series")
     doc.set("custom_sifiscal",get_fiscal_yr)
     doc.set("custom_sicounter",counter_no[-1])
+    doc.set("custom_prefix",prefix)
 
 
 # Function to get the current financial year
