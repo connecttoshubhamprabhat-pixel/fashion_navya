@@ -1,0 +1,102 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2024-05-10 12:10:06.081685",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "N A V Y A",
+ "letterhead": null,
+ "modified": "2024-05-10 12:12:24.970297",
+ "modified_by": "pawasthy11@gmail.com",
+ "module": "Fashion Navya",
+ "name": "Product Size Missing",
+ "owner": "pawasthy11@gmail.com",
+ "prepared_report": 0,
+ "ref_doctype": "Item",
+ "report_name": "Product Size Missing",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Amintegral item manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "Project Assistant"
+  },
+  {
+   "role": "Sales Partner"
+  },
+  {
+   "role": "Employee Self Service"
+  },
+  {
+   "role": "Auditor"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Projects User"
+  },
+  {
+   "role": "Sales Executive"
+  },
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "BOM"
+  },
+  {
+   "role": "Sales Team"
+  },
+  {
+   "role": "Item Viewers"
+  },
+  {
+   "role": "Stage 1 User"
+  },
+  {
+   "role": "Accountant\u2019s"
+  },
+  {
+   "role": "Item Read Only"
+  },
+  {
+   "role": "Item Manager"
+  },
+  {
+   "role": "MR Make"
+  },
+  {
+   "role": "Image Uploder"
+  },
+  {
+   "role": "shubham"
+  }
+ ]
+}

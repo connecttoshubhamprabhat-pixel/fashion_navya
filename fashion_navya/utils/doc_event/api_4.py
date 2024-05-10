@@ -148,7 +148,7 @@ def get_urls_elements_pattern(docname):
     doc=frappe.get_doc("Pattern",docname)
     img_dup=[]
     images_list=[]
-    if doc.sheet_no==4:
+    if doc.sheet_no!=8:
         get_pattern_img=frappe.db.sql(""" select file_url  from   `tabFile`  where attached_to_doctype='Pattern' and attached_to_name='{}' and attached_to_field='file'  """.format(doc.name),as_dict=1)
         if len(get_pattern_img)!=0:
             d={}
