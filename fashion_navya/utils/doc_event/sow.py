@@ -25,16 +25,6 @@ def set_warehouse_target_mr(doc,method):
 			i.set("warehouse","Navya Store Office - NAVYA")
 
 
-		if doc.material_request_type=="Material Transfer" and doc.custom_is_so==0:
-			if "RTW" in item_split and "BP" in item_split:
-				i.set("warehouse","Libberhedi finished Products - NAVYA")
-
-			else:
-				i.set("warehouse","Navya Store Office - NAVYA")
-
-
-
-
 
 
 @frappe.whitelist()
