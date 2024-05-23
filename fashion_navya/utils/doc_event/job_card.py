@@ -46,3 +46,36 @@ def make_timesheet_all(doc,method):
 				ts.submit()
 			except:
 				pass
+
+
+def time_logs_into_timesheets(doc, method):
+	if method == "on_submit" and doc.doctype == "Job Card" and doc.docstatus == 1:
+		for log in doc.time_logs:
+			dif=log.time_in_mins/60
+			timesheet = frappe.new_doc("Timesheet")
+			timesheet.update({
+                		    "start_date": str(log.from_time),
+                		    "end_date": str(log.to_time),
+                		    "employee": log.employee,
+                		    "source_type": "Job Card",
+                		    "job_card": doc.name,
+                		    "total_hours": dif
+            		    })
+
+			timesheet.append("time_logs", {
+                		    "from_time": str(log.from_time),
+                		    "to_time": str(log.to_time),
+                		    "completed": 1,
+                		    "hours": dif,
+                		    "job_card": doc.name,
+                		    "activity_type": "Execution"
+
+
+                            })
+
+			try:
+				timesheet.insert(ignore_permissions=True)
+				timesheet.submit()
+
+			except Exception as e:
+				frappe.log_error(f"Error creating timesheet for Job Card {doc.name}: {e}")

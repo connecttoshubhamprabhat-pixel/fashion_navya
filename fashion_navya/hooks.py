@@ -332,7 +332,7 @@ doc_events = {
                             "Job Card":{
                                     "before_submit":["fashion_navya.utils.doc_event.job_card.qty_check_jc"],
                                     "validate":["fashion_navya.utils.doc_event.api_1.set_branch_jc","fashion_navya.utils.doc_event.jc.se_check_all_jc"],
-                                    "on_submit":["fashion_navya.utils.doc_event.job_card.make_timesheet_all"],
+                                    "on_submit":["fashion_navya.utils.doc_event.job_card.time_logs_into_timesheets"],
 
                                     },
                             "Consolidated physical Stock Count":{
@@ -463,6 +463,7 @@ override_whitelisted_methods = {
 override_doctype_class = {
     "POS Invoice":"fashion_navya.utils.overides.posi.CustomPOSInvoice",
     "File":"fashion_navya.utils.overides.file.CustomFile",
+    "Job Card":"fashion_navya.utils.overides.jc.CustomJobCard",
     "BOM Creator":"fashion_navya.utils.overides.bomc.CustomBOMCreator",
     "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
     "Asset":["fashion_navya.utils.overides.override_asset.CustomAsset"],

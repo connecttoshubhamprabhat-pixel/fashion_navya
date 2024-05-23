@@ -64,6 +64,7 @@ def office_time_start_end(doc,method):
 @frappe.whitelist()
 def job_card(doc,method):
 	jc=[]
+	return
 	if doc.job_card:
 		jcdoc=frappe.get_doc("Job Card",doc.job_card)
 		if jcdoc.status=="Completed":
@@ -123,4 +124,3 @@ def nine_hours_validations(doc,method):
 			frappe.throw(" 9 घंटे से जायदा हो रहे है ")
 		if hours<0:
 			frappe.throw("Date सही करो ")
-
