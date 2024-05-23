@@ -83,9 +83,7 @@ def get_items(date=None,warehouse=None):
 
 
 @frappe.whitelist()
-def get_items_new(warehouse=None,item_group=None,project=None,max='0',min='0'):
-	max=int(max)
-	min=int(min)
+def get_items_new(warehouse=None,item_group=None,project=None):
 	if not warehouse:
 		return
 	w=frappe.get_doc("Warehouse",warehouse)
@@ -124,38 +122,25 @@ def get_items_new(warehouse=None,item_group=None,project=None,max='0',min='0'):
 	items=list(set(items))
 	items_details=[]
 	for i in items:
-		if max==0:
-			d={}
-			qty=[0]
-			d['item_code']=i
-			for w in w_list:
-				get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and actual_qty>0 and warehouse='{}' """.format(i,w),as_dict=1)
-				if get_bin:
-					if get_bin[0]['qty']!=None:
-						qty.append(get_bin[0]['qty'])
-			d['qty']=sum(qty)
-			items_details.append(d)
-
-		else:
-			get_price=frappe.db.sql("""select name  from `tabItem Price`  where item_code='{}' and price_list_rate between {} and {}   """.format(i,min,max),as_dict=1)
-			if len(get_price)!=0:
-				d={}
-				qty=[0]
-				d['item_code']=i
-				for w in w_list:
-					get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and actual_qty>0 and warehouse='{}' """.format(i,w),as_dict=1)
-					if get_bin:
-						if get_bin[0]['qty']!=None:
-							qty.append(get_bin[0]['qty'])
-				d['qty']=sum(qty)
-				items_details.append(d)
-
-
+		d={}
+		qty=[0]
+		d['item_code']=i
+		for w in w_list:
+			get_bin=frappe.db.sql("""select sum(actual_qty) as qty from `tabBin` where item_code='{}' and actual_qty>0 and warehouse='{}' """.format(i,w),as_dict=1)
+			if get_bin:
+				if get_bin[0]['qty']!=None:
+					qty.append(get_bin[0]['qty'])
+					
+		d['qty']=sum(qty)
+		items_details.append(d)
+		
 	if items_details:
 		print(items_details)
 		return items_details
 	else:
 		return []
+
+		
 
 
 
@@ -269,6 +254,7 @@ def merge_entry(items=None):
 def collab_items(doc,method):
 	if doc.items and doc.warehouse:
 		w=frappe.get_doc("Warehouse",doc.warehouse)
+		if w.parent_warehouse:
 		items=[]
 		dup=[]
 		ilist=[]
@@ -424,11 +410,9 @@ def consolidated_entry(items=None):
 		itemdoc.set("dqty",sum(diff_mins))
 		itemdoc.set("diff_qty",sum(diff_mins))
 		physical.set("old",doc.name)
-		itemdoc.set("location",doc.location)
 		itemdoc.insert(ignore_permissions=True)
 		print()
 		physical.set("consolidated_doc",itemdoc.name)
-		physical.set("location",doc.location)
 		physical.insert(ignore_permissions=True)
 		frappe.msgprint("Created")
 
@@ -444,23 +428,3 @@ def update_after_submits_all(doc,method):
 		diff=i.sqty-i.aqty
 		i.set("dqty",0)
 		i.set("dqty",diff)
-
-
-
-
-@frappe.whitelist()
-def update_location(doc,method):
-	if doc.warehouse:
-		w=frappe.get_doc("Warehouse",doc.warehouse)
-		if w.parent_warehouse in ['Santushti - NAVYA']:
-			doc.set("location","Santushti")
-
-		if w.parent_warehouse in ['Sainik Farm - NAVYA']:
-			doc.set("location","Sainik Farm")
-
-		if w.parent_warehouse in ['Pune - NAVYA']:
-			doc.set("location","Pune")
-
-		if w.parent_warehouse in ['Libberhedi Raw Material - NAVYA']:
-			doc.set("location","Libberhedi")
-

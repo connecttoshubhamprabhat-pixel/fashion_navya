@@ -264,15 +264,17 @@ def create_and_approve_drawing(item_name, drw_name):
 #create work order
 @frappe.whitelist()
 def make_work_order_kit(name=None):
-        d = {"doctype": "Work Order", "production_item": name}
+	d = {"doctype": "Work Order", "production_item": name}
+	get_bom = frappe.get_all("BOM", filters={"item": name, "docstatus": 1, "is_active": 1, "is_default": 1}, fields=["name", "quantity"])
+	if not get_bom:
+		frappe.throw("BOM is missing for the item: {}".format(name))
 
-        get_bom = frappe.get_all("BOM", filters={"item": name, "docstatus": 1, "is_active": 1, "is_default": 1}, fields=["name", "quantity"])
-        if not get_bom:
-                frappe.throw("BOM is missing for the item: {}".format(name))
 
-        d['qty'] = get_bom[0].quantity
-        d['bom_no'] = get_bom[0].name
-        doc = frappe.get_doc(d)
-        doc.insert(ignore_permissions=True)
-        #doc.submit()
-        frappe.msgprint("Created successfully")
+	d['qty'] = get_bom[0].quantity
+	d['bom_no'] = get_bom[0].name
+	d['wip_warehouse']="Semi finished Sampling Unit - NAVYA"
+	d['fg_warehouse']="Navya Store Office - NAVYA"
+	doc = frappe.get_doc(d)
+	doc.insert(ignore_permissions=True)
+	#doc.submit()
+	frappe.msgprint("Created successfully")

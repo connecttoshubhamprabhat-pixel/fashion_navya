@@ -1662,3 +1662,8 @@ def re_order_remove_item_wise(items=None):
 			frappe.db.commit()
 			
 	frappe.msgprint("Removed Re-order")
+
+
+
+
+

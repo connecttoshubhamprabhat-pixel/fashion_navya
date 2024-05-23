@@ -118,6 +118,7 @@ def cancel_doc_si_series(doc,method):
             frappe.db.commit()
 
 
+
 @frappe.whitelist(allow_guest=True)
 def set_si_custom_series(doc,method):
     prefix_list=[]
@@ -191,3 +192,53 @@ def get_current_financial_year():
         return f"{today.year - 1}-{today.year % 100:02d}"
     else:
         return f"{today.year}-{(today.year + 1) % 100:02d}"
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def set_cost_center_si(doc,method):
+    if doc.is_pos:
+        if doc.set_warehouse=="Santushti - NAVYA":
+            for i in doc.items:
+                i.set("cost_center","04 - Santushti - NAVYA")
+                
+                
+            for j in doc.taxes:
+                j.set("cost_center","04 - Santushti - NAVYA")
+                
+        
+        if doc.set_warehouse=="Pune - NAVYA":
+            for m in doc.items:
+                m.set("cost_center","05 - Pune Shop - NAVYA")
+                
+            for k in doc.taxes:
+                k.set("cost_center","05 - Pune Shop - NAVYA")
+    
+    else:
+        so=[]
+        for j in doc.items:
+            if j.sales_order:
+                so.append(j.sales_order)
+                break
+        if so:
+            sodoc=frappe.get_doc("Sales Order",so[-1])
+            if sodoc.custom_shop_location in ["Santushti","Online"]:
+                for i in doc.items:
+                    i.set("cost_center","04 - Santushti - NAVYA")
+                    
+                for j in doc.taxes:
+                    j.set("cost_center","04 - Santushti - NAVYA")
+                    
+            if sodoc.custom_shop_location in ["Pune"]:
+                for m in doc.items:
+                    m.set("cost_center","05 - Pune Shop - NAVYA")
+                    
+                for k in doc.taxes:
+                    k.set("cost_center","05 - Pune Shop - NAVYA")
+
+
+
+
+
+

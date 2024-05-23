@@ -368,9 +368,7 @@ doc_events = {
 
 
                                             },
-					"Design Elements":{
-							"on_submit":["fashion_navya.utils.doc_event.api_4.make_delement_el"],
-						},
+					""
 
 }
 

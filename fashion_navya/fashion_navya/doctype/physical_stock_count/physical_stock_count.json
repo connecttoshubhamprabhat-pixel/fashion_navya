@@ -7,7 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_pzws",
+  "min",
+  "column_break_hl1t",
+  "max",
+  "section_break_s3cz",
   "posting",
+  "location",
   "old",
   "scan_barcode",
   "consolidated",
@@ -155,12 +160,40 @@
    "label": "OLD Physical",
    "options": "Physical Stock Count",
    "read_only": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Select",
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Location",
+   "options": "\nSantushti\nSainik Farm\nPune\nLibberhedi"
+  },
+  {
+   "fieldname": "section_break_s3cz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "min",
+   "fieldtype": "Data",
+   "label": "Min Price"
+  },
+  {
+   "fieldname": "column_break_hl1t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "max",
+   "fieldtype": "Data",
+   "label": "Max Price"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-02-22 12:51:36.377280",
+ "modified": "2024-05-15 10:24:35.713426",
  "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Physical Stock Count",
