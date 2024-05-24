@@ -5,143 +5,100 @@ from frappe import _
 import re
 from frappe.utils import flt, time_diff_in_hours
 
-
-
 def execute(filters=None):
-	filters = frappe._dict(filters or {})
-	columns = get_columns()
-	data = get_data(filters)
-	return columns, data
-
+    filters = frappe._dict(filters or {})
+    columns = get_columns()
+    data = get_data(filters)
+    return columns, data
 
 def get_data(filters):
 	data = []
-	condition=" "
-	if not filters.project:
-		return []
-		
-	get_items=frappe.db.sql("""select DISTINCT name from `tabItem`  where project='{}' and  variant_of is not null  """.format(filters.project),as_dict=1)
-	get_mtm=frappe.db.sql("""select DISTINCT name from `tabItem`  where project='{}' and name like '%MTM%'  """.format(filters.project),as_dict=1)
-	if get_items:
+	condition = ""
+
+	if filters.project_range == "1400-1500":
+		condition = "  CAST(SUBSTRING(`project`, 6) AS UNSIGNED) BETWEEN 1400 AND 1500"
+	elif filters.project_range == "1500-1600":
+		condition = "   CAST(SUBSTRING(`project`, 6) AS UNSIGNED) BETWEEN 1500 AND 1600"
+	elif filters.project_range == "1600-1700":
+		condition = "  CAST(SUBSTRING(`project`, 6) AS UNSIGNED) BETWEEN 1600 AND 1700"
+	elif filters.project_range == "1800-1900":
+		condition = "  CAST(SUBSTRING(`project`, 6) AS UNSIGNED) BETWEEN 1800 AND 1900"
+
+	if condition:
+		get_items = frappe.db.sql("""
+            SELECT DISTINCT name
+            FROM `tabItem`
+            WHERE item_group IN ('Customise', 'Ready Stock', 'Sample', 'Template')
+            AND {}
+        """.format(condition), as_dict=1)
+
 		for i in get_items:
-			d={}
-			item=i['name']
-			d['item']=item
-			doc=frappe.get_doc("Item",item)
-			sil=" ".join(re.findall("[a-zA-Z]+",doc.variant_of))
-			d['silvit']=sil
-			d['item_name']=doc.item_name
+			d = {}
+			item = i['name']
+			d['item'] = item
+			doc = frappe.get_doc("Item", item)
+			print(doc.name)
+			if doc.variant_of:
+				sil = " ".join(re.findall("[a-zA-Z]+", doc.variant_of))
+				d['silvit'] = sil
 
-			ptt=frappe.db.sql(""" select name from `tabPattern` where item_code='{}' and docstatus=1 and sheet_no in (2,4) """.format(item),as_dict=1)
-			drw=frappe.db.sql(""" select name from `tabDrawing` where item_code='{}' and docstatus=1 """.format(item),as_dict=1)
-			if len(ptt)>2:
-				d['isptt']="Yes"
-			else:
-				d['isptt']="No"
+			d['item_name'] = doc.item_name
 
-			if len(drw)!=0:
-				d['isdrw']="Yes"
-			else:
-				d['isdrw']="No"
-				
-			data.append(d)
-	
-	if get_mtm:
-		#frappe.msgprint("feb22")
-		for j in get_mtm:
-			d={}
-			item=j['name']
-			d['item']=item
-			doc=frappe.get_doc("Item",item)
-			split=doc.name.split("-")
-			#sil=" ".join(re.findall("[a-zA-Z]+",doc.variant_of))
-			#d['silvit']=sil
-			d['item_name']=doc.item_name
+			ptt = frappe.db.sql("""
+                SELECT name
+                FROM `tabPattern`
+                WHERE item_code = %s AND docstatus = 1 AND sheet_no IN (2, 4)
+            """, item, as_dict=1)
 
-			ptt=frappe.db.sql(""" select name from `tabPattern` where item_code='{}' and docstatus=1 and sheet_no in (2,4) """.format(item),as_dict=1)
-			drw=frappe.db.sql(""" select name from `tabDrawing` where item_code='{}' and docstatus=1 """.format(item),as_dict=1)
-			if len(ptt)>2:
-				d['isptt']="Yes"
-			else:
-				d['isptt']="No"
 
-			if len(drw)!=0:
-				d['isdrw']="Yes"
-			else:
-				d['isdrw']="No"
-				
-			data.append(d)
-	
-			
+			drw = frappe.db.sql("""
+                SELECT name
+                FROM `tabDrawing`
+                WHERE item_code = %s AND docstatus = 1
+            """, item, as_dict=1)
 
-			
-			
-	
+			d['isptt'] = "Yes" if len(ptt) >= 2 else "No"
+			d['isdrw'] = "Yes" if len(drw) != 0 else "No"
+
+			# Only add items missing drawing or pattern
+			if d['isptt'] == "No" or d['isdrw'] == "No":
+				data.append(d)
+
 	return data
 
-
-
-
-
-
-
-
 def get_columns():
-	return [
-
-		{
-			"label":"Item",
-			"fieldtype": "Link",
-			"fieldname": "item",
-			"options": "Item",
-			"width":170,
-		},
-		{
-			"label":"Item Name",
-			"fieldtype": "Data",
-			"fieldname": "item_name",
-			"width":210,
-		},
-		{
-			"label":"Silhouette",
-			"fieldtype": "Data",
-			"fieldname": "silvit",
-			"width":180,
-		},
-	
-		# {
-		# 	"label": _("Pattern"),
-		# 	"fieldtype": "Link",
-		# 	"fieldname": "pattern",
-		# 	"options": "Pattern",
-		# 	"width":180,
-		# },
-
-		{
-			"label":"IS Pattern?",
-			"fieldtype": "Select",
-			"fieldname": "isptt",
-			"options":["","Yes","No"],
-			"width":165,
-		},
-
-		# {
-		# 	"label": _("Drawing"),
-		# 	"fieldtype": "Link",
-		# 	"fieldname": "drw",
-		# 	"options": "Drawing",
-		# 	"width":180,
-		# },
-
-		
-		{
-			"label":"IS Drawing?",
-			"fieldtype": "Select",
-			"fieldname": "isdrw",
-			"options":["","Yes","No"],
-			"width":165,
-		},
-
-
-
-]
+    return [
+        {
+            "label": "Item",
+            "fieldtype": "Link",
+            "fieldname": "item",
+            "options": "Item",
+            "width": 170,
+        },
+        {
+            "label": "Item Name",
+            "fieldtype": "Data",
+            "fieldname": "item_name",
+            "width": 210,
+        },
+        {
+            "label": "Silhouette",
+            "fieldtype": "Data",
+            "fieldname": "silvit",
+            "width": 180,
+        },
+        {
+            "label": "IS Pattern?",
+            "fieldtype": "Select",
+            "fieldname": "isptt",
+            "options": ["", "Yes", "No"],
+            "width": 165,
+        },
+        {
+            "label": "IS Drawing?",
+            "fieldtype": "Select",
+            "fieldname": "isdrw",
+            "options": ["", "Yes", "No"],
+            "width": 165,
+        },
+    ]
