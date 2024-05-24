@@ -659,7 +659,7 @@ def set_read_flilter_logs(doc,method):
 
 
 @frappe.whitelist()
-def set_warehouse_wo(doc,method):
+def set_warehouse_wos_1(doc,method):
     if doc.custom_skip_warehouse:
          return
     doc.set("wip_warehouse","Sampling Unit - NAVYA")
@@ -668,8 +668,32 @@ def set_warehouse_wo(doc,method):
     if doc.sales_order:
         return
 
+    if not itemdoc.variant_of:
+        split_name=itemdoc.name.split("-")
+        get_parent_name=split_name[:-1]
+        if frappe.db.exists("Item",get_parent_name) and doc.production_plan:
+            get_wo_parent=frappe.db.sql("""select name from `tabWork Order` where docstatus<2 and production_plan='{}' and production_item='{}'  """.format(doc.production_plan,get_parent_name),as_dict=1)
+            if len(get_wo_parent)!=0:
+                wo_parent_doc=frappe.get_doc("Work Order",get_wo_parent[0]['name'])
+                doc.set("wip_warehouse",wo_parent_doc.wip_warehouse)
+                doc.set("fg_warehouse",wo_parent_doc.fg_warehouse)
+                return
+            else:
+                doc.set("wip_warehouse","Sampling Unit - NAVYA")
+                doc.set("fg_warehouse","Navya Store Office - NAVYA")
+                return
+
+
+    is_so=[]
+    if doc.production_plan:
+        pp=frappe.get_doc("Production Plan",doc.production_plan)
+        if pp.custom_production_plan_type in ["Sales Order"]:
+            is_so.append("a")
+
+
+
     split_item=doc.production_item.split("-")
-    if "BP" in  split_item and "RTW" in split_item and doc.custom_skip_warehouse==0:
+    if not is_so and "BP" in  split_item and "RTW" in split_item and doc.custom_skip_warehouse==0:
         doc.set("wip_warehouse","Libberheri Work In Progress - NAVYA")
         doc.set("fg_warehouse","Libberhedi finished Products - NAVYA")
         if not itemdoc.variant_of:
@@ -738,3 +762,69 @@ def add_item_to_wocom(items=None):
 
         doc.save()
         frappe.msgprint("created")
+
+
+
+
+
+@frappe.whitelist()
+def set_warehouse_wo(doc, method):
+    if doc.custom_skip_warehouse:
+        return
+
+    default_wip_warehouse = "Sampling Unit - NAVYA"
+    default_fg_warehouse = "Navya Store Office - NAVYA"
+
+    doc.set("wip_warehouse", default_wip_warehouse)
+    doc.set("fg_warehouse", default_fg_warehouse)
+
+    itemdoc = frappe.get_doc("Item", doc.production_item)
+
+    if doc.sales_order:
+        return
+
+    if not itemdoc.variant_of:
+        split_name = itemdoc.name.split("-")
+        get_parent_name = "-".join(split_name[:-1])
+
+        if frappe.db.exists("Item", get_parent_name) and doc.production_plan:
+            get_wo_parent = frappe.db.sql("""
+                select name from `tabWork Order`
+                where docstatus < 2
+                  and production_plan = %s
+                  and production_item = %s
+            """, (doc.production_plan, get_parent_name), as_dict=1)
+
+            if get_wo_parent:
+                wo_parent_doc = frappe.get_doc("Work Order", get_wo_parent[0]['name'])
+                doc.set("wip_warehouse", wo_parent_doc.wip_warehouse)
+                doc.set("fg_warehouse", wo_parent_doc.fg_warehouse)
+                return
+            else:
+                doc.set("wip_warehouse", default_wip_warehouse)
+                doc.set("fg_warehouse", default_fg_warehouse)
+                return
+
+    is_so = []
+    if doc.production_plan:
+        pp = frappe.get_doc("Production Plan", doc.production_plan)
+        if pp.custom_production_plan_type == "Sales Order":
+            is_so.append("a")
+
+    split_item = doc.production_item.split("-")
+    if not is_so and "BP" in split_item and "RTW" in split_item and not doc.custom_skip_warehouse:
+        doc.set("wip_warehouse", "Libberheri Work In Progress - NAVYA")
+        doc.set("fg_warehouse", "Libberhedi Finished Products - NAVYA")
+
+        if not itemdoc.variant_of:
+            doc.set("wip_warehouse", "Semi Finished Libberhedi - NAVYA")
+            doc.set("fg_warehouse", "Libberhedi Finished Products - NAVYA")
+
+        if doc.operations:
+            for operation in doc.operations:
+                operation.set("workstation", "Libberheri Unit")
+
+    else:
+        if not itemdoc.variant_of:
+            doc.set("wip_warehouse", "Semi Finished Sampling Unit - NAVYA")
+            doc.set("fg_warehouse", default_fg_warehouse)
