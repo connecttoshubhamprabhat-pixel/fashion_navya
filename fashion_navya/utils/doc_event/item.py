@@ -629,7 +629,7 @@ def check_subconracted(doc,method):
 
 
 		if "SMPL" in names:
-			if "HEK"  in names and "SMPL" in names:
+			if "SMPL" in names:
 				doc.set("is_sub_contracted_item",0)
 
 			if "k"  in names or  "BPK" in names:
@@ -643,7 +643,7 @@ def check_subconracted(doc,method):
 				doc.set("is_sub_contracted_item",0)
 
 		if "RTW" in names and "BP" in names:
-			if "HEK" in names or  "BPK" in names or "k" in names:
+			if  "BPK" in names or "k" in names:
 				doc.set("is_sub_contracted_item",0)
 
 		if "DPK" in names:
@@ -653,7 +653,7 @@ def check_subconracted(doc,method):
 			if "BPK" in names:
 				doc.set("is_sub_contracted_item",0)
 				
-			if "HEK" in names or "k" in names:
+			if  "k" in names:
 				doc.set("is_sub_contracted_item",1)
 
 

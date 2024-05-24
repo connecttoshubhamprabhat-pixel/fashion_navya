@@ -247,7 +247,7 @@ doc_events = {
             "BOM":{
                # "before_save":["fashion_navya.utils.doc_event.custom.make_rtw_item"],
                "before_save":["fashion_navya.utils.doc_event.bom.check_kit_approved","fashion_navya.utils.doc_event.pattern.set_type_bom","fashion_navya.utils.doc_event.bom.fetch_fabrice_ptt"],
-               "before_submit":["fashion_navya.utils.doc_event.api_3.set_conver_item","fashion_navya.utils.doc_event.api_1.make_default_bom","fashion_navya.utils.doc_event.api_1.make_mr_first_bom","fashion_navya.utils.doc_event.bom.before_submit_check_kit","fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
+               "before_submit":["fashion_navya.utils.doc_event.api_4.pattern_reqd","fashion_navya.utils.doc_event.api_3.set_conver_item","fashion_navya.utils.doc_event.api_1.make_default_bom","fashion_navya.utils.doc_event.api_1.make_mr_first_bom","fashion_navya.utils.doc_event.bom.before_submit_check_kit","fashion_navya.utils.doc_event.mr.check_is_bom_mr","fashion_navya.utils.doc_event.api_2.template_bom"],
                "after_insert":["fashion_navya.utils.doc_event.item.submit_bom_project","fashion_navya.utils.doc_event.wo.replace_items_bom","fashion_navya.utils.doc_event.bom.remove_disabled_items"],
                "on_cancel":["fashion_navya.utils.doc_event.pattern.check_cancel_bom","fashion_navya.utils.doc_event.mr.uncheck_is_bom_mr"],
 
@@ -321,7 +321,7 @@ doc_events = {
 
                                     },
                             "Item Price":{
-                                        "on_update":["fashion_navya.utils.doc_event.item.make_price_from_template","fashion_navya.utils.doc_event.api_1.update_price_item"],
+                                        "on_update":["fashion_navya.utils.doc_event.api_4.prices_his_save","fashion_navya.utils.doc_event.item.make_price_from_template","fashion_navya.utils.doc_event.api_1.update_price_item"],
 
                                     },
                             "Address":{
@@ -452,7 +452,7 @@ scheduler_events = {
 override_whitelisted_methods = {
 	#"frappe.desk.doctype.event.event.get_events": "fashion_navya.event.get_events"
        #"frappe.desk.form.load.getdoc":"fashion_navya.utils.overides.load.getdoc",
-       "erpnext.manufacturing.doctype.job_card.job_card.make_time_log":"fashion_navya.utils.doc_event.jc.make_time_log",
+       #"erpnext.manufacturing.doctype.job_card.job_card.make_time_log":"fashion_navya.utils.doc_event.jc.make_time_log",
        "frappe.www.list.get_list_data":"fashion_navya.utils.website.web_frm.get_list_data_custom",
        "erpnext.selling.page.point_of_sale.point_of_sale.get_items":"fashion_navya.utils.overides.pos.get_items_custom",
        "erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability":"fashion_navya.utils.overides.pos.get_stock_availability_custom",

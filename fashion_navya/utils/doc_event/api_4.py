@@ -2,6 +2,8 @@ import frappe
 import json
 import re
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+from frappe.utils import flt
 
 @frappe.whitelist()
 def get_urls_elements(docname):
@@ -459,3 +461,53 @@ def make_sales_invoice():
 
 
 
+@frappe.whitelist()
+def prices_his_save(doc,method):
+    today = str(datetime.today())
+    old_doc=doc.get_doc_before_save()
+    old_price=old_doc.price_list_rate
+    new_price=doc.price_list_rate
+    if old_price!=new_price:
+        row = doc.append("custom_price_history", {})
+        row.date=today
+        row.price=doc.price_list_rate
+        row.item=doc.item_code
+
+@frappe.whitelist()
+def pattern_reqd(doc,method):
+    item=frappe.get_doc("Item",doc.item)
+    if item.variant_of:
+        if not doc.default_pattern and doc.pattern_not_required==0:
+            frappe.throw("Pattern is required")
+
+
+
+
+def create_stock_entry_from_work_orders(work_order_list):
+    stock_entry = frappe.new_doc("Stock Entry")
+    stock_entry.stock_entry_type="Material Transfer"
+    stock_entry.rfse="Stock Transfer"
+    stock_entry.add_to_transit=1
+    stock_entry.custom_transit="Default Transit - NAVYA"
+    stock_entry.custom_destination="Libberheri Work In Progress - NAVYA"
+    for wo in work_order_list:
+        work_order_id = wo.get("Id")
+        print(work_order_id)
+        work_order_doc = frappe.get_doc("Work Order", work_order_id)
+        # Add items to the Stock Entry
+        for item in work_order_doc.required_items:
+            itemdoc=frappe.get_doc("Item",item.item_code)
+            if itemdoc.disabled==0:
+                stock_entry.append("items", {
+                    "s_warehouse": item.source_warehouse,
+                    "t_warehouse":"Default Transit - NAVYA",
+                    "item_code": item.item_code,
+                    "qty": flt(item.transferred_qty),
+                    "uom": item.stock_uom,
+                    "stock_uom": item.stock_uom,
+                    "conversion_factor": 1.0
+            })
+            
+            
+        stock_entry.insert()
+        stock_entry.submit()

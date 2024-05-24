@@ -36,7 +36,7 @@ def get_data(filters):
 	from_date=str(date_lists[0])
 	to_date=str(date_lists[1])
 	if not filters.shop:
-		shops=['Pune - NAVYA','Santushti - NAVYA']
+		shops=['Pune - NAVYA','Santushti - NAVYA','Sainik Farm - NAVYA']
 		
 		for s in shops:
 			#group_warehouse=['Pune - NAVYA','Santushti - NAVYA']
@@ -62,6 +62,8 @@ def get_data(filters):
 			d['dstock']=get_out_qty(s)
 			d['rnstock']=get_today_sales_return_qty()
 			d['mstock']=get_stock_entry_qty_today_return(s,from_date,to_date)
+			intial=total_sum-received
+			d['istock']=intial
 			data.append(d)
 
 		
@@ -81,11 +83,12 @@ def get_columns():
 			"width":150,
 		},
 		{
-			"label": _("Total Stock"),
+			"label": _("Initial Stock"),
 			"fieldtype": "Float",
-			"fieldname":"stock",
+			"fieldname":"istock",
 			"width":150,
 		},
+		
 		{
 			"label": _("Today Received"),
 			"fieldtype": "Float",
@@ -108,6 +111,12 @@ def get_columns():
 			"label": _("Today Manual Return"),
 			"fieldtype": "Float",
 			"fieldname":"mstock",
+			"width":150,
+		},
+		{
+			"label": _("Total Stock"),
+			"fieldtype": "Float",
+			"fieldname":"stock",
 			"width":150,
 		},
 	]
@@ -164,7 +173,7 @@ def get_se_balance(w,from_date,to_date):
 
 def get_out_qty(w):
 	qtys = [0]
-	shops_dict = {'Santushti - NAVYA': "Santushti", 'Pune - NAVYA': "Pune"}
+	shops_dict = {'Santushti - NAVYA': "Santushti", 'Pune - NAVYA': "Pune","Sainik Farm - NAVYA":"Sainik Farms"}
 	si_dict = {'Santushti - NAVYA': "Santushti Ready To Wear", 'Pune - NAVYA': "Pune Ready To Wear"}
 	
 	# Get today's delivery notes
