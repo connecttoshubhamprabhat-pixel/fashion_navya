@@ -52,6 +52,8 @@ def make_kit_level_wise(item_name=None,item=None,item_group=None,level=None,imag
     if frappe.db.exists("Item",new_kit_name):
         return
 
+    split=item.split("-")
+
     d={"doctype":"Item","item_group":"M kit","stock_uom":"Meter","image":image,"is_sub_contracted_item":0}
     if project:
         d['project']=project
@@ -63,6 +65,17 @@ def make_kit_level_wise(item_name=None,item=None,item_group=None,level=None,imag
         is_subcontract=0
     if item_group=="Ready Stock":
         is_subcontract=1
+        
+    if "DPK" in split:
+        d['item_group']="DPK"
+        
+        
+    if "HEK" in split:
+        d['item_group']="HEK"
+        
+    if "BPK" in split:
+        d['item_group']="BPK"
+    
     d['is_sub_contracted_item']=is_subcontract
     kit_insert=frappe.get_doc(d)
     try:
@@ -81,6 +94,9 @@ def make_kit_level_wise_old(item_name=None,item=None,item_group=None,level=None,
     print(new_kit_name,"56")
     if frappe.db.exists("Item",new_kit_name):
         return
+    
+
+    split=item.split("-")
 
     d={"doctype":"Item","item_group":"M kit","stock_uom":"Nos","image":image}
     if project:
@@ -92,6 +108,16 @@ def make_kit_level_wise_old(item_name=None,item=None,item_group=None,level=None,
         is_subcontract=0
     if item_group=="Ready Stock":
         is_subcontract=1
+        
+    if "DPK" in split:
+        d['item_group']="DPK"
+        
+    if "HEK" in split:
+        d['item_group']="HEK"
+        
+    if "BPK" in split:
+        d['item_group']="BPK"
+        
     d['is_sub_contracted_item']=is_subcontract
     kit_insert=frappe.get_doc(d)
     try:

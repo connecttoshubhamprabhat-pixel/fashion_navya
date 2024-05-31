@@ -17,7 +17,7 @@ frappe.query_reports["Customise Subcontracted Item To Be Received"] = {
 			label: __("Item Group"),
 			fieldname: "item_group",
 			fieldtype: "Select",
-			options: ["","Ready Stock","Sample","M kit"]
+			options: ["","Ready Stock","Sample","M kit","DPK","BPK","HEK"]
 		},
 		{
 			label: __("Status"),

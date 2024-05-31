@@ -409,6 +409,16 @@ def make_kit_item(name=None):
 		d['project']=doc.project
 		if "RTW" in split_doc and "BPK"  not in split_doc:
 			d['is_sub_contracted_item']=1
+			
+		if "DPK" in split_doc:
+			d['item_group']="DPK"
+			
+		if "HEK" in split_doc:
+			d['item_group']="HEK"
+			
+		if "BPK" in split_doc:
+			d['item_group']="BPK"
+
 		d['item_name']=doc.item_name
 		ndoc=frappe.get_doc(d)
 		ndoc.save(ignore_permissions=True)
@@ -508,6 +518,18 @@ def make_new_item_sub(doc,method):
 		d['project']=old.project
 		if "RTW" in split and "BPK" not in split:
 			d['is_sub_contracted_item']=1
+			
+		if "DPK" in split:
+			d['item_group']="DPK"
+			
+		
+		if "HEK" in split:
+			d['item_group']="HEK"
+			
+		if "BPK" in split:
+			d['item_group']="BPK"
+		
+		
 		new=frappe.get_doc(d)
 		new.insert(ignore_permissions=True)
 
@@ -541,6 +563,17 @@ def make_kit_item_parent(doc,method):
 		d['parent_item']=doc.name
 		if "RTW" in  split and "BPK" not in split:
 			d['is_sub_contracted_item']=0
+			
+		if "DPK" in split:
+			d['item_group']="DPK"
+			
+		if "HEK" in split:
+			d['item_group']="HEK"
+			
+		if "BPK" in split:
+			d['item_group']="BPK"
+
+		
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
 
@@ -553,12 +586,22 @@ def make_kit_item_parent_save(doc,method):
 		new_item=doc.name+"-k"
 		if frappe.db.exists("Item",new_item):
 			return
-
-
+			
+		split=doc.name.split("-")
 		d={'doctype':"Item","kit_item":1,"is_sub_contracted_item":0,"item_group":"M kit","stock_uom":"Nos","item_code":new_item,"image":doc.image}
 		d['project']=doc.project
 		d['item_name']=doc.item_name
 		d['parent_item']=doc.name
+		
+		if "DPK" in split:
+			d['item_group']="DPK"
+			
+		if "HEK" in split:
+			d['item_group']="HEK"
+			
+		if "BPK" in split:
+			d['item_group']="BPK"
+		
 		ndoc=frappe.get_doc(d)
 		ndoc.insert(ignore_permissions=True)
 

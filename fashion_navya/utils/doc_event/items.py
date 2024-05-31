@@ -492,8 +492,7 @@ def bom_fetched(parent=None,size=None):
 @frappe.whitelist(allow_guest=True)
 def make_bom_kit_new(doc,method):
     return
-    if not doc.variant_of and doc.item_group=="M kit":
-        #frappe.throw("aaaaaa")
+    if not doc.variant_of and doc.item_group in  ["M kit","DPK","HEK","BPK"]:
         split_parent=doc.name.split("-")
         get_parent=split_parent[:-1]
         join_parent="-".join(get_parent)
@@ -554,7 +553,7 @@ def make_bom_kit_new_manual(name=None):
     if not name:
         return
     doc=frappe.get_doc("Item",name)
-    if not doc.variant_of and doc.item_group=="M kit":
+    if not doc.variant_of and doc.item_group in ["M kit","DPK","HEK","BPK"]:
         #frappe.throw("aaaaaa")
         split_parent=doc.name.split("-")
         get_parent=split_parent[:-1]
@@ -574,7 +573,7 @@ def make_bom_kit_new_manual(name=None):
                 get_bom_smpl=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(join_smpl),as_dict=1)
                 get_bom_kit=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.name),as_dict=1)
                 if not get_bom_kit and get_bom_smpl:
-                    if doc.has_variants==0 and not doc.variant_of and doc.item_group=="M kit":
+                    if doc.has_variants==0 and not doc.variant_of and doc.item_group in ["M kit","DPK","HEK","BPK"]:
                         bm=frappe.get_doc("BOM",get_bom_smpl[0]['name'])
                         d=frappe.copy_doc(bm)
                         d.set("item",doc.name)
@@ -598,7 +597,7 @@ def make_bom_kit_new_manual(name=None):
                     get_bom_kit=frappe.db.sql(""" select name from `tabBOM` where docstatus=1 and item='{}' """.format(doc.name),as_dict=1)
                     if not get_bom_kit and get_bom_smpl:
                         print("5000")
-                        if doc.has_variants==0 and not doc.variant_of and doc.item_group=="M kit":
+                        if doc.has_variants==0 and not doc.variant_of and doc.item_group in ["M kit","DPK","HEK","BPK"]:
                             #print("502")
                             bm=frappe.get_doc("BOM",get_bom_smpl[0]['name'])
                             d=frappe.copy_doc(bm)
