@@ -110,6 +110,52 @@ class CustomProductionPlan(ProductionPlan):
 
 		wo.set_work_order_operations()
 		wo.set_required_items()
+		print(wo.material_request,"aaa")
+		if wo.material_request:
+			mdoc=frappe.get_doc("Material Request",wo.material_request)
+			if mdoc.custom_issue_description:
+				wo.set("custom_issue_description",mdoc.custom_issue_description)
+				
+			for im in mdoc.items:
+				if im.custom_sales_order_illustration:
+					wo.set("custom_illustration_image",im.custom_sales_order_illustration)
+
+			so_name=[]
+			for qtr in mdoc.items:
+				if qtr.sales_order:
+					wo.sales_order=qtr.sales_order
+					so_name.append(qtr.sales_order)
+					break
+			#new
+			if so_name:
+					sow=frappe.get_doc("Sales Order",so_name[-1])
+					wo.set("over_all_level",sow.over_all_level)
+					wo.set("custom_outfit",sow.outfit)
+					for so_t in sow.items:
+						if so_t.item_code==wo.production_item:
+							wo.set("tdress",so_t.custom_top_length)
+							wo.set("custom_attributes",so_t.custom_attributes)
+							wo.set("custom_armhole",so_t.custom_armhole)
+							wo.set("custom_waist",so_t.custom_waists)
+							wo.set("bottom_length",so_t.bottom_length)
+							wo.set("bottom_waist",so_t.custom_bottom_waist)
+							wo.set("sleeve_length",so_t.sleeve_length)
+							wo.set("plus",so_t.plus)
+							wo.set("minus",so_t.minus)
+							wo.set("custom_extra",so_t.custom_extra)
+							wo.set("size",so_t.size)
+							wo.set("overall_fit",so_t.custom_overall_fit)
+							wo.set("custom_bust",so_t.custom_bust)
+							wo.set("custom_top_waist",so_t.custom_top_waist)
+							wo.set("custom_top_hip",so_t.custom_top_hip)
+							wo.set("custom_lower_waist",so_t.custom_lower_waist)
+							wo.set("custom_lower_hip",so_t.custom_lower_hip)
+							wo.set("custom_sleeve_length",so_t.custom_sleeve_length)
+							wo.set("custom_shoulder",so_t.custom_shoulder)
+							wo.set("custom_bottom_length",so_t.custom_bottom_length)
+		
+			
+		#frappe.throw("hellodd")
 		try:
 			wo.flags.ignore_mandatory = True
 			wo.flags.ignore_validate = True

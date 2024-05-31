@@ -112,19 +112,59 @@ def fetch_items_wo(values=None):
 
 @frappe.whitelist(allow_guest=True)
 def fetch_attributes_so(doc,method):
-	if doc.sales_order and doc.docstatus==0:
-		so=frappe.get_doc("Sales Order",doc.sales_order)
+	so_name=[]
+	if doc.material_request:
+		mdoc=frappe.get_doc("Material Request",doc.material_request)
+		for qtr in mdoc.items:
+			if qtr.sales_order:
+				so_name.append(qtr.sales_order)
+				break
+		if mdoc.custom_issue_description:
+			doc.set("custom_issue_description",mdoc.custom_issue_description)
+		
+		for im in mdoc.items:
+			if im.custom_sales_order_illustration:
+				doc.set("custom_illustration_image",im.custom_sales_order_illustration)
+
+	
+	if doc.sales_order:
+		so_name.append(doc.sales_order)
+	
+	else:
+		if doc.production_plan:
+			get_mr=[]
+			pp=frappe.get_doc("Production Plan",doc.production_plan)
+			for mr in pp.po_items:
+				if mr.tem_code==doc.production_item:
+					get_mr.append(mr.material_request)
+					break
+			
+			if get_mr:
+				mr_doc=frappe.get_doc("Material Request",get_mr[0])
+				for mr_item in mr_doc.items:
+					if mr_item.sales_order:
+						so_name.append(mr_item.sales_order)
+						break
+
+	print(so_name,"so_name333333333333333333")		
+	if so_name:
+		so=frappe.get_doc("Sales Order",so_name[-1])
+		doc.set("over_all_level",so.over_all_level)
+		doc.set("custom_outfit",so.outfit)
 		for i in so.items:
 			if i.item_code==doc.production_item:
-				doc.set("tdress",i.tdress)
+				doc.set("tdress",i.custom_top_length)
 				doc.set("custom_attributes",i.custom_attributes)
+				doc.set("custom_armhole",i.custom_armhole)
+				doc.set("custom_waist",i.custom_waists)
 				doc.set("bottom_length",i.bottom_length)
-				doc.set("bottom_waist",i.bottom_waist)
+				doc.set("bottom_waist",i.custom_bottom_waist)
 				doc.set("sleeve_length",i.sleeve_length)
 				doc.set("plus",i.plus)
 				doc.set("minus",i.minus)
 				doc.set("custom_extra",i.custom_extra)
 				doc.set("size",i.size)
+				doc.set("overall_fit",i.custom_overall_fit)
 				doc.set("custom_bust",i.custom_bust)
 				doc.set("custom_top_waist",i.custom_top_waist)
 				doc.set("custom_top_hip",i.custom_top_hip)
@@ -133,6 +173,9 @@ def fetch_attributes_so(doc,method):
 				doc.set("custom_sleeve_length",i.custom_sleeve_length)
 				doc.set("custom_shoulder",i.custom_shoulder)
 				doc.set("custom_bottom_length",i.custom_bottom_length)
+				frappe.db.commit()
+	
+	frappe.db.commit()
 
 
 
@@ -383,7 +426,7 @@ def se_check_incharge_before_receive(doc, method):
 
 			if incharge_warehouse not in user_warehouse_list:
 				msg = f"Only {wo_doc.incharge} can receive because they are in charge of this Work Order. You can verify in the 'Incharge' field of the Work Order."
-				frappe.throw(msg)
+				frappe.msgprint(msg)
 
 
 

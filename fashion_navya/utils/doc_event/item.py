@@ -1628,10 +1628,13 @@ def make_price_from_template(doc,method):
 				item=i['name']
 				new=frappe.copy_doc(doc_name)
 				new.item_code=item
+				new.workflow_state="Draft"
 				exists=frappe.db.sql(""" select name from `tabItem Price` where item_code='{}' """.format(item),as_dict=1)
 				if len(exists)==0:
 					try:
 						new.insert(ignore_permissions=True)
+						frappe.db.sql(""" update `tabItem Price` set workflow_state='Approved' where name='{}' """.format(new.name))
+						frappe.db.commit()
 					except:
 						pass
 
