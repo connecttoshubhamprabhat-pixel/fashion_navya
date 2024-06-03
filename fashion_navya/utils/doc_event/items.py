@@ -123,8 +123,9 @@ def make_customer_items(items=None,so=None,size=None,customer=None):
         #get price_list
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
-        if int(perdoc.cms)>10000:
-            frappe.msgprint("The Price is less then 10000")
+        if int(perdoc.cms)>price:
+            msg_price_1="The Price is less then {}".format(perdoc.cms)
+            frappe.msgprint(msg_price_1)
             return
 
         split_parent=i.split("-")
@@ -218,7 +219,8 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None,rate=0):
         price=set_price(item_code=i)
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
         if int(perdoc.mtm)>rate:
-            frappe.msgprint("The Price is less then 10000")
+            msg_price_2="The Price is less then {}".format(perdoc.mtm)
+            frappe.msgprint(msg_price_2)
             return
 
 
@@ -298,7 +300,8 @@ def make_rtw_item_so(items=None,so=None,size=None,type=None,colour=None,prints=N
         perdoc=frappe.get_doc("Permitted Files","PFL-2023-00008")
         if type=="Customise":
             if int(perdoc.cms)>rate:
-                frappe.msgprint("The Price is less then 10000")
+                msg_price="The Price is less then {}".format(perdoc.cms)
+                frappe.msgprint(msg_price)
                 return
 
         item_doc=frappe.get_doc("Item",m)

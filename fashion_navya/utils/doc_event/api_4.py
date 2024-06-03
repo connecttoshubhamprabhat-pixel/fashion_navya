@@ -614,6 +614,10 @@ def set_attributes_mr(doc,method):
             isu=frappe.get_doc("Issue",get_issus[0]['name'])
             isu.db_set("custom_material_request",doc.name, update_modified=False)
             doc.set("custom_issue_description",get_issus[0]['description'])
+            issue_img=frappe.db.sql("""select file_url from `tabFile` where attached_to_doctype='Issue' and attached_to_name='{}'  """.format(get_issus[0]['name']),as_dict=1)
+            if len(issue_img)!=0:
+                doc.set("custom_issue_image",issue_img[0]['file_url'])
+
         #get image    
         get_ill=frappe.db.sql("""select imageb from `tabSales order Illustration` where sales_order='{}' and item='{}'  """.format(so[-1],item),as_dict=1)
         if len(get_ill)!=0:
@@ -658,3 +662,27 @@ def create_ill(name,items):
         new=frappe.get_doc(d)
         new.insert()
         frappe.msgprint("Created")
+
+
+
+@frappe.whitelist()
+def get_price(name):
+    saved=[]
+    doc=frappe.get_doc("Physical Stock Count",name)
+    for i in doc.items:
+        item=i.item_code
+        item_prices = frappe.get_all("Item Price", filters={"item_code": item}, fields=['price_list_rate'],order_by="modified desc", limit=1)
+        print(item_prices,'item_prices')
+        if item_prices:
+            last_modified_price = item_prices[0].get("price_list_rate")
+            i.set("price",last_modified_price)
+            saved.append("a")
+    if saved:
+        doc.save()
+        frappe.msgprint("Updated")
+        
+
+
+@frappe.whitelist()
+def set_address_tax(doc,method):
+    pass

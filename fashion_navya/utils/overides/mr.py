@@ -116,6 +116,9 @@ class CustomProductionPlan(ProductionPlan):
 			if mdoc.custom_issue_description:
 				wo.set("custom_issue_description",mdoc.custom_issue_description)
 				
+			if mdoc.custom_issue_image:
+				wo.set("custom_issue_image",mdoc.custom_issue_image)
+				
 			for im in mdoc.items:
 				if im.custom_sales_order_illustration:
 					wo.set("custom_illustration_image",im.custom_sales_order_illustration)
