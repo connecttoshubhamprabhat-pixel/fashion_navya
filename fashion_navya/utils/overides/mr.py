@@ -339,120 +339,140 @@ def automated_plan_without_so():
 
 @frappe.whitelist(allow_guest=True)
 def get_pending_material_requests_custom():
-    bom = frappe.qb.DocType("BOM")
-    mr = frappe.qb.DocType("Material Request")
-    mr_item = frappe.qb.DocType("Material Request Item")
-    pending_mr_query = (
-        frappe.qb.from_(mr)
-        .from_(mr_item)
-        .select(mr.name, mr.transaction_date)
-        .distinct()
-        .where(
-            (mr_item.parent == mr.name)
-            & (mr.material_request_type == "Manufacture")
-            & (mr.docstatus == 1)
-            & (mr.custom_is_so == 1)
-            & (mr.custom_bom == 1)
-            & (mr.status != "Stopped")
-            & (mr.company ==frappe.defaults.get_user_default("company"))
-            & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
-            & (
-                ExistsCriterion(
-                    frappe.qb.from_(bom)
-                    .select(bom.name)
-                    .where((bom.item == mr_item.item_code) & (bom.is_active == 1))
-                )
-            )
-        )
-    )
+	bom = frappe.qb.DocType("BOM")
+	mr = frappe.qb.DocType("Material Request")
+	mr_item = frappe.qb.DocType("Material Request Item")
+	# pending_mr_query = (
+	# 	frappe.qb.from_(mr)
+	# 	.from_(mr_item)
+	# 	.select(mr.name, mr.transaction_date)
+	# 	.distinct()
+	# 	.where(
+	# 		(mr_item.parent == mr.name)
+	# 		& (mr.material_request_type == "Manufacture")
+	# 		& (mr.docstatus == 1)
+	# 		& (mr.custom_is_so == 1)
+	# 		& (mr.custom_bom == 1)
+	# 		& (mr.status != "Stopped")
+	# 		& (mr.company ==frappe.defaults.get_user_default("company"))
+	# 		& (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
+	# 		& (
+	# 			ExistsCriterion(
+	# 				frappe.qb.from_(bom)
+	# 				.select(bom.name)
+	# 				.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+	# 			)
+	# 		)
+	# 	)
+	# )
 
-    pending_mr = pending_mr_query.run(as_dict=True)
-    return pending_mr
+	pending_mr_query = """
+SELECT DISTINCT
+    mr.name, 
+    mr.transaction_date
+FROM 
+    `tabMaterial Request` mr
+JOIN 
+    `tabMaterial Request Item` mr_item ON mr_item.parent = mr.name
+WHERE 
+    mr.material_request_type = 'Manufacture'
+    AND mr.docstatus = 1
+    AND mr.custom_is_so = 1
+    AND mr.custom_bom = 1
+    AND mr.status != 'Stopped'
+    AND mr_item.qty > IFNULL(mr_item.ordered_qty, 0)
+	
+"""
+
+	# pending_mr = pending_mr_query.run(as_dict=True)
+	pending_mr = frappe.db.sql(pending_mr_query,as_dict=True)
+	print('pending_mr-----',pending_mr)
+	return pending_mr
 
 
 
 @frappe.whitelist(allow_guest=True)
 def get_pending_material_requests_without_wo():
-    bom = frappe.qb.DocType("BOM")
-    mr = frappe.qb.DocType("Material Request")
-    mr_item = frappe.qb.DocType("Material Request Item")
-    pending_mr_query = (
-        frappe.qb.from_(mr)
-        .from_(mr_item)
-        .select(mr.name, mr.transaction_date)
-        .distinct()
-        .where(
-            (mr_item.parent == mr.name)
-            & (mr.material_request_type == "Manufacture")
-            & (mr.docstatus == 1)
-            & (mr.custom_is_so == 0)
-            & (mr.custom_bom == 1)
-            & (mr.status != "Stopped")
-            & (mr.company ==frappe.defaults.get_user_default("company"))
-            & (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
-            & (
-                ExistsCriterion(
-                    frappe.qb.from_(bom)
-                    .select(bom.name)
-                    .where((bom.item == mr_item.item_code) & (bom.is_active == 1))
-                )
-            )
-        )
-    )
+	bom = frappe.qb.DocType("BOM")
+	mr = frappe.qb.DocType("Material Request")
+	mr_item = frappe.qb.DocType("Material Request Item")
+	pending_mr_query = (
+		frappe.qb.from_(mr)
+		.from_(mr_item)
+		.select(mr.name, mr.transaction_date)
+		.distinct()
+		.where(
+			(mr_item.parent == mr.name)
+			& (mr.material_request_type == "Manufacture")
+			& (mr.docstatus == 1)
+			& (mr.custom_is_so == 0)
+			& (mr.custom_bom == 1)
+			& (mr.status != "Stopped")
+			& (mr.company ==frappe.defaults.get_user_default("company"))
+			& (mr_item.qty > IfNull(mr_item.ordered_qty, 0))
+			& (
+				ExistsCriterion(
+					frappe.qb.from_(bom)
+					.select(bom.name)
+					.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
+				)
+			)
+		)
+	)
 
-    pending_mr = pending_mr_query.run(as_dict=True)
-    return pending_mr
+	pending_mr = pending_mr_query.run(as_dict=True)
+	return pending_mr
 
 
 @frappe.whitelist(allow_guest=True)
 def get_mr_items_custom(self):
-        print("131")
-        if not self.get("material_requests") or not self.get_so_mr_list(
-			"material_request", "material_requests"
-            ):
-            frappe.throw(
-				_("Please fill the Material Requests table"), title=_("Material Requests Required")
-			)
+	print("131",self.get("material_requests"))
+	if not self.get("material_requests") or not self.get_so_mr_list(
+		"material_request", "material_requests"
+		):
+		frappe.throw(
+			_("Please fill the Material Requests table"), title=_("Material Requests Required")
+		)
 
 
-        mr_list = self.get_so_mr_list("material_request", "material_requests")
+	mr_list = self.get_so_mr_list("material_request", "material_requests")
+	print(mr_list)
 
+	bom = frappe.qb.DocType("BOM")
+	mr_item = frappe.qb.DocType("Material Request Item")
 
-        bom = frappe.qb.DocType("BOM")
-        mr_item = frappe.qb.DocType("Material Request Item")
-
-        items_query = (
-			frappe.qb.from_(mr_item)
-			.select(
-				mr_item.parent,
-				mr_item.name,
-				mr_item.item_code,
-				mr_item.warehouse,
-				mr_item.description,
-				((mr_item.qty - mr_item.ordered_qty) * mr_item.conversion_factor).as_("pending_qty"),
-			)
-			.distinct()
-			.where(
-				(mr_item.parent.isin(mr_list))
-				& (mr_item.docstatus == 1)
-				& (mr_item.qty > mr_item.ordered_qty)
-				& (
-					ExistsCriterion(
-						frappe.qb.from_(bom)
-						.select(bom.name)
-						.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
-					)
+	items_query = (
+		frappe.qb.from_(mr_item)
+		.select(
+			mr_item.parent,
+			mr_item.name,
+			mr_item.item_code,
+			mr_item.warehouse,
+			mr_item.description,
+			((mr_item.qty - mr_item.ordered_qty) * mr_item.conversion_factor).as_("pending_qty"),
+		)
+		.distinct()
+		.where(
+			(mr_item.parent.isin(mr_list))
+			& (mr_item.docstatus == 1)
+			& (mr_item.qty > mr_item.ordered_qty)
+			& (
+				ExistsCriterion(
+					frappe.qb.from_(bom)
+					.select(bom.name)
+					.where((bom.item == mr_item.item_code) & (bom.is_active == 1))
 				)
 			)
 		)
+	)
 
-        if self.item_code:
-            items_query = items_query.where(mr_item.item_code == self.item_code)
+	if self.item_code:
+		items_query = items_query.where(mr_item.item_code == self.item_code)
 
-        items = items_query.run(as_dict=True)
+	items = items_query.run(as_dict=True)
 
-        self.add_items(items)
-        self.calculate_total_planned_qty()
+	self.add_items(items)
+	self.calculate_total_planned_qty()
 
 
 
