@@ -1,9 +1,10 @@
 import frappe
 import json
 import re
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt,today
 from frappe import utils
 from frappe.model.naming import make_autoname
+from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry as ste
 
 @frappe.whitelist(allow_guest=True)
 def autoname_wo_custom(doc,method):
@@ -458,3 +459,485 @@ def set_kit_group_old():
 				frappe.db.commit()
 
 
+#This code create the single stock entry for all selected work orders.
+@frappe.whitelist(allow_guest=True)
+def make_stock_entry(work_orders):
+	pass
+	# work_orders = json.loads(work_orders)
+	# wo_list = []
+	# for wo in work_orders:
+	# 	wo_list.append(wo.get("name"))
+
+	# try:
+	# 	if not work_orders:
+	# 		frappe.throw("No work orders provided.")
+		
+
+	# 	if not isinstance(work_orders, list) or len(work_orders) == 0:
+	# 		frappe.throw("Work orders should be a non-empty list.")
+
+	# 	stock_entry = frappe.new_doc("Stock Entry")
+	# 	for wo in work_orders:
+	# 		stock_entry.append("custom_work_order_link",{
+	# 			"work_order":wo.get("name")
+	# 		})
+	# 	stock_entry.stock_entry_type = "Material Transfer for Manufacture"
+	# 	stock_entry.custom_permitted = True
+
+	# 	item_dict = {}  
+	# 	work_order_ref = None  
+
+	# 	for work_order in work_orders:
+	# 		wo_doc = frappe.get_doc("Work Order", work_order)
+
+	# 		if wo_doc.status == "Not Started":
+	# 			wo_doc.update_status(status="In Progress")
+
+	# 		if not work_order_ref:
+	# 			work_order_ref = wo_doc.name
+	# 			stock_entry.naming_series = "MAT-MTFM-.YYYY.-"
+	# 			stock_entry.work_order = wo_doc.name
+	# 			stock_entry.to_warehouse = wo_doc.wip_warehouse
+	# 			stock_entry.db_set("from_bom", 1)
+	# 			stock_entry.db_set("bom_no", wo_doc.bom_no)
+	# 			stock_entry.custom_consolidated_transfer = 1
+	# 			stock_entry.use_multi_level_bom = wo_doc.use_multi_level_bom
+	# 			stock_entry.fg_completed_qty = flt(wo_doc.qty) - flt(wo_doc.produced_qty)
+
+	# 		for item in wo_doc.required_items:
+	# 			item_code = item.item_code
+	# 			qty = item.required_qty
+	# 			from_warehouse = item.source_warehouse
+
+	# 			warehouse = frappe.db.get_value("Warehouse", from_warehouse)
+	# 			if not warehouse:
+	# 				frappe.throw(f"Warehouse {from_warehouse} does not exist for item {item_code}")
+
+	# 			if item_code in item_dict:
+	# 				item_dict[item_code]["qty"] += qty 
+	# 			else:
+	# 				item_dict[item_code] = {
+	# 					"item_code": item_code,
+	# 					"qty": qty,
+	# 					"from_warehouse": from_warehouse
+	# 				}
+
+	# 	for item in item_dict.values():
+	# 		stock_entry_item = stock_entry.append("items", {})
+	# 		stock_entry_item.item_code = item["item_code"]
+	# 		stock_entry_item.qty = item["qty"]
+	# 		stock_entry_item.s_warehouse = item["from_warehouse"]
+
+	# 	stock_entry.save(ignore_permissions = True)
+	# 	return stock_entry.name
+
+	# except Exception as e:
+	# 	frappe.log_error(f"Error in make_stock_entry: {str(e)}", "make_stock_entry")
+	# 	frappe.throw(f"Error processing work orders: {str(e)}")
+
+
+
+
+
+
+
+@frappe.whitelist()
+def make__consolidate_stock_entry(work_orders):
+	qty=None
+	target_warehouse=None
+	work_orders = json.loads(work_orders)
+	wo_list = []
+	for wo in work_orders:
+		wo_list.append(wo.get("name"))
+		work_order_id = wo.get("name")
+		purpose = "Manufacture"
+		work_order = frappe.get_doc("Work Order", work_order_id)
+		if not frappe.db.get_value("Warehouse", work_order.wip_warehouse, "is_group"):
+			wip_warehouse = work_order.wip_warehouse
+		else:
+			wip_warehouse = None
+
+		stock_entry = frappe.new_doc("Stock Entry")
+		stock_entry.naming_series = "MAT-STE-.YYYY.-"
+		stock_entry.purpose = purpose
+		stock_entry.work_order = work_order_id
+		stock_entry.company = work_order.company
+		stock_entry.from_bom = 1
+		stock_entry.bom_no = work_order.bom_no
+		stock_entry.use_multi_level_bom = work_order.use_multi_level_bom
+		# accept 0 qty as well
+		stock_entry.fg_completed_qty = (
+			qty if qty is not None else (flt(work_order.qty) - flt(work_order.produced_qty))
+		)
+
+		if work_order.bom_no:
+			stock_entry.inspection_required = frappe.db.get_value("BOM", work_order.bom_no, "inspection_required")
+
+		if purpose == "Material Transfer for Manufacture":
+			stock_entry.to_warehouse = wip_warehouse
+			stock_entry.project = work_order.project
+		else:
+			stock_entry.from_warehouse = wip_warehouse
+			stock_entry.to_warehouse = work_order.fg_warehouse
+			stock_entry.project = work_order.project
+
+		if purpose == "Disassemble":
+			stock_entry.from_warehouse = work_order.fg_warehouse
+			stock_entry.to_warehouse = target_warehouse or work_order.source_warehouse
+
+		stock_entry.set_stock_entry_type()
+		stock_entry.get_items()
+
+		if purpose != "Disassemble":
+			stock_entry.set_serial_no_batch_for_finished_good()
+
+		stock_entry.as_dict()
+		stock_entry.save(ignore_permissions = True)
+	
+
+
+
+#<-----------this code is create the stock entry seperate for based on work order.--------------------->
+@frappe.whitelist(allow_guest=True)
+def make_stock_entry(work_orders):
+	try:
+		if not work_orders:
+			frappe.throw("No work orders provided")
+		
+		if not work_orders:
+			frappe.throw("Invalid work orders data")
+
+		
+		wo_doc = frappe.get_doc("Work Order", work_orders)
+		qty=None
+		if wo_doc.status == "Not Started":
+			wo_doc.update_status(status="In Progress")
+			stock_entry = frappe.new_doc("Stock Entry")
+			stock_entry.stock_entry_type = "Material Transfer for Manufacture"
+			stock_entry.work_order = wo_doc.name
+			stock_entry.to_warehouse = wo_doc.wip_warehouse
+			stock_entry.custom_permitted = True
+			stock_entry.db_set("from_bom", 1)
+			stock_entry.db_set("bom_no", wo_doc.bom_no)
+			stock_entry.use_multi_level_bom = wo_doc.use_multi_level_bom
+
+			stock_entry.fg_completed_qty = (
+				qty if qty is not None else (flt(wo_doc.qty) - flt(wo_doc.produced_qty))
+			)
+			if not frappe.db.get_value("Warehouse", wo_doc.wip_warehouse, "is_group"):
+				wip_warehouse = wo_doc.wip_warehouse
+			else:
+				wip_warehouse = None
+
+			if wo_doc.bom_no:
+				stock_entry.inspection_required = frappe.db.get_value("BOM", wo_doc.bom_no, "inspection_required")
+
+			if stock_entry.stock_entry_type == "Material Transfer for Manufacture":
+				stock_entry.db_set("to_warehouse",wip_warehouse)
+				stock_entry.db_set("project",wo_doc.project)
+
+			# stock_entry.set_stock_entry_type()
+			# stock_entry.get_items()
+
+			# if purpose != "Disassemble":
+			# 	stock_entry.set_serial_no_batch_for_finished_good()
+
+
+			items = []
+			for item in wo_doc.required_items:
+				items.append({
+					"item_code": item.item_code,
+					"qty": item.required_qty,
+					"from_warehouse": item.source_warehouse,
+					"target_warehouse": wo_doc.fg_warehouse})
+
+			for item in items:
+				warehouse = frappe.db.get_value("Warehouse", item['from_warehouse'])
+				if not warehouse:
+					frappe.throw(f"Warehouse {item['from_warehouse']} does not exist for item {item['item_code']}")
+
+				stock_entry_item = stock_entry.append('items', {})
+				stock_entry_item.item_code = item['item_code']
+				stock_entry_item.qty = item['qty']
+				stock_entry_item.s_warehouse = item['from_warehouse']
+				
+				# stock_entry_item.t_warehouse = item['target_warehouse']
+
+			stock_entry.save()
+			# wo_doc.db_set("status", "In Process")
+			# wo_doc.save()
+			# stock_entry.submit()
+
+		return "Success"
+
+	except json.JSONDecodeError as e:
+		frappe.log_error(f"JSON Decode Error: {e}", "make_stock_entry")
+		frappe.throw(f"Error processing work orders: {str(e)}")
+
+
+def update_stock_entry(self,method):
+	if self.stock_entry_type == "Material Transfer for Manufacture":
+		doc = frappe.get_doc("Work Order", {"name":self.work_order})
+		doc.db_set("status","In Process")
+		doc.save()
+
+
+@frappe.whitelist()
+def submit_stock_entry(selected_docs):
+	selected_docs = json.loads(selected_docs)
+	for documents in selected_docs:
+		doc = frappe.get_doc("Stock Entry",documents.get("name"))
+		doc.submit()
+		frappe.msgprint("Stock Entry Submitted Successfully ",doc.name)
+
+		
+@frappe.whitelist()
+def make_stock_entry_production(name):
+	get_data = frappe.get_doc("Production Plan", name)
+	
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Manufacture"
+	doc.naming_series = "MAT-MF-.YYYY.-."
+	doc.posting_date = today()
+	doc.rfse = "Stock Transfer"
+	doc.custom_linked_production_plan = name
+
+	finished_good_added = False
+	item_dict = {}
+
+	for data in get_data.po_items:
+		item_code = data.item_code
+		qty = data.planned_qty
+		target_warehouse = data.warehouse
+		uom = data.stock_uom
+
+		is_finished_item = not finished_good_added
+		if is_finished_item:
+			finished_good_added = True
+
+		if item_code in item_dict:
+			item_dict[item_code]["qty"] += qty 
+		else:
+			item_dict[item_code] = {
+				"item_code": item_code,
+				"uom": uom,
+				"t_warehouse": "Navya Store Office - NAVYA",
+				"qty": qty,
+				"is_finished_item": is_finished_item
+			}
+
+	for raw in get_data.mr_items:
+		item_code = raw.item_code
+		qty = raw.quantity
+		source_warehouse = raw.warehouse
+
+		if item_code in item_dict:
+			item_dict[item_code]["qty"] += qty  
+		else:
+			item_dict[item_code] = {
+				"item_code": item_code,
+				"s_warehouse": "Sujeet Ji WIP - NAVYA",
+				"qty": qty
+			}
+
+	for item in item_dict.values():
+		doc.append("items", item)
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+
+	return doc.name
+
+@frappe.whitelist()
+def make_stock_entry_from_material_request(name):
+	get_data = frappe.get_doc("Material Request",name)
+	
+	if get_data.material_request_type == "Manufacture":
+		doc = frappe.new_doc("Stock Entry")
+		doc.stock_entry_type = "Manufacture"
+		doc.posting_date = today()
+		doc.rfse = "Stock Transfer"
+		doc.custom_material_request = name
+
+		finished_good_added = False
+		for data in get_data.items:
+			item_code = data.item_code
+			qty = data.qty
+			target_warehouse = data.warehouse
+			uom = data.uom
+			
+			is_finished_item = not finished_good_added
+			if is_finished_item:
+				finished_good_added = True
+			
+			doc.append("items",{
+				"item_code":item_code,
+				"uom":uom,
+				"t_warehouse":target_warehouse,
+				"qty":qty,
+				"is_finished_item": is_finished_item,
+			})
+
+		doc.save(ignore_permissions = True)
+		frappe.msgprint("Stock Entry Created.",doc.name)
+		return doc.name
+
+@frappe.whitelist()
+def create_stock_entry_from_poduction(name,source_warehouse,target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Material Transfer for Manufacture"
+	doc.naming_series = "MAT-MTFM-.YYYY.-.####"
+	doc.posting_date = today()
+	doc.custom_linked_production_plan = name
+	for data in get_data.mr_items:
+		doc.append("items",{
+			"item_code" : data.item_code,
+			"s_warehouse" : source_warehouse,
+			"t_warehouse" : target_warehouse,
+			"qty" : data.quantity,
+		})
+
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+	return doc.name
+
+@frappe.whitelist()
+def create_stock_entry_from_poduction_mat_transf(name,source_warehouse,target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Material Transfer"
+	doc.naming_series = "MAT-MT-.YYYY.-.####"
+	doc.posting_date = today()
+	doc.custom_linked_production_plan = name
+	for data in get_data.mr_items:
+		doc.append("items",{
+			"item_code" : data.item_code,
+			"s_warehouse" : source_warehouse,
+			"t_warehouse" : target_warehouse,
+			"qty" : data.quantity,
+		})
+
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+	return doc.name
+
+
+@frappe.whitelist()
+def create_sub_asmb_stock_entry_from_poduction(name,source_warehouse,target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Material Transfer for Manufacture"
+	doc.naming_series = "MAT-MTFM-.YYYY.-.####"
+	doc.posting_date = today()
+	doc.custom_linked_production_plan = name
+	for data in get_data.sub_assembly_items:
+		doc.append("items",{
+			"item_code" : data.production_item,
+			"s_warehouse" : source_warehouse,
+			"t_warehouse" : target_warehouse,
+			"qty" : data.qty,
+		})
+
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+	return doc.name
+
+	
+@frappe.whitelist()
+def create_sub_asmb_stock_entry_from_poduction_mat_transf(name,source_warehouse,target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Material Transfer"
+	doc.naming_series = "MAT-MT-.YYYY.-.####"
+	doc.posting_date = today()
+	doc.custom_linked_production_plan = name
+	for data in get_data.sub_assembly_items:
+		doc.append("items",{
+			"item_code" : data.production_item,
+			"s_warehouse" : source_warehouse,
+			"t_warehouse" : target_warehouse,
+			"qty" : data.qty,
+		})
+
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+	return doc.name
+
+
+
+@frappe.whitelist()
+def create_sub_asmb_stock_entry_from_poduction_manufacturing(name,target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+	doc = frappe.new_doc("Stock Entry")
+	doc.stock_entry_type = "Manufacture"
+	doc.naming_series = "MAT-MF-.YYYY.-.####"
+	doc.posting_date = today()
+	doc.custom_linked_production_plan = name
+
+
+	finished_good_added = False
+	for data in get_data.sub_assembly_items:
+		item_code = data.production_item
+		qty = data.qty
+		uom = data.uom
+		
+		is_finished_item = not finished_good_added
+		if is_finished_item:
+			finished_good_added = True
+				
+		doc.append("items",{
+			"item_code":item_code,
+			"uom":uom,
+			"t_warehouse":target_warehouse,
+			"qty":qty,
+			"is_finished_item": is_finished_item,
+		})
+
+
+	doc.save(ignore_permissions=True)
+	frappe.msgprint(f"Stock Entry {doc.name} Created.")
+	return doc.name
+
+
+@frappe.whitelist()
+def create_poduction_asmb_stock_entry_manufacturing(name, source_warehouse, target_warehouse):
+	get_data = frappe.get_doc("Production Plan", name)
+
+	if not get_data.po_items:
+		frappe.throw("No PO Items found in Production Plan.")
+
+	for po_item in get_data.po_items:
+		base_code = po_item.item_code
+		qty = po_item.planned_qty
+		uom = po_item.stock_uom
+
+		doc = frappe.new_doc("Stock Entry")
+		doc.stock_entry_type = "Manufacture"
+		doc.posting_date = today()
+		doc.rfse = "Stock Transfer"
+		doc.naming_series = "MAT-MF-.YYYY.-."
+		doc.custom_linked_production_plan = name
+
+		doc.append("items", {
+			"item_code": base_code,
+			"uom": uom,
+			"t_warehouse": target_warehouse,
+			"qty": qty,
+			"is_finished_item": 1
+		})
+
+		for sub in get_data.sub_assembly_items:
+			if sub.production_item.startswith(base_code):
+				doc.append("items", {
+					"item_code": sub.production_item,
+					"s_warehouse": source_warehouse,
+					"qty": sub.qty
+				})
+
+		doc.save(ignore_permissions=True)
+		frappe.msgprint(f"Stock Entry {doc.name} Created for {base_code}")

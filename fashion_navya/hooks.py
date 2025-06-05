@@ -82,10 +82,12 @@ doctype_calendar_js ={
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-#	"methods": "fashion_navya.utils.jinja_methods",
-#	"filters": "fashion_navya.utils.jinja_filters"
-# }
+jinja = {
+	"methods": ["fashion_navya.utils.jinja_methods.production_plan.get_grouped_items",
+             "fashion_navya.utils.jinja_methods.production_plan.consolidate_items",
+             "fashion_navya.utils.jinja_methods.material_request.get_grouped_mr_items"],
+	# "filters": "fashion_navya.utils.jinja_filters"
+}
 
 # Installation
 # ------------
@@ -120,9 +122,8 @@ doctype_calendar_js ={
 # DocType Class
 # ---------------
 # Override standard doctype classes
-
+#/home/frappe/frappe-live/apps/fashion_navya/fashion_navya/utils/overides/itemprice.py
 # override_doctype_class = {
-#	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
 # Document Events
@@ -136,7 +137,7 @@ doc_events = {
                "on_cancel":["fashion_navya.utils.doc_event.item.update_item"],
                "before_insert":["fashion_navya.utils.doc_event.transit.check_transit_entry"],
                "on_update":["fashion_navya.utils.doc_event.production.custom_update_linked_production_plan"],
-               "on_submit":["fashion_navya.utils.doc_event.wo.se_check_incharge_before_receive","fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target"],
+               "on_submit":["fashion_navya.utils.doc_event.wo.se_check_incharge_before_receive","fashion_navya.utils.doc_event.wo.fetch_status_in_wo","fashion_navya.utils.doc_event.item.update_item","fashion_navya.utils.doc_event.stock.set_val_rate_item","fashion_navya.utils.doc_event.stock.create_tag_m","fashion_navya.utils.doc_event.stock.throw_error_se","fashion_navya.utils.perm.perm.check_stock_warehouse_target","fashion_navya.utils.doc_event.wo.update_stock_entry"],
 	},
     "POS Invoice":{
             "after_insert":["fashion_navya.utils.doc_event.pos.check_for_sample","fashion_navya.utils.doc_event.pos.check_discount","fashion_navya.utils.doc_event.reserv.reserve_stock_pos","fashion_navya.utils.overides.pos.set_warehouse_split_qty"],
@@ -151,9 +152,9 @@ doc_events = {
     "Stock Ledger Entry":{
         #"validate":["fashion_navya.utils.doc_event.item.custom_title_fields"],
     },
-    "Subcontracting Order":{
-        "validate":["fashion_navya.utils.doc_event.suborder.only_take_kit_item"],
-    },
+    # "Subcontracting Order":{
+    #     "validate":["fashion_navya.utils.doc_event.suborder.only_take_kit_item"],
+    # },
     "Work Order":{
         "autoname":["fashion_navya.utils.doc_event.wo.autoname_wo_custom"],
         "validate":["fashion_navya.utils.doc_event.wo.set_kit_group","fashion_navya.utils.doc_event.wo.replace_items_wo","fashion_navya.utils.doc_event.api_2.set_so_mr","fashion_navya.utils.doc_event.wo.fetch_attributes_so"],
@@ -200,6 +201,9 @@ doc_events = {
 	"Timesheet":{
 		"after_insert":["fashion_navya.utils.doc_event.jc.se_check_all","fashion_navya.utils.doc_event.timesheet.job_card","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
                 "before_submit":["fashion_navya.utils.doc_event.timesheet.check_hours_diff","fashion_navya.utils.doc_event.timesheet.office_time_start_end"],
+                #"before_insert":["fashion_navya.utils.doc_event.api_4.validate_overtime"],
+
+
 
 },
         "Payment Imprest":{
@@ -259,6 +263,7 @@ doc_events = {
                     },
             "Subcontracting Order":{
                 #"before_submit":["fashion_navya.utils.doc_event.sub.fetch_work_order"],
+                "validate":["fashion_navya.utils.doc_event.suborder.only_take_kit_item"],
                 "before_save":["fashion_navya.utils.doc_event.api_2.get_wo_sub"],
                 "on_update":["fashion_navya.utils.doc_event.sub.update_subcontracting_order_and_total"],
                 "after_insert":["fashion_navya.utils.doc_event.sub.update_subcontracting_order_item"],
@@ -469,6 +474,7 @@ override_doctype_class = {
     "BOM Creator":"fashion_navya.utils.overides.bomc.CustomBOMCreator",
     "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
     "Asset":["fashion_navya.utils.overides.override_asset.CustomAsset"],
+    # "Item Price": "fashion_navya.utils.overrides.itemprice.CustomItemPrice"
 
 }
 

@@ -9,7 +9,6 @@
   }
  ],
  "creation": "2023-07-31 16:15:24.005417",
- "disable_prepared_report": 0,
  "disabled": 1,
  "docstatus": 0,
  "doctype": "Report",
@@ -17,8 +16,9 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
- "modified": "2023-09-20 14:36:54.120699",
- "modified_by": "pawasthy11@gmail.com",
+ "letterhead": null,
+ "modified": "2025-01-26 00:45:04.869881",
+ "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Query ToDo Report",
  "owner": "pawasthy11@gmail.com",
@@ -41,5 +41,6 @@
   {
    "role": "Sales Executive"
   }
- ]
+ ],
+ "timeout": 0
 }

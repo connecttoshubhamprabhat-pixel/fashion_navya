@@ -266,6 +266,7 @@ def add_item_mr(values=None,items=None):
     items=json.loads(items)
     get_mr=values.get("mr")
     doc=frappe.get_doc("Material Request",get_mr)
+    req = datetime.now().date()
     if items:
         for i in items:
             item_doc=frappe.get_doc("Item",i.get("name"))
@@ -274,6 +275,7 @@ def add_item_mr(values=None,items=None):
             row.item_name=item_doc.item_name
             row.uom=item_doc.stock_uom
             row.qty=1
+            row.schedule_date = req
 
         doc.save()
         frappe.msgprint("Updated")
@@ -569,25 +571,68 @@ def make_print_tag(items=None):
         doc.save()
         frappe.msgprint("created")
 
-
-
 @frappe.whitelist()
-def make_print_cata(items=None):
+def make_print_data_asset(items=None):
     items=json.loads(items)
     if items:
         d={"doctype":"Catalogue"}
         doc=frappe.get_doc(d)
         images=[]
         for i in items:
-            itemdoc=frappe.get_doc("Item",i.get("name"))
+            itemdoc=frappe.get_doc("Asset",i.get("name"))
             if itemdoc.image not in images:
                 row = doc.append("items", {})
                 row.item_code=i.get("name")
+                row.image = itemdoc.image
                 images.append(itemdoc.image)
 
         doc.save()
         frappe.msgprint("created")
 
+# @frappe.whitelist()
+# def make_print_cata(items=None):
+#     items=json.loads(items)
+#     if items:
+#         d={"doctype":"Catalogue"}
+#         doc=frappe.get_doc(d)
+#         images=[]
+#         for i in items:
+#             itemdoc=frappe.get_doc("Item",i.get("name"))
+#             if itemdoc.image not in images:
+#                 row = doc.append("items", {})
+#                 row.item_code=i.get("name")
+#                 images.append(itemdoc.image)
+
+#         doc.subject = 'Automated'
+#         doc.save()
+#         frappe.msgprint("created")
+@frappe.whitelist()
+def make_print_cata(items=None):
+    items = json.loads(items)
+    # print("items----------------->",items)
+    if items:
+        d = {"doctype": "Catalogue"}
+        doc = frappe.get_doc(d)
+        images = []
+
+        for i in items:
+            itemdoc = frappe.get_doc("Item", i.get("name"))
+
+            if itemdoc.image not in images:
+                row = doc.append("items", {})
+                row.item_code = i.get("name")
+                images.append(itemdoc.image)
+
+                bins = frappe.get_all("Bin", filters={"item_code": i.get("name"), "actual_qty": [">", 0]},
+                                      fields=["warehouse", "actual_qty"])
+
+                bin_text = ", ".join([f"{bin['warehouse']}: {bin['actual_qty']}" for bin in bins])
+
+                row.bins = bin_text
+
+        # doc.subject = 'Automated'
+        doc.save()
+        frappe.msgprint("Catalogue created successfully")
 
 @frappe.whitelist()
 def fetch_net_stock(doc,method):
@@ -828,3 +873,33 @@ def set_warehouse_wo(doc, method):
         if not itemdoc.variant_of:
             doc.set("wip_warehouse", "Semi Finished Sampling Unit - NAVYA")
             doc.set("fg_warehouse", default_fg_warehouse)
+
+
+
+
+
+
+@frappe.whitelist()
+def add_to_catalogue(items, catalogue):
+    import json
+
+    if isinstance(items, str):
+        items = json.loads(items)
+
+    if not items or not catalogue:
+        frappe.throw(_("Items or Catalogue cannot be empty."))
+
+    if frappe.db.exists("Catalogue", {"name": catalogue}):
+        cat_doc = frappe.get_doc("Catalogue", catalogue)
+
+        for item_code in items:
+            cat_doc.append("items", {"item_code": item_code})
+
+        cat_doc.save(ignore_permissions=True)
+
+        frappe.db.commit()
+
+        frappe.msgprint(_("Items successfully added to catalogue {0}").format(catalogue))
+    else:
+        frappe.throw(_("Catalogue {0} does not exist.").format(catalogue))
+

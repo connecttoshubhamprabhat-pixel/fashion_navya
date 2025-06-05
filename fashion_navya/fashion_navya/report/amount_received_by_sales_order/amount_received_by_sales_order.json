@@ -2,16 +2,16 @@
  "add_total_row": 1,
  "columns": [],
  "creation": "2023-09-20 16:12:20.970370",
- "disable_prepared_report": 0,
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 0,
+ "idx": 1,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
- "modified": "2023-09-20 16:13:28.010023",
- "modified_by": "pawasthy11@gmail.com",
+ "letterhead": null,
+ "modified": "2025-01-26 00:45:04.431271",
+ "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Amount received by Sales Order",
  "owner": "pawasthy11@gmail.com",
@@ -59,5 +59,6 @@
   {
    "role": "Projects User"
   }
- ]
+ ],
+ "timeout": 0
 }

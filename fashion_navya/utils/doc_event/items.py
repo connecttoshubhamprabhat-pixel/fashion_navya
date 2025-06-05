@@ -72,6 +72,7 @@ def create_item_customer(items=None,values=None,so=None,customer=None,rate=None)
     items=json.loads(items)
     #frappe.throw("aa")
     rates=json.loads(rate)
+    print("rates----------------------",rates)
     rate=rates[0]
 
     values=json.loads(values)
@@ -264,6 +265,7 @@ def make_MTM_item(items=None,so=None,size=None,customer=None,type=None,rate=0):
         n=frappe.get_doc(d)
         row =n.append("customer_list", {})
         row.customer=customer
+        n.append("item_defaults",{})
         n.save(ignore_permissions=True)
         n_name_new=name_set+"-"+customer
         n.db_set("description",des, update_modified=False)

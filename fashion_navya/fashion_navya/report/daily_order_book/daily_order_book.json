@@ -6,12 +6,12 @@
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 0,
+ "idx": 3,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
  "letterhead": null,
- "modified": "2024-05-21 18:41:44.171727",
- "modified_by": "pawasthy11@gmail.com",
+ "modified": "2025-01-26 00:44:58.298555",
+ "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Daily Order Book",
  "owner": "pawasthy11@gmail.com",
@@ -44,5 +44,6 @@
   {
    "role": "Sales Order Read"
   }
- ]
+ ],
+ "timeout": 0
 }

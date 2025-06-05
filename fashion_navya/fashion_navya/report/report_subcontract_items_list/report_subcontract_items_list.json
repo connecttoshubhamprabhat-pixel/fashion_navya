@@ -2,16 +2,16 @@
  "add_total_row": 1,
  "columns": [],
  "creation": "2023-07-07 15:51:30.277375",
- "disable_prepared_report": 0,
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 0,
+ "idx": 2,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
- "modified": "2023-07-07 15:51:45.085735",
- "modified_by": "pawasthy11@gmail.com",
+ "letterhead": null,
+ "modified": "2025-01-26 00:45:02.517207",
+ "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Report Subcontract Items List",
  "owner": "pawasthy11@gmail.com",
@@ -33,5 +33,6 @@
   {
    "role": "Supplier"
   }
- ]
+ ],
+ "timeout": 0
 }

@@ -287,6 +287,14 @@ def automated_plan_without_so():
 				            {"material_request": data.name, "material_request_date": data.transaction_date},
 			)
 
+	project = None
+	for pr in pending_mr:
+		mr = frappe.get_doc("Material Request", pr.get("name"))
+		if mr.project:
+			project = mr.project
+		break
+
+	doc.project = project
 	doc_dict=doc.as_dict()
 	get_mr_items_custom(doc)
 	get_sub_assembly_items(doc, manufacturing_type=None)
@@ -1172,6 +1180,7 @@ def make_subcontracted_purchase_order_custom(self, subcontracted_po, purchase_or
 
 @frappe.whitelist()
 def make_stock_entry(source_name, target_doc=None):
+	pro_plan = frappe.get_value("Pick List", source_name, "custom_production_plan")
 	doc = get_mapped_doc(
 		"Pick List",
 		source_name,
@@ -1190,6 +1199,5 @@ def make_stock_entry(source_name, target_doc=None):
 		target_doc,
 	)
 
-
-
+	doc.custom_linked_production_plan = pro_plan
 	return doc

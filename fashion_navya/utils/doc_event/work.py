@@ -157,12 +157,23 @@ def submit_js(name=None):
 				# r = jdoc.append("employee", {})
 				# r.employee="HR-EMP-00009"
 				
+				from_time = None
+				to_time = None
+				for scheduled_time in jdoc.scheduled_time_logs:
+					from_time = scheduled_time.from_time
+					to_time = scheduled_time.to_time
+					# scheduled_time.completed_qty = jdoc.for_quantity
+
 
 				row= jdoc.append("time_logs", {})
-				row.from_time="2023-06-16 13:17:00"
-				row.to_time="2023-06-16 13:19:04"
-				row.employee="HR-EMP-00009"
-				row.completed_qty=1
+				# row.from_time="2023-06-16 13:17:00"
+				# row.to_time="2023-06-16 13:19:04"
+				row.from_time = from_time
+				row.to_time = to_time
+
+				row.employee="HR-EMP-00001"
+				row.completed_qty= jdoc.for_quantity
+				# row.completed_qty=1
 				jdoc.submit()
 				frappe.db.commit()
 

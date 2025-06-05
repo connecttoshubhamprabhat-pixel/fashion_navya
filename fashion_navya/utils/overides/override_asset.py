@@ -138,9 +138,11 @@ class CustomAsset(Asset):
 								# "target_location": self.location,
 								"from_location": self.location,
 								"target_location": self.custom_target_location,
+								"custom_no_of_component":self.custom_no_of_component
 								# "to_employee": self.custodian,
 							}
 						]
+				print("assets----------------->",assets)
 
 				asset_movement = frappe.get_doc(
 					{
@@ -154,12 +156,14 @@ class CustomAsset(Asset):
 						"transaction_date": transaction_date,
 						"reference_doctype": reference_doctype,
 						"reference_name": reference_docname,
+						"custom_production_plan": self.custom_production_plan,
+						"custom_project":self.custom_project,
 					}
 				).insert()
 
 				asset_movement.save()
 				#Update Asset's location after submitting Asset Movement
-				frappe.db.set_value("Asset", self.name, "location", self.custom_target_location)
+				# frappe.db.set_value("Asset", self.name, "location", self.custom_target_location)
 
 
 #################################################################################
@@ -206,9 +210,14 @@ def check_ready_stock_items_list_of_from_table(docname):
 												asset.available_for_use_date = now_datetime().date()
 												asset.gross_purchase_amount = 1
 												asset.asset_quantity = 1
+												asset.custom_production_plan = docname
 												# Set default location and custom_target_location
 												default_location = "Sainik Farm"
-												custom_target_location = warehouse_location if warehouse_location != "Sainik Farm" else "Sainik Farm Showroom"
+												# custom_target_location = warehouse_location if warehouse_location != "Sainik Farm" else "Sainik Farm Showroom"
+												if warehouse_location:
+													custom_target_location = warehouse_location if warehouse_location != "Sainik Farm" else "Sainik Farm Showroom"
+												else:
+													custom_target_location = "Sainik Farm Showroom"
 												asset.location = default_location
 												asset.custom_target_location = custom_target_location
 												asset.custom_pattern = pattern_name
@@ -310,3 +319,43 @@ def return_asset(docname):
         return "Error: Failed to create/update assets. Please check error logs for details."
 
 #####################################################################
+
+@frappe.whitelist()
+def create_asset_movement_from_production_plan(production_plan_name):
+	production_plan = frappe.get_doc("Production Plan", production_plan_name)
+
+	asset_movement_doc = frappe.new_doc("Asset Movement")
+	asset_movement_doc.purpose = "Transfer"
+	asset_movement_doc.custom_production_plan = production_plan.name
+
+	for assemb in production_plan.po_items:
+		item_code = assemb.item_code
+
+		pattern_docs = frappe.get_all(
+			"Pattern",
+			filters={"item_code": item_code, "sheet_no": ["in", [2, 4]], "docstatus": 1},
+			fields=["name"]
+		)
+
+		for pattern in pattern_docs:
+			asset_docs = frappe.get_all(
+				"Asset",
+				filters={"custom_pattern": pattern.name},
+				fields=["name", "location", "custom_target_location"]
+			)
+
+			if not asset_docs:
+				frappe.throw(f"Please create Asset for Pattern {pattern.name} and Item {item_code}")
+
+			for asset in asset_docs:
+				asset_movement_doc.append("assets", {
+					"asset": asset.name,
+					"source_location": asset.location,
+					"target_location": asset.custom_target_location
+				})
+
+	if asset_movement_doc.assets:
+		asset_movement_doc.save(ignore_permissions=True)
+		return asset_movement_doc.name
+	else:
+		frappe.throw("No assets found to transfer.")

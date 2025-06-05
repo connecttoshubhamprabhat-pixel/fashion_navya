@@ -6,12 +6,12 @@
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 0,
+ "idx": 1,
  "is_standard": "Yes",
  "letter_head": "N A V Y A",
  "letterhead": null,
- "modified": "2024-04-10 09:15:16.931486",
- "modified_by": "pawasthy11@gmail.com",
+ "modified": "2025-01-26 00:44:59.408764",
+ "modified_by": "Administrator",
  "module": "Fashion Navya",
  "name": "Production Progress Report",
  "owner": "pawasthy11@gmail.com",
@@ -65,5 +65,6 @@
   {
    "role": "Sales Team"
   }
- ]
+ ],
+ "timeout": 0
 }

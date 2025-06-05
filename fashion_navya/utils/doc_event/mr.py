@@ -370,3 +370,16 @@ def before_insert_set_automted_old():
 
 
 
+@frappe.whitelist()
+def bulk_stop_material_requests(material_requests):
+    print(material_requests)
+    material_requests = frappe.parse_json(material_requests)
+    for name in material_requests:
+        print(name)
+        mr = frappe.get_doc("Material Request", name)
+        print(mr)
+        if mr.docstatus == 1 and mr.status != "Stopped":
+            print(mr.status)
+            mr.update_status("Stopped")
+        # mr.save()
+    return 'done'

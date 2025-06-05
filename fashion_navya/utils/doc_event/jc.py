@@ -14,6 +14,13 @@ def se_check_all(doc,method):
 def se_check_all_jc(doc,method):
 	if doc.work_order and not doc.get("__islocal"):
 		get_se=frappe.db.sql("""select name from `tabStock Entry` where docstatus=1 and work_order='{}' and stock_entry_type="Material Transfer for Manufacture"   """.format(doc.work_order),as_dict=1)
+		# get_se = frappe.db.sql(f"""
+		# SELECT se.name 
+		# FROM `tabStock Entry` se 
+		# JOIN `tabWork Order link` wol ON wol.parent = se.name
+		# WHERE se.docstatus = 1 
+		# AND (wol.work_order in ('{doc.work_order}') or se.work_order = '{doc.work_order}')					 
+		# """,as_dict = 1)
 		if len(get_se)==0:
 			frappe.throw("""Stock Entry is not submitted   """)
 

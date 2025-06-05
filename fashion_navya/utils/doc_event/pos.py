@@ -17,8 +17,9 @@ def check_discount(doc,method):
 
 @frappe.whitelist()
 def check_for_sample(doc,method):
-	if doc.items:
-		for i in doc.items:
-			item=frappe.get_doc("Item",i.item_code)
-			if item.item_group=="Sample":
-				frappe.throw("Sample is not for Sale")
+    if doc.items:
+        for i in doc.items:
+            item=frappe.get_doc("Item",i.item_code)
+            if item.item_group=="Sample" and item.custom_allow_sale_of_sample == 1:
+                return False
+				# frappe.throw("Sample is not for Sale")

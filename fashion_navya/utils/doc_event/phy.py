@@ -107,19 +107,20 @@ def get_items_new(warehouse=None,item_group=None,project=None,max='0',min='0'):
 				item=m['item_code']
 				if frappe.db.exists("Item",item):
 					doc=frappe.get_doc("Item",item)
-					if item_group or project:
-						if item_group and not project:
-							if item_group==doc.item_group:
-								items.append(m['item_code'])
-						
-						if not item_group and project:
-							if project==doc.project:
-								items.append(m['item_code'])
-						if item_group and project:
-							if item_group==doc.item_group and project==doc.project:
-								items.append(m['item_code'])
-					else:
-						items.append(m['item_code'])
+					if doc.disabled == 0:
+						if item_group or project:
+							if item_group and not project:
+								if item_group==doc.item_group:
+									items.append(m['item_code'])
+							
+							if not item_group and project:
+								if project==doc.project:
+									items.append(m['item_code'])
+							if item_group and project:
+								if item_group==doc.item_group and project==doc.project:
+									items.append(m['item_code'])
+						else:
+							items.append(m['item_code'])
 						
 	items=list(set(items))
 	items_details=[]

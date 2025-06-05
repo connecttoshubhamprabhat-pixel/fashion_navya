@@ -476,7 +476,7 @@ def make_pick_list_project(items=None,values=None):
     if items:
         for p in items:
             project=p
-            dd={"doctype":"Pick List","parent_warehouse":ws,"purpose":"Material Transfer"}
+            dd={"doctype":"Pick List","parent_warehouse":ws,"purpose":"Material Transfer","custom_is_automated":True}
             dd['custom_project']=p
             pick=frappe.get_doc(dd)
             created=[]

@@ -944,7 +944,7 @@ def make_duplicate_smpl(name=None):
 def color_changes(name=None,values=None):
 	new=frappe.get_doc("BOM Creator",name)
 	values=json.loads(values)
-	size=values.get("size")
+	size=values.get("color")
 	name_split=new.item_code.split("-")
 	print(name_split,'name_split')
 	sizes=[]
@@ -1594,9 +1594,57 @@ def make_bom_cr_prsmpl(items=None):
 
 
 
+# @frappe.whitelist(allow_guest=True)
+# def make_duplicate_prsmpl(name=None):
+# 	old=frappe.get_doc("BOM Creator",name)
+# 	new_bom=frappe.copy_doc(old)
+# 	new_bom.set("custom_old_bomc",old.name)
+# 	new_bom.set("status","Draft")
+# 	pmain_item=old.item_code.split("-")
+# 	for p in range(len(pmain_item)):
+# 		if pmain_item[p]=="PRSMPL":
+# 			pmain_item[p]="SMPL"
+
+# 	pmain_item_join="-".join(pmain_item)
+# 	if frappe.db.exists("Item",pmain_item_join):
+# 		new_bom.set("item_code",pmain_item_join)
+
+# 	if new_bom.items:
+# 		for y in new_bom.items:
+# 			child_item=y.item_code.split("-")
+# 			for h in range(len(child_item)):
+# 				if child_item[h]=="PRSMPL":
+# 					child_item[h]="SMPL"
+# 			child_item_join="-".join(child_item)
+# 			if frappe.db.exists("Item",child_item_join):
+# 				y.set("item_code",child_item_join)
+
+
+# 			child_items=y.fg_item.split("-")
+# 			for q in range(len(child_items)):
+# 				if child_items[q]=="PRSMPL":
+# 					child_items[q]="SMPL"
+# 			child_item_joins="-".join(child_items)
+# 			if frappe.db.exists("Item",child_item_joins):
+# 				y.set("fg_item",child_item_joins)
+
+
+# 	new_bom.insert()
+# 	frappe.msgprint("created")
+
+
 @frappe.whitelist(allow_guest=True)
 def make_duplicate_prsmpl(name=None):
 	old=frappe.get_doc("BOM Creator",name)
+	existing_bom = frappe.db.exists("BOM Creator", {
+		"custom_old_bomc": old.name,
+		"docstatus": 0  
+	})
+
+	if existing_bom:
+		return
+	
+
 	new_bom=frappe.copy_doc(old)
 	new_bom.set("custom_old_bomc",old.name)
 	new_bom.set("status","Draft")

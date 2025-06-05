@@ -4,6 +4,7 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from frappe.utils import flt
+from frappe.utils import now, today
 
 @frappe.whitelist()
 def get_urls_elements(docname):
@@ -214,6 +215,7 @@ def make_pur_est(items=None):
         
         doc.insert()
         frappe.msgprint("Created")
+        return doc.name
 
 
 @frappe.whitelist()
@@ -277,10 +279,11 @@ def real_time_msg_todo(doc,method):
 
 @frappe.whitelist()
 def get_message(doctype=None,name=None,send=None,msg=None):
-    doc=doctype.lower()
-    split_doc=doc.split(" ")
-    join_doc="-".join(split_doc)
-    return 'Assigned by:-({}) <a href="https://erp.navyacustom.com/app/{}/{}" onclick="location.reload()">{}</a>:{}'.format(send,join_doc,name,doctype,msg)
+    if doctype:
+        doc=doctype.lower()
+        split_doc=doc.split(" ")
+        join_doc="-".join(split_doc)
+        return 'Assigned by:-({}) <a href="https://erp.navyacustom.com/app/{}/{}" onclick="location.reload()">{}</a>:{}'.format(send,join_doc,name,doctype,msg)
 
 
 
@@ -410,7 +413,7 @@ def submit_bulk(name):
     doc=frappe.get_doc("Bulk Whatsapp",name)
     doc.submit()
     frappe.db.commit()
-    frpape.msgprint("Wait a minute")
+    frappe.msgprint("Wait a minute")
 
 @frappe.whitelist()
 def get_urls_project(docname):
@@ -686,3 +689,56 @@ def get_price(name):
 @frappe.whitelist()
 def set_address_tax(doc,method):
     pass
+
+
+
+
+
+@frappe.whitelist()
+def validate_overtime(doc, method):
+    
+    # Get current time
+    to_time_now = now()
+    current_time = to_time_now.split(" ")[1]
+    hour, minute = map(int, current_time.split(":"))
+    
+    # Get the current day of the week
+    n = datetime.datetime.now()
+    current_day = n.strftime("%A")
+    
+    
+    # Check for overtime on Sunday or after 7:28 PM on other days
+    if current_day == "Sunday" or (hour == 19 and minute > 28) or (hour > 19) and doc.without_source==0:
+        check_overtime(doc.employee, doc.start_date)
+
+
+@frappe.whitelist()
+def check_overtime(employee=None, start_date=None):
+    
+    today_date = today()
+    user = frappe.session.user
+    
+    
+    if employee and start_date == today_date:
+        # Check if the start_date falls within any Scheduled Planner dates
+         
+        scheduled_date = frappe.db.sql("""
+            SELECT name FROM `tabScheduled Planner` 
+            WHERE %s BETWEEN from_date AND to_date 
+            LIMIT 1
+        """, start_date, as_dict=True)
+        
+        
+        if scheduled_date:
+            # Get the Scheduled Planner document 
+            scheduled_planner = frappe.get_doc("Scheduled Planner", scheduled_date[0]['name'])
+            employee_list = [e.employee for e in scheduled_planner.employee]
+            
+            frappe.logger().debug(f"Employee list for Scheduled Planner: {employee_list}")
+            
+            
+            if employee not in employee_list:
+                frappe.throw("Overtime आपको आज लगाने की अनुमति नहीं है ")
+                
+        else:
+            frappe.throw("Overtime आपको आज लगाने की अनुमति नहीं है ")
