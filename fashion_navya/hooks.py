@@ -356,7 +356,12 @@ doc_events = {
 
                                     },
                                 "Purchase Estimate":{
+                                        "validate":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields",
+                                                    "fashion_navya.utils.doc_event.purchase_estimate.populate_estimate_sheet_prices"],
+                                        "on_update_after_submit":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields"],
+                                        "on_update":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields"],
                                         "before_submit":["fashion_navya.utils.doc_event.purchase_estimate.calculate_total_amount_fields"],
+                                        # "before_insert":["fashion_navya.utils.doc_event.purchase_estimate.fetch_items_from_request_for_quotation_from_event"]
 
                                         },
                                 "Drawing":{

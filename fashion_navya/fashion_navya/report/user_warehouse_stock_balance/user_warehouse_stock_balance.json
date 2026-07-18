@@ -1,0 +1,52 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2026-05-27 15:06:25.366528",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "N A V Y A",
+ "letterhead": null,
+ "modified": "2026-05-27 15:06:25.366528",
+ "modified_by": "Administrator",
+ "module": "Fashion Navya",
+ "name": "User Warehouse Stock Balance",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Stock Ledger Entry",
+ "report_name": "User Warehouse Stock Balance",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Auditor"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Item Supervisor"
+  },
+  {
+   "role": "Purchase Manager"
+  },
+  {
+   "role": "Stock ledger viewer"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}

@@ -23,67 +23,492 @@ def fetch_items_from_request_for_quotation(request_for_quotation):
 ################ Above Script is fecting the item-code and Quantity in the table rows
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############ Final code ###############
+# @frappe.whitelist()
+# def populate_estimate_sheet_prices(docname):
+
+#     from frappe.utils import getdate
+
+#     # =========================================================
+#     # FETCH PURCHASE ESTIMATE
+#     # =========================================================
+
+#     estimate_sheet = frappe.get_doc("Purchase Estimate", docname)
+
+#     # =========================================================
+#     # CHILD TABLE
+#     # =========================================================
+
+#     estimate_sheet_items = estimate_sheet.get("estimate_sheet_item_price")
+
+#     today_date = getdate()
+
+#     for row in estimate_sheet_items:
+
+#         # =====================================================
+#         # PURCHASE RECEIPT PRICE FETCH
+#         # =====================================================
+
+#         purchase_receipt_items = frappe.get_all(
+#             "Purchase Receipt Item",
+#             filters={
+#                 "item_code": row.item_code,
+#                 "uom": row.uom,
+#                 "rate": [">", 0],
+#                 "docstatus": 1
+#             },
+#             fields=[
+#                 "item_code",
+#                 "uom",
+#                 "rate"
+#             ],
+#             order_by="creation DESC"
+#         )
+
+#         if purchase_receipt_items:
+
+#             # =================================================
+#             # LATEST PURCHASE PRICE
+#             # =================================================
+
+#             row.last_purchase_price = purchase_receipt_items[0].rate
+
+#             # =================================================
+#             # LOWEST PURCHASE PRICE
+#             # =================================================
+
+#             lowest_price = min(
+#                 pr_item.rate for pr_item in purchase_receipt_items
+#             )
+
+#             row.lowest_purchase_price = lowest_price
+
+#         else:
+
+#             row.last_purchase_price = 0
+#             row.lowest_purchase_price = 0
+
+#         # =====================================================
+#         # ITEM VALUATION RATE FETCH
+#         # =====================================================
+
+#         valuation_rate = frappe.db.get_value(
+#             "Item",
+#             row.item_code,
+#             "valuation_rate"
+#         )
+
+#         row.valuation_rate = valuation_rate or 0
+
+#         # =====================================================
+#         # ITEM PRICE FETCH
+#         # =====================================================
+
+#         item_prices = frappe.get_all(
+#             "Item Price",
+#             filters={
+#                 "item_code": row.item_code,
+#                 "uom": row.uom,
+#                 "price_list": "Standard buying",
+#                 "currency": "INR"
+#             },
+#             fields=[
+#                 "name",
+#                 "item_code",
+#                 "uom",
+#                 "price_list",
+#                 "currency",
+#                 "price_list_rate",
+#                 "valid_from",
+#                 "valid_upto"
+#             ],
+#             order_by="valid_from DESC"
+#         )
+
+#         valid_price = None
+
+#         for price in item_prices:
+
+#             # =================================================
+#             # SKIP FUTURE VALID_FROM
+#             # =================================================
+
+#             if (
+#                 price.valid_from
+#                 and price.valid_from > today_date
+#             ):
+#                 continue
+
+#             # =================================================
+#             # SKIP EXPIRED VALID_UPTO
+#             # =================================================
+
+#             if (
+#                 price.valid_upto
+#                 and price.valid_upto < today_date
+#             ):
+#                 continue
+
+#             # =================================================
+#             # FIRST VALID RECORD
+#             # =================================================
+
+#             valid_price = price
+#             break
+
+#         # =====================================================
+#         # SET ITEM PRICE
+#         # =====================================================
+
+#         if valid_price:
+#             row.item_price = valid_price.price_list_rate
+#         else:
+#             row.item_price = 0
+
+#     # =========================================================
+#     # SAVE DOCUMENT
+#     # =========================================================
+
+#     estimate_sheet.save(ignore_permissions=True)
+
+#     # return "Prices populated successfully! 1. Latest Purchase Rate, 2. Lowest Purchase Rate, 3. Valuation Rate, 4. Item Price"
+#     return "Prices populated successfully! Updated fields: Latest Purchase Rate, Lowest Purchase Rate, Valuation Rate, and Item Price."
+
+
+
+
+######### Final-2 ##############
+import frappe
+
+
 @frappe.whitelist()
-def populate_estimate_sheet_prices(docname):
-    # Fetching Estimate Sheet document
-    estimate_sheet = frappe.get_doc("Purchase Estimate", docname)
+def populate_estimate_sheet_prices(doc=None, method=None, docname=None):
 
-    # Fetching all Estimate Sheet Items
-    estimate_sheet_items = estimate_sheet.get("estimate_sheet_item_price")
+    from frappe.utils import getdate
 
-    for item in estimate_sheet_items:
-        # Fetching Purchase Order Items for the respective item_code
-        purchase_order_items = frappe.get_all("Purchase Receipt Item",
-                                              filters={"item_code": item.item_code},
-                                              fields=["item_code", "rate"],
-                                              order_by="creation DESC")
+    # =========================================================
+    # HANDLE BUTTON CALL
+    # =========================================================
 
-        if purchase_order_items:
-            # Setting last_purchase_price to the rate of the latest Purchase Order Item
-            item.last_purchase_price = purchase_order_items[0].rate
+    if docname:
 
-            # Finding the lowest_purchase_price
-            lowest_price = min(po_item.rate for po_item in purchase_order_items)
-            item.lowest_purchase_price = lowest_price
+        estimate_sheet = frappe.get_doc(
+            "Purchase Estimate",
+            docname
+        )
 
-    # Saving the changes
-    estimate_sheet.save()
+    # =========================================================
+    # HANDLE DOC EVENT CALL
+    # =========================================================
 
-    # Returning success message
-    return "Prices populated successfully!"
+    else:
+
+        estimate_sheet = doc
+
+    # =========================================================
+    # CHILD TABLE
+    # =========================================================
+
+    estimate_sheet_items = estimate_sheet.get(
+        "estimate_sheet_item_price"
+    )
+
+    today_date = getdate()
+
+    for row in estimate_sheet_items:
+
+        # =====================================================
+        # PURCHASE RECEIPT PRICE FETCH
+        # =====================================================
+
+        purchase_receipt_items = frappe.get_all(
+            "Purchase Receipt Item",
+            filters={
+                "item_code": row.item_code,
+                "uom": row.uom,
+                "rate": [">", 0],
+                "docstatus": 1
+            },
+            fields=[
+                "item_code",
+                "uom",
+                "rate"
+            ],
+            order_by="creation DESC"
+        )
+
+        if purchase_receipt_items:
+
+            # =================================================
+            # LATEST PURCHASE PRICE
+            # =================================================
+
+            row.last_purchase_price = (
+                purchase_receipt_items[0].rate
+            )
+
+            # =================================================
+            # LOWEST PURCHASE PRICE
+            # =================================================
+
+            lowest_price = min(
+                pr_item.rate
+                for pr_item in purchase_receipt_items
+            )
+
+            row.lowest_purchase_price = lowest_price
+
+        else:
+
+            row.last_purchase_price = 0
+            row.lowest_purchase_price = 0
+
+        # =====================================================
+        # ITEM VALUATION RATE FETCH
+        # =====================================================
+
+        valuation_rate = frappe.db.get_value(
+            "Item",
+            row.item_code,
+            "valuation_rate"
+        )
+
+        row.valuation_rate = valuation_rate or 0
+
+        # =====================================================
+        # ITEM PRICE FETCH
+        # =====================================================
+
+        item_prices = frappe.get_all(
+            "Item Price",
+            filters={
+                "item_code": row.item_code,
+                "uom": row.uom,
+                "price_list": "Standard buying",
+                "currency": "INR"
+            },
+            fields=[
+                "name",
+                "item_code",
+                "uom",
+                "price_list",
+                "currency",
+                "price_list_rate",
+                "valid_from",
+                "valid_upto"
+            ],
+            order_by="valid_from DESC"
+        )
+
+        valid_price = None
+
+        for price in item_prices:
+
+            # =================================================
+            # SKIP FUTURE VALID_FROM
+            # =================================================
+
+            if (
+                price.valid_from
+                and price.valid_from > today_date
+            ):
+                continue
+
+            # =================================================
+            # SKIP EXPIRED VALID_UPTO
+            # =================================================
+
+            if (
+                price.valid_upto
+                and price.valid_upto < today_date
+            ):
+                continue
+
+            # =================================================
+            # FIRST VALID RECORD
+            # =================================================
+
+            valid_price = price
+            break
+
+        # =====================================================
+        # SET ITEM PRICE
+        # =====================================================
+
+        if valid_price:
+            row.item_price = (
+                valid_price.price_list_rate
+            )
+        else:
+            row.item_price = 0
+
+    # =========================================================
+    # SAVE ONLY FOR BUTTON CALL
+    # =========================================================
+
+    if docname:
+
+        estimate_sheet.save(
+            ignore_permissions=True
+        )
+
+        return (
+            "Prices populated successfully! "
+            "Updated fields: Latest Purchase Rate, "
+            "Lowest Purchase Rate, Valuation Rate, "
+            "and Item Price."
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def calculate_total_amount_fields(doc, method):
+#     calculate_total_last_purchase_price(doc, method)
+#     calculate_total_lowest_purchase_price(doc, method)
+
+
+# def calculate_total_last_purchase_price(doc, method):
+#     total_last_purchase_price = 0
+
+#     # Iterate over each row in the child table "estimate_sheet_item_price"
+#     for row in doc.estimate_sheet_item_price:
+#         # Calculate subtotal for each row by multiplying last_purchase_price with qty
+#         subtotal = row.last_purchase_price * row.qty
+#         total_last_purchase_price += subtotal
+
+#     # Update the total_last_purchase_price field in the parent document
+#     doc.total_last_purchase_price = total_last_purchase_price
+
+
+
+# def calculate_total_lowest_purchase_price(doc, method):
+#     total_lowest_purchase_price = 0
+
+#     # Iterate over each row in the child table "estimate_sheet_item_price"
+#     for row in doc.estimate_sheet_item_price:
+#         # Calculate subtotal for each row by multiplying lowest_purchase_price with qty
+#         subtotal = row.lowest_purchase_price * row.qty
+#         total_lowest_purchase_price += subtotal
+
+#     # Update the total_lowest_purchase_price field in the parent document
+#     doc.total_lowest_purchase_price = total_lowest_purchase_price
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 def calculate_total_amount_fields(doc, method):
     calculate_total_last_purchase_price(doc, method)
     calculate_total_lowest_purchase_price(doc, method)
+    calculate_total_price_list_amount(doc, method)
+    calculate_total_valuation_rate_amount(doc, method)
 
 
 def calculate_total_last_purchase_price(doc, method):
     total_last_purchase_price = 0
 
-    # Iterate over each row in the child table "estimate_sheet_item_price"
     for row in doc.estimate_sheet_item_price:
-        # Calculate subtotal for each row by multiplying last_purchase_price with qty
-        subtotal = row.last_purchase_price * row.qty
+        subtotal = (row.last_purchase_price or 0) * (row.qty or 0)
         total_last_purchase_price += subtotal
 
-    # Update the total_last_purchase_price field in the parent document
     doc.total_last_purchase_price = total_last_purchase_price
-
 
 
 def calculate_total_lowest_purchase_price(doc, method):
     total_lowest_purchase_price = 0
 
-    # Iterate over each row in the child table "estimate_sheet_item_price"
     for row in doc.estimate_sheet_item_price:
-        # Calculate subtotal for each row by multiplying lowest_purchase_price with qty
-        subtotal = row.lowest_purchase_price * row.qty
+        subtotal = (row.lowest_purchase_price or 0) * (row.qty or 0)
         total_lowest_purchase_price += subtotal
 
-    # Update the total_lowest_purchase_price field in the parent document
     doc.total_lowest_purchase_price = total_lowest_purchase_price
+
+
+def calculate_total_price_list_amount(doc, method):
+    total_price_list_amount = 0
+
+    for row in doc.estimate_sheet_item_price:
+        subtotal = (row.item_price or 0) * (row.qty or 0)
+        total_price_list_amount += subtotal
+
+    doc.total_price_list_amount = total_price_list_amount
+
+
+def calculate_total_valuation_rate_amount(doc, method):
+    total_valuation_rate_amount = 0
+
+    for row in doc.estimate_sheet_item_price:
+        subtotal = (row.valuation_rate or 0) * (row.qty or 0)
+        total_valuation_rate_amount += subtotal
+
+    doc.total_valuation_rate_amount = total_valuation_rate_amount
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -162,32 +587,19 @@ def purchase_invoice(purchase_order_name, target_doc=None):
 
 
 
-# @frappe.whitelist()
-# def create_purchase_order(docname):
-#     doc = frappe.get_doc("Purchase Estimate", docname)
-#     for items in doc.estimate_sheet_item_price:
-#         item_data = frappe.get_doc("Item", {"name":items.item_code})
-#         for data in item_data.item_defaults:
-#             if not data.default_supplier:
-#                 continue
-#             if data.default_supplier:
-#                 exist_doc = frappe.get_doc("Purchase Order",{"supplier":data.default_supplier})
-#                 if exist_doc and exist_doc.supplier == data.default_supplier:
-#                     exist_doc.append("items",{
-#                         "item_code":items.item_code,
-#                         "qty":items.qty,
-#                         })
-#                     exist_doc.save()
-#             new_doc = frappe.new_doc("Purchase Order")
-#             new_doc.schedule_date = date.today()
-#             new_doc.supplier = data.default_supplier
-#             # new_doc.supplier = "Samsudeen Aakil Khan"
-#             new_doc.append("items",{
-#                 "item_code":items.item_code,
-#                 "rate":items.actual_rate,
-#                 "qty":items.qty,
-#             })
-#             new_doc.insert(ignore_permissions=True)
-#             new_doc.save()
-#             new_doc.submit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
