@@ -28,15 +28,6 @@ from erpnext.assets.doctype.asset.depreciation import (
 )
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
-from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
-	cancel_asset_depr_schedules,
-	convert_draft_asset_depr_schedules_into_active,
-	get_asset_depr_schedule_doc,
-	get_depr_schedule,
-	make_draft_asset_depr_schedules,
-	make_draft_asset_depr_schedules_if_not_present,
-	update_draft_asset_depr_schedules,
-)
 # from erpnext.controllers.accounts_controller import Asset
 from erpnext.assets.doctype.asset.asset import Asset
 
