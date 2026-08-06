@@ -66,45 +66,105 @@ def make_ptt_so(old=None,new=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def create_item_customer(items=None,values=None,so=None,customer=None,rate=None):
+def create_item_customer(
+    items=None,
+    values=None,
+    so=None,
+    customer=None,
+    rate=None
+):
     if not customer:
         frappe.throw("Please select customer")
-    items=json.loads(items)
-    #frappe.throw("aa")
-    rates=json.loads(rate)
-    print("rates----------------------",rates)
-    rate=rates[0]
 
-    values=json.loads(values)
-    size_get=values.get("size")
-    type_get=values.get("type")
-    colour=values.get("colour")
-    fabric=values.get("fabric")
-    prints=values.get("prints")
-    handwork=values.get("handwork")
+    # Parse selected Items
+    items = (
+        frappe.parse_json(items)
+        if isinstance(items, str)
+        else items
+    ) or []
 
+    if not items:
+        frappe.throw("Please select at least one Item.")
 
+    # Parse Item rates
+    rates = (
+        frappe.parse_json(rate)
+        if isinstance(rate, str)
+        else rate
+    ) or []
 
-    if type_get=="Customise":
-        print(78)
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints,rate=rate)
-        data=[]
-        data.append(item)
-        data.append("Customise")
-        return data
-    if type_get=="RTW":
-        item=make_rtw_item_so(items=items,so=so,size=size_get,type=type_get,colour=colour,fabric=fabric,handwork=handwork,prints=prints,rate=rate)
-        data=[]
-        data.append(item)
-        data.append("RTW")
-        return data
-    if type_get=="MTM":
-        item=make_MTM_item(items=items,so=so,size=size_get,customer=customer,type=type_get,rate=rate)
-        data=[]
-        data.append(item)
-        data.append("MTM")
-        return data
+    if not isinstance(rates, list):
+        rates = [rates]
 
+    if not rates:
+        frappe.throw("Rate is missing for the selected Item.")
+
+    rate = rates[0]
+
+    # Parse dialog values
+    values = (
+        frappe.parse_json(values)
+        if isinstance(values, str)
+        else values
+    ) or {}
+
+    size_get = values.get("size")
+    type_get = values.get("type")
+    colour = values.get("colour")
+    fabric = values.get("fabric")
+    prints = values.get("prints")
+    handwork = values.get("handwork")
+
+    if not type_get:
+        frappe.throw("Please select Item Type.")
+
+    if not size_get:
+        frappe.throw("Please select Size.")
+
+    if type_get == "Customise":
+        item = make_rtw_item_so(
+            items=items,
+            so=so,
+            size=size_get,
+            type=type_get,
+            colour=colour,
+            fabric=fabric,
+            handwork=handwork,
+            prints=prints,
+            rate=rate
+        )
+
+        return [item, "Customise"]
+
+    elif type_get == "RTW":
+        item = make_rtw_item_so(
+            items=items,
+            so=so,
+            size=size_get,
+            type=type_get,
+            colour=colour,
+            fabric=fabric,
+            handwork=handwork,
+            prints=prints,
+            rate=rate
+        )
+
+        return [item, "RTW"]
+
+    elif type_get == "MTM":
+        item = make_MTM_item(
+            items=items,
+            so=so,
+            size=size_get,
+            customer=customer,
+            type=type_get,
+            rate=rate
+        )
+
+        return [item, "MTM"]
+
+    else:
+        frappe.throw("Invalid Item Type selected.")
 
 
 
