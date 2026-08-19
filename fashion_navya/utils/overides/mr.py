@@ -180,7 +180,7 @@ class CustomProductionPlan(ProductionPlan):
 @frappe.whitelist(allow_guest=True)
 def automated_plan():
 	warehouses_mr=["Purchase Station - NAVYA"]
-	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1,"skip_available_sub_assembly_item": 0,"ignore_existing_ordered_qty": 0}
 	d['custom_production_plan_type']="Sales Order"
 	doc=frappe.get_doc(d)
 	pending_mr=get_pending_material_requests_custom()
@@ -243,7 +243,7 @@ def make_work_order(self):
 
 	wo_list, po_list = [], []
 	subcontracted_po = {}
-	default_warehouses = get_default_warehouse()
+	default_warehouses = get_default_warehouse(self.company)
 
 	self.make_work_order_for_finished_goods(wo_list, default_warehouses)
 	self.make_work_order_for_subassembly_items(wo_list, subcontracted_po, default_warehouses)
@@ -275,7 +275,7 @@ def automated_plan_without_so():
 	warehouses_mr=["Purchase Station - NAVYA"]
 	warehouse_list_mr=[{"warehouse":"Purchase Station - NAVYA"}]
 	dump_Warehoues=json.dumps(warehouse_list_mr)
-	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1}
+	d={"doctype":"Production Plan","get_items_from":"Material Request","custom_automated":1,"skip_available_sub_assembly_item": 0,"ignore_existing_ordered_qty": 0}
 	d['custom_production_plan_type']="Without Sales Order"
 	doc=frappe.get_doc(d)
 	pending_mr=get_pending_material_requests_without_wo()
