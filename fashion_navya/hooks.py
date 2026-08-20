@@ -44,6 +44,7 @@ doctype_js = {
                 "Sales Order":"public/js/custom_script/sales_order.js",
                 "Pattern":"public/js/custom_script/pattern.js",
                 "Payment Entry":"public/js/custom_script/payment_entry.js",
+                "Item Price":"public/js/custom_script/item_price.js",
                 #"Purchase Order":"public/js/custom_script/purchase_order.js",
             }
 
@@ -479,7 +480,7 @@ override_doctype_class = {
     "BOM Creator":"fashion_navya.utils.overides.bomc.CustomBOMCreator",
     "Production Plan":["fashion_navya.utils.overides.mr.CustomProductionPlan"],
     "Asset":["fashion_navya.utils.overides.override_asset.CustomAsset"],
-    # "Item Price": "fashion_navya.utils.overrides.itemprice.CustomItemPrice"
+    "Item Price": "fashion_navya.utils.overides.itemprice.CustomItemPrice",
 
 }
 

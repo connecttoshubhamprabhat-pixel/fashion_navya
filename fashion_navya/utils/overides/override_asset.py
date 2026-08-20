@@ -19,15 +19,6 @@ from frappe.utils import (
 	today,
 )
 
-import erpnext
-from erpnext.accounts.general_ledger import make_reverse_gl_entries
-from erpnext.assets.doctype.asset.depreciation import (
-	get_comma_separated_links,
-	get_depreciation_accounts,
-	get_disposal_account_and_cost_center,
-)
-from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
-from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
 # from erpnext.controllers.accounts_controller import Asset
 from erpnext.assets.doctype.asset.asset import Asset
 
@@ -122,25 +113,24 @@ class CustomAsset(Asset):
 			)
 						transaction_date = get_datetime("{} {}".format(posting_date, posting_time))
 
+				target_location = self.custom_target_location or self.location
 				assets = [
 							{
 								"asset": self.name,
 								"asset_name": self.asset_name,
-								# "target_location": self.location,
-								"from_location": self.location,
-								"target_location": self.custom_target_location,
-								"custom_no_of_component":self.custom_no_of_component
-								# "to_employee": self.custodian,
+								"target_location": target_location,
+								"to_employee": self.custodian,
+								"company": self.company,
+								"custom_no_of_component": self.custom_no_of_component,
 							}
 						]
-				print("assets----------------->",assets)
 
 				asset_movement = frappe.get_doc(
 					{
 						"doctype": "Asset Movement",
 						"assets": assets,
-						"purpose": "Transfer",
-						"target_location": self.custom_target_location,
+						"purpose": "Receipt",
+						"target_location": target_location,
 						"custom_linked_asset_request": self.custom_linked_asset_request,
 						"company": self.company,
 						"pattern": self.custom_pattern,
